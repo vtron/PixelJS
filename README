@@ -1,0 +1,3 @@
+PixelJS is an attempt to write a framework that allows people (initially, me) to easily create HTML5 Canvas/JS applications with OOP, simple graphics math, vectors, etc. It is similiar in spirit to openFrameworks, a C++ creative coding framework. 
+
+PixelJS currently is a work in progress, uncompressed and totally not ready for primetime, but maybe sometime soon will be (hopefully).
