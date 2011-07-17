@@ -3,19 +3,23 @@ if(!Pixel) {
 	if(!px) var px = Pixel;
 }
 
-Pixel.Canvas = new Class({
+Pixel.App = new Class({
 	Extends:Events, 
+	Implements:Pixel.Renderer,
 	
 	element:null,
 	
-	//FPS
-	fps:60,
 	bRunning:true,
 	
-	//Drawing
-	ctx:null,
-	bFill:true,
-	bStroke:false,
+	fps:60,
+	curFPS:0,
+	bShowFPS:false,
+	fpsSamples:[25],
+	curFpsSample:-1,
+	curFps:0,
+	
+	startTime:0,
+	prevTime:0,
 	
 	pos:{
 		x:0,
@@ -29,18 +33,9 @@ Pixel.Canvas = new Class({
 	
 	bPixelDoubling:window.devicePixelRatio >= 2,
 	
-	initialize:function(x,y,width,height) {
-		this.setPos(x,y);
-		this.setSize(width,height);
-		
-		//Get Transformation (iPhone4 vs 3G/3GS)
-		var transform;
-		if(window.devicePixelRatio >= 2) {
-			transform="scale3d(2,2,0) translate3d(" + this.pos.x + "px, " + this.pos.y + "px,0px)";
-		} else {
-			transform="translate3d(0px,0px,0px)";
-		}
-		
+	
+	//-------------------------------------------------------
+	initialize:function() {
 		//Create Canvas
 		this.element = new Element('canvas', {
 			width:this.size.width,
@@ -49,37 +44,66 @@ Pixel.Canvas = new Class({
 				position:"absolute",
 				top:"0px",
 				left:"0px",
-				"-webkit-transform-origin":"0 0 0",
-				"-webkit-transform":transform
+				"-webkit-transform-origin":"0 0 0"
 			}
 		});
+		
+		this.setPos(0,0);
+		this.setSize(50,50);
+		this.setRenderer(Pixel.RENDER_MODE_2D);
+		
+		this.startTime = new Date().getTime();
+		this.prevTime = this.startTime;
 		
 		//Event Listeners
 		$(document.body).addEvent("touchstart", this.touchStartListener.bind(this));
 		$(document.body).addEvent("touchmove", this.touchMovedListener.bind(this));
 		$(document.body).addEvent("touchend",	this.touchEndListener.bind(this));
 		
+		
+		
 		//Get Context
 		this.ctx = this.element.getContext('2d');
+		
+		//Run App Setup
+		if(this.setup != undefined) this.setup();
+		
+		
 	},
+	
 	
 	//-------------------------------------------------------
 	setPos: function(x,y) {
 		this.pos.x	= x;
 		this.pos.y	= y;
+		
+		//Get Transformation (iPhone4 vs 3G/3GS)
+		var transform = "";
+		if(this.bPixelDoubling) {
+			transform ="scale3d(2,2,0) ";
+		}
+		
+		transform += "translate3d(" + this.pos.x + "px, " + this.pos.y + "px,0px)";
+		
+		this.element.setStyle("-webkit-transform",transform);
 	},
 	
 	
 	//-------------------------------------------------------
-	setSize: function(width,height) {
+	setSize: function(width,height, renderer) {
 		this.size.width		= width;
 		this.size.height	= height;
+		
+		this.element.set({
+			width:this.size.width,
+			height:this.size.height
+		});
+		
+		if(renderer != undefined) {
+			this.setRenderer(renderer);
+		}
 	},
 	
-	//-------------------------------------------------------
-	setFPS: function(fps) {
-		this.fps = fps;
-	},
 	
 	//-------------------------------------------------------
 	start: function() {
@@ -99,8 +123,79 @@ Pixel.Canvas = new Class({
 			this.update();
 			this.draw();
 			
+			if(this.bShowFPS) {
+				this.updateFPS();
+				this.drawFPS();
+			}
+			
 			this.run.delay(1000/this.fps, this);
 		}
+	},
+	
+	//-------------------------------------------------------
+	//FPS
+	//-------------------------------------------------------
+	setFPS: function(fps) {
+		this.fps = fps;
+	},
+	
+	
+	//-------------------------------------------------------
+	getFPS: function() {
+		return this.fps;
+	},
+	
+	//-------------------------------------------------------
+	showFPS: function() {
+		//Clear samples
+		for(var i=0;i<this.fpsSamples.length; i++) {
+			this.fpsSamples[i] = 0;
+		}
+		
+		this.bShowFPS = true;
+	},
+	
+	//-------------------------------------------------------
+	hideFPS: function() {
+		this.bShowFPS = false;
+	},
+	
+	
+	//-------------------------------------------------------
+	updateFPS: function() {
+		this.curFpsSample++;
+		if(this.curFpsSample >= this.fpsSamples.length) {
+			this.curFpsSample = 0;
+		}
+		
+		var curTime = this.getElapsedTime();
+		this.fpsSamples[this.curFpsSample] = 1000.0/(curTime - this.prevTime);
+		
+		var avgFps = 0;
+		for(var i=0;i<this.fpsSamples.length; i++) {
+			avgFps += this.fpsSamples[i];
+		}
+		
+		avgFps /= this.fpsSamples.length;
+		
+		this.curFps = avgFps;
+		
+		this.prevTime = curTime;
+	},
+	
+	//-------------------------------------------------------
+	drawFPS: function() {
+		this.setFont("Verdana", 10);
+		
+		this.drawText("FPS: " + this.curFps.toFixed(2), 20, 20);
+	},
+	
+	
+	//-------------------------------------------------------
+	//Time
+	getElapsedTime: function() {
+		var curTime = new Date().getTime();
+		return curTime - this.startTime;
 	},
 	
 	
@@ -118,179 +213,6 @@ Pixel.Canvas = new Class({
 	getHeight: function() {
 		return this.size.height;
 	},
-	
-	
-	
-	//-------------------------------------------------------
-	//COLOR & FILL/STROKE
-	
-	//-------------------------------------------------------
-	clear: function() {
-		this.ctx.clearRect(0,0, this.size.width, this.size.height);
-	},
-	
-	
-	//-------------------------------------------------------
-	setColor:function(r,g,b,a) {
-		r = Math.round(r);
-		g = Math.round(g);
-		b = Math.round(b);
-	
-		//Hex
-		if(g==undefined) {
-			this.ctx.fillStyle		= "rgb(" + r + "," + r + "," + r + ")";
-			this.ctx.strokeStyle	= "rgb(" + r + "," + r + "," + r + ")";
-			return;
-		} 
-		
-		//RGB
-		if(a==undefined) {
-			this.ctx.fillStyle		= "rgb(" + r + "," + g + "," + b + ")";
-			this.ctx.strokeStyle	= "rgb(" + r + "," + g + "," + b + ")";
-			return;
-		} 
-		
-		//RGBA
-		this.ctx.fillStyle		= "rgba(" + r + "," + g + "," + b + "," + a + ")";
-		this.ctx.strokeStyle	= "rgba(" + r + "," + g + "," + b + "," + a + ")";
-	},
-	
-	
-	//-------------------------------------------------------
-	fill: function() {
-		this.bFill = true;
-	},
-	
-	
-	//-------------------------------------------------------
-	noFill: function() {
-		this.bFill = false;
-	},
-	
-	
-	//-------------------------------------------------------
-	stroke: function(size) {
-		this.bStroke = true;
-		this.ctx.lineWidth = size;
-	},
-	
-	
-	//-------------------------------------------------------
-	noStroke: function() {
-		this.bStroke = false;
-	},
-	
-	
-	//-------------------------------------------------------
-	//IMAGE DRAWING
-	drawImage: function(pxImage, x, y) {
-		this.ctx.drawImage(pxImage.image, x, y);
-		//this.ctx.putImageData(pxImage.imageData, x, y);
-	},
-	
-	
-	//-------------------------------------------------------
-	//SHAPE DRAWING
-	
-	//-------------------------------------------------------
-	drawLine: function(x1,y1,x2,y2) {
-		this.ctx.beginPath();
-		this.ctx.moveTo(x1,y1);
-		this.ctx.lineTo(x2,y2);
-		this.ctx.stroke();
-	},
-	
-	
-	//-------------------------------------------------------
-	drawRect: function(x,y,width,height) {
-		if(this.bFill) this.ctx.fillRect(x,y,width,height);
-		if(this.bStroke) this.ctx.strokeRect(x,y,width,height);
-	},
-	
-	
-	//-------------------------------------------------------
-	drawSquare: function(x,y,size) {
-		this.rectangle(x,y,size,size);
-	},
-	
-	
-	//-------------------------------------------------------
-	drawEllipse: function(x,y,width,height) {
-		var kappa = .5522848;
-	      ox = (width / 2) * kappa, // control point offset horizontal
-	      oy = (height / 2) * kappa, // control point offset vertical
-	      xe = x + width,           // x-end
-	      ye = y + height,           // y-end
-	      xm = x + width / 2,       // x-middle
-	      ym = y + height / 2;       // y-middle
-	
-	  this.ctx.beginPath();
-	  this.ctx.moveTo(x, ym);
-	  this.ctx.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-	  this.ctx.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-	  this.ctx.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-	  this.ctx.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-	  this.ctx.closePath();
-	  
-	  if(this.bStroke) this.ctx.stroke();
-	  if(this.bFill) this.ctx.fill();
-	},
-	
-	
-	//-------------------------------------------------------
-	drawCircle: function(x,y,radius) {
-		this.ctx.beginPath();
-		this.ctx.arc(x, y, radius, 0, Math.PI*2,false);
-		
-		if(this.bStroke) this.ctx.stroke();
-	  	if(this.bFill) this.ctx.fill();
-	},
-	
-	
-	
-	//-------------------------------------------------------
-	//TRANSFORMATIONS
-	
-	//-------------------------------------------------------
-	pushMatrix: function() {
-		this.ctx.save();
-	},
-	
-	//-------------------------------------------------------
-	popMatrix: function() {
-		this.ctx.restore();
-	},
-	
-	
-	//-------------------------------------------------------
-	translate: function(x,y) {
-		this.ctx.translate(x,y);
-	},
-	
-	
-	//-------------------------------------------------------
-	scale: function(x,y) {
-		this.ctx.scale(x,y);
-	},
-	
-	
-	//-------------------------------------------------------
-	rotate: function(angle) {
-		this.ctx.rotate(angle);
-	},
-	
-	
-	//-------------------------------------------------------
-	transform: function(m11, m12, m21, m22, dx, dy) {
-		this.ctx.transform(m11, m12, m21, m22, dx, dy);
-	},
-	
-	
-	//-------------------------------------------------------
-	setTransform: function(m11, m12, m21, m22, dx, dy) {
-		this.ctx.setTransform(m11, m12, m21, m22, dx, dy);
-	},
-	
 	
 	
 	//-------------------------------------------------------
