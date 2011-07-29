@@ -34,17 +34,23 @@ Pixel.Rectangle = new Class({
 	
 	//-------------------------------------------------------
 	getPos: function() {
-		return this.pos;
+		return {
+			x:this.x,
+			y:this.y
+		};
 	},
 	
 	//-------------------------------------------------------
 	getSize: function() {
-		return this.size;
+		return {
+			width:this.width,
+			height:this.height
+		}
 	},
 	
 	//-------------------------------------------------------
 	isInside:function(x,y) {
-		return (x > this.pos.x) && (x < this.pos.x + this.size.width) && (y > this.pos.y) && (y < this.pos.y + this.size.height);
+		return (x > this.x) && (x < this.x + this.width) && (y > this.y) && (y < this.y + this.height);
 	}
 });
 
@@ -84,7 +90,6 @@ Pixel.clamp = function(value, lowVal,highVal) {
 //-----------------------------------------------------
 Pixel.dist = function(x1,y1,x2,y2, bSigned) {
 	var dist = Math.sqrt(Math.pow((x2-x1),2) + Math.pow(y2-y1,2));
-	console.log(x1);
 	return bSigned ? dist : Math.abs(dist);
 }
 
