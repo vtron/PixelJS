@@ -6,23 +6,6 @@ if(!Pixel) {
 }
 
 
-
-//Render Modes
-Pixel.RENDER_MODE_2D		= 0;
-Pixel.RENDER_MODE_WEBGL		= 1;
-
-//Font Alignment
-Pixel.TEXT_ALIGN_LEFT	= "left";
-Pixel.TEXT_ALIGN_CENTER = "center";
-Pixel.TEXT_ALIGN_RIGHT	= "right";
-
-//Font Baseline
-Pixel.TEXT_BASELINE_TOP			= "top";
-Pixel.TEXT_BASELINE_HANGING		= "hanging";
-Pixel.TEXT_BASELINE_MIDDLE		= "middle";
-Pixel.TEXT_BASELINE_BOTTOM		= "bottom";
-
-
 Pixel.Renderer2D = new Class({
 	ctx:null,
 	bFill:true,
@@ -93,12 +76,40 @@ Pixel.Renderer2D = new Class({
 	//-------------------------------------------------------
 	//IMAGE DRAWING
 	drawImage: function(pxImage, x, y) {
-		this.ctx.drawImage(pxImage.image, x, y);
+		if(pxImage.isLoaded()) {
+			if(x != undefined && y != undefined) {
+				this.ctx.drawImage(pxImage.image, x, y);
+			} else {
+				this.ctx.drawImage(pxImage.image, pxImage.getPos().x, pxImage.getPos().y);
+			}
+		}	
 	},
 	
 	
 	//-------------------------------------------------------
 	//SHAPE DRAWING
+	
+	//-------------------------------------------------------
+	beginShape:function(x,y) {
+		this.ctx.beginPath();
+		this.ctx.moveTo(x,y);
+	},
+	
+	//-------------------------------------------------------
+	addVertex:function(x,y, bEnd) {
+		this.ctx.lineTo(x,y);
+		
+		if(bEnd != undefined) {
+			this.endShape();
+		}
+	},
+	
+	//-------------------------------------------------------
+	endShape:function(x,y) {
+		this.ctx.closePath();
+		this.ctx.fill();
+	},
+
 	
 	//-------------------------------------------------------
 	drawLine: function(x1,y1,x2,y2) {
