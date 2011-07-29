@@ -14,15 +14,16 @@ Pixel.Renderer = new Class({
 	renderer:null,
 	
 	//-------------------------------------------------------
-	setRenderer: function(rendererType) {
+	setRenderer: function(canvasElement, rendererType) {
 		switch(rendererType) {
 			case Pixel.RENDER_MODE_2D:
-				this.renderer = new Pixel.Renderer2D(this.element);
+				this.renderer = new Pixel.Renderer2D(canvasElement);
 				break;
 			case Pixel.RENDER_MODE_WEBGL:
-				console.log("WebGL Renderer not yet implemented!");
+				Pixel.log("WebGL Renderer not yet implemented!");
 				break;
 			default:
+				Pixel.log("Renderer Type does not exist");
 				break;
 		}
 	},
@@ -73,6 +74,22 @@ Pixel.Renderer = new Class({
 	
 	//-------------------------------------------------------
 	//SHAPE DRAWING
+	
+	//-------------------------------------------------------
+	beginShape:function(x,y) {
+		this.renderer.beginShape(x,y);
+	},
+	
+	//-------------------------------------------------------
+	addVertex:function(x,y, bEnd) {
+		this.renderer.addVertex(x,y, bEnd);
+	},
+	
+	//-------------------------------------------------------
+	endShape:function(x,y) {
+		this.renderer.endShape(x,y);
+	},
+	
 	//-------------------------------------------------------
 	drawLine: function(x1,y1,x2,y2) {
 		this.renderer.drawLine(x1,y1,x2,y2);
