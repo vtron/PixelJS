@@ -3,12 +3,12 @@ if(!Pixel) {
 	if(!px) var px = Pixel;
 }
 
+    
 Pixel.App = new Class({
-	Extends:Events, 
-	Implements:Pixel.Renderer,
+	Extends:Pixel.Canvas,
+	Implements:Events,
 	
-	element:null,
-	
+	bSetup:false,
 	bRunning:true,
 	
 	fps:60,
@@ -21,36 +21,11 @@ Pixel.App = new Class({
 	startTime:0,
 	prevTime:0,
 	
-	pos:{
-		x:0,
-		y:0
-	},
-	
-	size:{
-		width:0,
-		height:0
-	},
-	
-	bPixelDoubling:window.devicePixelRatio >= 2,
-	
 	
 	//-------------------------------------------------------
-	initialize:function() {
-		//Create Canvas
-		this.element = new Element('canvas', {
-			width:this.size.width,
-			height:this.size.height,
-			styles: {
-				position:"absolute",
-				top:"0px",
-				left:"0px",
-				"-webkit-transform-origin":"0 0 0"
-			}
-		});
-		
-		this.setPos(0,0);
-		this.setSize(50,50);
-		this.setRenderer(Pixel.RENDER_MODE_2D);
+	initialize:function(renderMode) {
+		//Default to 2D Renderer
+		this.parent(Pixel.RENDER_MODE_2D);
 		
 		this.startTime = new Date().getTime();
 		this.prevTime = this.startTime;
@@ -59,49 +34,6 @@ Pixel.App = new Class({
 		$(document.body).addEvent("touchstart", this.touchStartListener.bind(this));
 		$(document.body).addEvent("touchmove", this.touchMovedListener.bind(this));
 		$(document.body).addEvent("touchend",	this.touchEndListener.bind(this));
-		
-		
-		
-		//Get Context
-		this.ctx = this.element.getContext('2d');
-		
-		//Run App Setup
-		if(this.setup != undefined) this.setup();
-		
-		
-	},
-	
-	
-	//-------------------------------------------------------
-	setPos: function(x,y) {
-		this.pos.x	= x;
-		this.pos.y	= y;
-		
-		//Get Transformation (iPhone4 vs 3G/3GS)
-		var transform = "";
-		if(this.bPixelDoubling) {
-			transform ="scale3d(2,2,0) ";
-		}
-		
-		transform += "translate3d(" + this.pos.x + "px, " + this.pos.y + "px,0px)";
-		
-		this.element.setStyle("-webkit-transform",transform);
-	},
-	
-	
-	//-------------------------------------------------------
-	setSize: function(width,height, renderer) {
-		this.size.width		= width;
-		this.size.height	= height;
-		
-		this.element.set({
-			width:this.size.width,
-			height:this.size.height
-		});
-		
-		if(renderer != undefined) {
-			this.setRenderer(renderer);
-		}
 	},
 	
 	
@@ -120,6 +52,12 @@ Pixel.App = new Class({
 	//-------------------------------------------------------
 	run: function() {
 		if(this.bRunning) {
+			//Run App Setup if uninitalised
+			if(this.setup != undefined && this.bSetup == false) {
+				this.setup();
+				this.bSetup = true;
+			}
+		
 			this.update();
 			this.draw();
 			
@@ -128,14 +66,15 @@ Pixel.App = new Class({
 				this.drawFPS();
 			}
 			
-			this.run.delay(1000/this.fps, this);
+			
+			window.requestAnimFrame(this.run.bind(this));
 		}
 	},
 	
 	//-------------------------------------------------------
 	//FPS
 	//-------------------------------------------------------
-	setFPS: function(fps) {
+	setFramerate: function(fps) {
 		this.fps = fps;
 	},
 	
@@ -196,22 +135,6 @@ Pixel.App = new Class({
 	getElapsedTime: function() {
 		var curTime = new Date().getTime();
 		return curTime - this.startTime;
-	},
-	
-	
-	
-	//-------------------------------------------------------
-	//Size Info
-	
-	//-------------------------------------------------------
-	getWidth: function() {
-		return this.size.width;
-	},
-	
-	
-	//-------------------------------------------------------
-	getHeight: function() {
-		return this.size.height;
 	},
 	
 	
