@@ -7,6 +7,8 @@ if(!Pixel) {
 //-------------------------------------------------------
 //Image Class
 Pixel.Image = new Class({
+	Extends:Pixel.Object,
+	
 	image:null,
 	
 	canvas:null,
@@ -15,6 +17,7 @@ Pixel.Image = new Class({
 	imageData:null,
 	pixels:null,
 	
+	bAllocated:false,
 	bLoaded:false,
 	size: {
 		width:0,
@@ -23,17 +26,11 @@ Pixel.Image = new Class({
 	
 	
 	//-------------------------------------------------------
-	initialize:function(width, height) {
-		//Get Canvas Ref
-		this.canvas = new Element('canvas');
-		
-		this.ctx = this.canvas.getContext('2d');
-		
-		this.setSize(width,height);
-		
-		this.imageData = this.ctx.getImageData(0,0,this.size.width, this.size.height);
+	initialize:function(url) {
+		if(url != undefined) {
+			this.load(url);
+		}
 	},
-	
 	
 	
 	//-------------------------------------------------------
@@ -45,9 +42,6 @@ Pixel.Image = new Class({
 				this.setSize(this.image.width, this.image.height);
 				
 				//Get Pixels
-				this.ctx.drawImage(this.image, 0,0);
-				this.imageData	= this.ctx.getImageData(0,0,this.size.width, this.size.height)
-				this.pixels		= this.imageData.data;
 				this.bLoaded	= true;
 			}.bind(this),
 			
@@ -56,6 +50,12 @@ Pixel.Image = new Class({
 			}
 		});
 	},
+	
+	
+	//-------------------------------------------------------
+	isLoaded:function() {		return this.bLoaded;
+	},
+	
 	
 	//-------------------------------------------------------
 	clear:function() {
@@ -68,8 +68,14 @@ Pixel.Image = new Class({
 	
 	//-------------------------------------------------------
 	setSize:function(width, height) {
-		this.size.width = width;
-		this.size.height = height;
+		this.parent(width,height);
+		
+		if(this.bAllocated == false) {			
+			//Get Canvas Ref
+			this.canvas = new Element('canvas');
+			this.ctx = this.canvas.getContext('2d');
+			this.imageData = this.ctx.getImageData(0,0,this.getWidth(), this.getHeight());
+		}
 		
 		this.canvas.set({
 			width:this.size.width,
@@ -87,7 +93,13 @@ Pixel.Image = new Class({
 	
 	//-------------------------------------------------------
 	getPixels:function() {
-		return this.bLoaded  ? this.pixels : null;
+		if(this.bLoaded) {			
+			this.ctx.drawImage(this.image, 0,0);
+			this.imageData	= this.ctx.getImageData(0,0,this.size.width, this.size.height)
+			this.pixels		= this.imageData.data;
+			return this.pixels;
+		}
+		return null;
 	},
 	
 	
@@ -121,17 +133,5 @@ Pixel.Image = new Class({
 	//-------------------------------------------------------
 	draw:function(pxCanvas, x, y) {
 		pxCanvas.drawImage(this, x,y);
-	},
-	
-	
-	//-------------------------------------------------------
-	getWidth:function() {
-		return this.size.width;
-	},
-	
-	
-	//-------------------------------------------------------
-	getHeight:function() {
-		return this.size.height
 	}
 });
