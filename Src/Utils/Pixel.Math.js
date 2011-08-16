@@ -16,6 +16,12 @@ Pixel.Rectangle = new Class({
 	
 	//-------------------------------------------------------
 	initialize:function(x,y,width,height) { 
+		this.set(x,y,width,height);
+	},
+	
+	
+	//-------------------------------------------------------
+	set: function(x,y,width,height) {
 		this.setPos(x,y);
 		this.setSize(width,height);
 	},
@@ -90,6 +96,7 @@ Pixel.clamp = function(value, lowVal,highVal) {
 //-----------------------------------------------------
 Pixel.dist = function(x1,y1,x2,y2, bSigned) {
 	var dist = Math.sqrt(Math.pow((x2-x1),2) + Math.pow(y2-y1,2));
+	
 	return bSigned ? dist : Math.abs(dist);
 }
 
