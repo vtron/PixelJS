@@ -12,6 +12,13 @@ Pixel.log = function(message) {
 	console.log("Pixel: " + message)
 }
 
+Pixel.getBrowserName = function() {
+	if((navigator.userAgent.match(/iPhone/i)) || (navigator.userAgent.match(/iPod/i))) {
+		return Pixel.BROWSER_TYPE_IPHONE;
+	} else {
+		return Browser.name;
+	}
+}
 
 //-------------------------------------------------------
 //RequestAnimationFrame finder by Paul Irish
