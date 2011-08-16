@@ -7,10 +7,6 @@ if(!Pixel) {
 
 
 Pixel.Renderer2D = new Class({
-	ctx:null,
-	bFill:true,
-	bStroke:false,
-	
 	initialize:function(canvas) {
 		this.ctx = canvas.getContext('2d');
 	},
@@ -19,6 +15,7 @@ Pixel.Renderer2D = new Class({
 	//-------------------------------------------------------
 	clear: function(x,y,width,height) {
 		this.ctx.clearRect(x,y,width,height);
+		//console.log(width);
 	},
 	
 	
@@ -34,7 +31,7 @@ Pixel.Renderer2D = new Class({
 			this.ctx.strokeStyle	= "rgb(" + r + "," + r + "," + r + ")";
 			return;
 		} 
-		
+			
 		//RGB
 		if(a==undefined) {
 			this.ctx.fillStyle		= "rgb(" + r + "," + g + "," + b + ")";
@@ -119,6 +116,52 @@ Pixel.Renderer2D = new Class({
 		this.ctx.stroke();
 	},
 	
+	//-------------------------------------------------------
+	//Dashed line code from http://davidowens.wordpress.com/2010/09/07/html-5-canvas-and-dashed-lines/
+	dashedLine: function (fromX, fromY, toX, toY, pattern) {
+	// Our growth rate for our line can be one of the following:
+	  //   (+,+), (+,-), (-,+), (-,-)
+	  // Because of this, our algorithm needs to understand if the x-coord and
+	  // y-coord should be getting smaller or larger and properly cap the values
+	  // based on (x,y).
+	  var lt = function (a, b) { return a <= b; };
+	  var gt = function (a, b) { return a >= b; };
+	  var capmin = function (a, b) { return Math.min(a, b); };
+	  var capmax = function (a, b) { return Math.max(a, b); };
+	
+	  var checkX = { thereYet: gt, cap: capmin };
+	  var checkY = { thereYet: gt, cap: capmin };
+	
+	  if (fromY - toY > 0) {
+	    checkY.thereYet = lt;
+	    checkY.cap = capmax;
+	  }
+	  if (fromX - toX > 0) {
+	    checkX.thereYet = lt;
+	    checkX.cap = capmax;
+	  }
+	
+	  this.ctx.moveTo(fromX, fromY);
+	  this.ctx.beginPath();
+	  var offsetX = fromX;
+	  var offsetY = fromY;
+	  var idx = 0, dash = true;
+	  while (!(checkX.thereYet(offsetX, toX) && checkY.thereYet(offsetY, toY))) {
+	    var ang = Math.atan2(toY - fromY, toX - fromX);
+	    var len = pattern[idx];
+	
+	    offsetX = checkX.cap(toX, offsetX + (Math.cos(ang) * len));
+	    offsetY = checkY.cap(toY, offsetY + (Math.sin(ang) * len));
+	
+	    if (dash) this.ctx.lineTo(offsetX, offsetY);
+	    else this.ctx.moveTo(offsetX, offsetY);
+	    
+	    this.ctx.stroke();
+	
+	    idx = (idx + 1) % pattern.length;
+	    dash = !dash;
+	  }
+	},
 	
 	//-------------------------------------------------------
 	drawRect: function(x,y,width,height) {
@@ -215,8 +258,18 @@ Pixel.Renderer2D = new Class({
 	//-------------------------------------------------------
 	//FONTS
 	//-------------------------------------------------------
+	
+	
+	//-------------------------------------------------------
 	setFont: function(font, size) {
-		this.ctx.font = size + "pt " + font;
+		if(size == undefined) {
+			this.setFont(font.font, font.size);
+		} else {
+			this.ctx.font = size + "pt " + font;
+		}
+		
+		this.setTextAlignment(font.alignment);
+		this.setTextBaseline(font.baseline);
 	},
 	
 	//-------------------------------------------------------
@@ -227,6 +280,12 @@ Pixel.Renderer2D = new Class({
 	//-------------------------------------------------------
 	setTextBaseline: function(baseline) {
 		this.ctx.textBaseline = baseline;
+	},
+	
+	bLogged:false,
+	//-------------------------------------------------------
+	getStringWidth: function(string) {
+		return this.ctx.measureText(string).width;
 	},
 	
 	//-------------------------------------------------------
