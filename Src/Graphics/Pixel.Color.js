@@ -149,7 +149,7 @@ Pixel.rgbToHsv = function(r, g, b){
     }
 
     return {"h":h, "s":s, "v":v};
-}
+};
 
 
 
@@ -178,4 +178,4 @@ Pixel.hsvToRgb = function(h, s, v){
     }
 
     return {"r": r * 255, "g": g * 255, "b": b * 255};
-}
+};
