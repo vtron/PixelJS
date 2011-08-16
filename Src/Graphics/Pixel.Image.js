@@ -38,11 +38,10 @@ Pixel.Image = new Class({
 		this.clear();
 		this.image = new Asset.image(url, {
 			onLoad:function() {
+				this.bLoaded = true;
+				
 				//Get Size of Image
 				this.setSize(this.image.width, this.image.height);
-				
-				//Get Pixels
-				this.bLoaded	= true;
 			}.bind(this),
 			
 			onError: function() {
@@ -53,7 +52,8 @@ Pixel.Image = new Class({
 	
 	
 	//-------------------------------------------------------
-	isLoaded:function() {		return this.bLoaded;
+	isLoaded:function() {
+		return this.bLoaded;
 	},
 	
 	
