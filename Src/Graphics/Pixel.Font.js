@@ -5,9 +5,11 @@ if(!Pixel) {
 
 
 Pixel.Font = new Class({
+	ctx:null,
+	
 	text:"",
 	font:"Arial",
-	size:10,
+	size:24,
 	alignment: Pixel.TEXT_ALIGN_LEFT,
 	baseline: Pixel.TEXT_BASELINE_TOP,
 	
@@ -16,7 +18,6 @@ Pixel.Font = new Class({
 		if(Pixel.isSet(font)) this.font = font;
 		if(Pixel.isSet(size)) this.size = size;
 		if(Pixel.isSet(alignment)) this.alignment = alignment;
-		
 	},
 	
 	//-------------------------------------------------------
@@ -41,32 +42,13 @@ Pixel.Font = new Class({
 		this.baseline = baseline;
 	},
 	
-	
 	//-------------------------------------------------------
 	setText: function(text) {
 		this.text = text;
 	},
 	
-	
 	//-------------------------------------------------------
-	getWidth: function(string) {
-		
-	},
-	
-	
-	//-------------------------------------------------------
-	activate: function(ctx) {
-		ctx.setFont(this.font, this.size);
-		ctx.setTextAlignment(this.alignment);
-		ctx.setTextBaseline(this.baseline);
-	},
-	
-	
-	//-------------------------------------------------------
-	draw: function(ctx, x, y, text) {
-		if(text != undefined) this.text = text;
-		
-		this.activate(ctx);
-		ctx.drawText(this.text, x, y);
-	}
+	getSize: function() {
+		return this.size;
+	}	
 });
