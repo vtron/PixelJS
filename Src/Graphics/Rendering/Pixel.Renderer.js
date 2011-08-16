@@ -11,6 +11,10 @@ if(!Pixel) {
 
 
 Pixel.Renderer = new Class({
+	ctx:null,
+	bFill:true,
+	bStroke:false,
+	
 	renderer:null,
 	
 	//-------------------------------------------------------
@@ -30,8 +34,8 @@ Pixel.Renderer = new Class({
 	
 	
 	//-------------------------------------------------------
-	clear: function() { 
-		this.renderer.clear(); 
+	clear: function(x,y,width,height) { 
+		this.renderer.clear(x,y,width,height); 
 	},
 
 
@@ -93,6 +97,11 @@ Pixel.Renderer = new Class({
 	//-------------------------------------------------------
 	drawLine: function(x1,y1,x2,y2) {
 		this.renderer.drawLine(x1,y1,x2,y2);
+	},
+	
+	//-------------------------------------------------------
+	dashedLine: function (fromX, fromY, toX, toY, pattern) {
+		this.renderer.dashedLine(fromX, fromY, toX, toY, pattern);  
 	},
 	
 	//-------------------------------------------------------
@@ -178,6 +187,11 @@ Pixel.Renderer = new Class({
 	//-------------------------------------------------------
 	setTextBaseline: function(baseline) {
 		this.renderer.setTextBaseline(baseline);
+	},
+	
+	//-------------------------------------------------------
+	getStringWidth: function(string) {
+		return this.renderer.getStringWidth(string);
 	},
 	
 	//-------------------------------------------------------
