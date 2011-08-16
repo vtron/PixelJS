@@ -5,10 +5,17 @@ if(!Pixel) {
 
 
 Pixel.Canvas = new Class({
-	Extends:Pixel.Object,
 	Implements:Pixel.Renderer,
 	
 	element:null,
+	
+	pos:{
+		x:0,
+		y:0
+	},
+	
+	width:0,
+	height:0,
 	
 	bPixelDoubling:window.devicePixelRatio >= 2,
 	
@@ -40,14 +47,12 @@ Pixel.Canvas = new Class({
 	
 	//-------------------------------------------------------
 	setPos: function(x,y) {
-		this.parent(x,y);
+		this.pos.x = x;
+		this.pos.y = y;
 		
 		//Get Transformation (iPhone4 vs 3G/3GS)
 		var transform = "";
-		if(this.bPixelDoubling) {
-			transform ="scale3d(2,2,0) ";
-		}
-		
+		transform ="scale3d(" + window.devicePixelRatio + "," + window.devicePixelRatio +",0) ";
 		transform += "translate3d(" + this.pos.x + "px, " + this.pos.y + "px,0px)";
 		
 		this.element.setStyle("-webkit-transform",transform);
@@ -59,11 +64,12 @@ Pixel.Canvas = new Class({
 	
 	//-------------------------------------------------------
 	setSize: function(width,height, renderer) {
-		this.parent(width,height);
+		this.width = width;
+		this.height = height;
 		
 		this.element.set({
-			width:this.getWidth(),
-			height:this.getHeight()
+			width:this.width,
+			height:this.height
 		});
 		
 		
@@ -71,5 +77,16 @@ Pixel.Canvas = new Class({
 		if(renderer != undefined) {
 			this.setRenderer(renderer);
 		}
+	},
+	
+	
+	//-------------------------------------------------------
+	getWidth: function() {
+		return this.width;
+	},
+	
+	//-------------------------------------------------------
+	getHeight: function() {
+		return this.height;
 	}
 });
