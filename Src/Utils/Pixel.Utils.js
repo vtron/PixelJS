@@ -9,7 +9,7 @@ Pixel.isSet = function(item) { return item != undefined ? item : false; };
 
 //-------------------------------------------------------
 Pixel.log = function(message) {
-	console.log("Pixel: " + message)
+	console.log("PixelJS Log: " + message)
 }
 
 Pixel.getBrowserName = function() {
