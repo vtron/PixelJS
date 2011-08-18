@@ -42,6 +42,8 @@ Pixel.Object = new Class({
 	setPos:function(x,y, bTween) {
 		if(Pixel.isSet(x)) this.pos.x = x;
 		if(Pixel.isSet(y)) this.pos.y = y;
+		
+		this.setRect();
 	},
 	
 	
@@ -55,6 +57,20 @@ Pixel.Object = new Class({
 	setSize:function(width, height) {
 		if(Pixel.isSet(width))	this.width	= width;
 		if(Pixel.isSet(height)) this.height = height;
+		
+		this.setRect();
+	},
+	
+	//-------------------------------------------------------
+	//Set Rect, for touches, can be overridden for cases like textfields (alignment + baseline issues)
+	setRect: function() {
+		this.rect.set(this.pos.x, this.pos.y, this.width, this.height);
+	},
+	
+	
+	//-------------------------------------------------------
+	getRect: function() {
+		return this.rect;
 	},
 	
 	
@@ -86,7 +102,7 @@ Pixel.Object = new Class({
 	
 	//-------------------------------------------------------
 	touchStart:function(touch) {
-		this.rect.set(this.pos.x, this.pos.y, this.width, this.height);
+		this.setRect(this.pos.x, this.pos.y, this.width, this.height);
 		
 		//Touch Detection
 		switch(this.shapeMode) {
@@ -101,6 +117,7 @@ Pixel.Object = new Class({
 		}
 		
 		this.bPressed = this.bInitPressed;
+		return this.bPressed;
 	},
 	
 	
@@ -118,11 +135,14 @@ Pixel.Object = new Class({
 					break;
 			}
 		}
+		
+		return this.bPressed;
 	},
 	
 	
 	//-------------------------------------------------------
 	touchEnd:function(touch) {
 		this.bInitPressed = this.bPressed = false;
+		return this.bPressed;
 	}
 });
