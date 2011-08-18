@@ -3,21 +3,28 @@ if(!Pixel) {
 	if(!px) var px = Pixel;
 };
 
+Pixel.FontSizeCvs = null;
+
 
 Pixel.Font = new Class({
 	ctx:null,
 	
-	text:"",
 	font:"Arial",
 	size:24,
 	alignment: Pixel.TEXT_ALIGN_LEFT,
 	baseline: Pixel.TEXT_BASELINE_TOP,
 	
-	
+	//-------------------------------------------------------
 	initialize:function(font, size, alignment, baseline) {
 		if(Pixel.isSet(font)) this.font = font;
 		if(Pixel.isSet(size)) this.size = size;
 		if(Pixel.isSet(alignment)) this.alignment = alignment;
+		if(Pixel.isSet(baseline)) this.baseline = baseline;
+		
+		//Create canvas for getting sizes, if not defined yet
+		if(Pixel.FontSizeCvs == null) {
+			Pixel.FontSizeCvs = new Pixel.Canvas(Pixel.RENDER_MODE_2D);
+		}
 	},
 	
 	//-------------------------------------------------------
@@ -43,12 +50,18 @@ Pixel.Font = new Class({
 	},
 	
 	//-------------------------------------------------------
-	setText: function(text) {
-		this.text = text;
+	getSize: function() {
+		return this.size;
 	},
 	
 	//-------------------------------------------------------
-	getSize: function() {
-		return this.size;
+	getTextWidth:function(text) {
+		Pixel.FontSizeCvs.setFont(this);
+		return Pixel.FontSizeCvs.getTextWidth(text);
+	},
+	
+	//-------------------------------------------------------
+	getTextHeight: function() {
+		return Math.round(this.size * 1.5);
 	}	
 });
