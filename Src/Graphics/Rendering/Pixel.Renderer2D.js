@@ -7,6 +7,10 @@ if(!Pixel) {
 
 
 Pixel.Renderer2D = new Class({
+	ctx:null,
+	bFill:true,
+	bStroke:false,
+	
 	initialize:function(canvas) {
 		this.ctx = canvas.getContext('2d');
 	},
@@ -42,6 +46,12 @@ Pixel.Renderer2D = new Class({
 		//RGBA
 		this.ctx.fillStyle		= "rgba(" + r + "," + g + "," + b + "," + a + ")";
 		this.ctx.strokeStyle	= "rgba(" + r + "," + g + "," + b + "," + a + ")";
+	},
+	
+	//-------------------------------------------------------
+	useColor:function(color) {
+		this.ctx.fillStyle		= "rgba(" + color.r + "," + color.g + "," + color.b + "," + color.a + ")";
+		this.ctx.strokeStyle	= "rgba(" + color.r + "," + color.g + "," + color.b + "," + color.a + ")";
 	},
 	
 	
@@ -165,8 +175,14 @@ Pixel.Renderer2D = new Class({
 	
 	//-------------------------------------------------------
 	drawRect: function(x,y,width,height) {
-		if(this.bFill) this.ctx.fillRect(x,y,width,height);
-		if(this.bStroke) this.ctx.strokeRect(x,y,width,height);
+		if(y != undefined) {
+			if(this.bFill) this.ctx.fillRect(x,y,width,height);
+			if(this.bStroke) this.ctx.strokeRect(x,y,width,height);
+		} else {
+			var r = x;
+			if(this.bFill) this.ctx.fillRect(r.x,r.y, r.width, r.height);
+			if(this.bStroke) this.ctx.strokeRect(r.x, r.y,r.width, r.height);
+		}
 	},
 	
 	
@@ -256,9 +272,8 @@ Pixel.Renderer2D = new Class({
 	
 	
 	//-------------------------------------------------------
-	//FONTS
+	//FONTS/TEXT
 	//-------------------------------------------------------
-	
 	
 	//-------------------------------------------------------
 	setFont: function(font, size) {
@@ -284,12 +299,24 @@ Pixel.Renderer2D = new Class({
 	
 	bLogged:false,
 	//-------------------------------------------------------
-	getStringWidth: function(string) {
+	getTextWidth: function(string) {
 		return this.ctx.measureText(string).width;
 	},
 	
+	
 	//-------------------------------------------------------
 	drawText: function(string, x, y) {
-		this.ctx.fillText(string, x, y);
+		if(x != undefined) {
+			this.ctx.fillText(string, x, y);
+		} else {
+			this.ctx.fillText(string, this.cursorX, this.cursorY);
+		}
+	},
+	
+	//-------------------------------------------------------
+	drawTextfield: function(tf) {
+		this.setFont(tf.font);
+		this.useColor(tf.color);
+		this.drawText(tf.text, tf.pos.x, tf.pos.y);
 	}
 });
