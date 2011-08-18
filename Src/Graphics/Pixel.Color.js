@@ -27,28 +27,30 @@ Pixel.Color = new Class({
 	
 	//-------------------------------------------------------
 	set:function(r,g,b,a) {
-		if(r) this.r = r;
-		if(g) this.g = g;
-		if(b) this.b = b;
-		if(a) this.a = a;
+		if(r != undefined) this.r = r;
+		if(g != undefined) this.g = g;
+		if(b != undefined) this.b = b;
+		
+		this.a = a != undefined ? a : 1;
 	},
 	
 	
 	//-------------------------------------------------------
 	setHSL: function(h,s,l,a) {
-		if(h) this.h = h;
-		if(s) this.s = g;
-		if(l) this.l = b;
-		if(a) this.a = a;
+		if(h != undefined) this.h = h;
+		if(s != undefined) this.s = g;
+		if(l != undefined) this.l = b;
+		
+		this.a = a != undefined ? a : 1;
 	},
 	
 	
 	//-------------------------------------------------------
 	setHSV: function(h,s,v,a) {
-		if(h) this.h = h;
-		if(s) this.s = g;
-		if(v) this.l = b;
-		if(a) this.a = a;
+		if(h != undefined) this.h = h;
+		if(s != undefined) this.s = g;
+		if(v != undefined) this.l = b;
+		if(a != undefined) this.a = a;
 	},
 	
 	
