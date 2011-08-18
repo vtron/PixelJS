@@ -11,10 +11,6 @@ if(!Pixel) {
 
 
 Pixel.Renderer = new Class({
-	ctx:null,
-	bFill:true,
-	bStroke:false,
-	
 	renderer:null,
 	
 	//-------------------------------------------------------
@@ -44,6 +40,11 @@ Pixel.Renderer = new Class({
 	//-------------------------------------------------------
 	setColor: function(r,g,b,a) {
 		this.renderer.setColor(r,g,b,a);
+	},
+	
+	//-------------------------------------------------------
+	useColor: function(color) {
+		this.renderer.useColor(color);
 	},
 	
 	//-------------------------------------------------------
@@ -174,6 +175,7 @@ Pixel.Renderer = new Class({
 	
 	//-------------------------------------------------------
 	//TEXT
+	
 	//-------------------------------------------------------	
 	setFont: function(font, size) {
 		this.renderer.setFont(font,size);
@@ -190,12 +192,21 @@ Pixel.Renderer = new Class({
 	},
 	
 	//-------------------------------------------------------
-	getStringWidth: function(string) {
-		return this.renderer.getStringWidth(string);
+	getTextWidth: function(string) {
+		return this.renderer.getTextWidth(string);
 	},
 	
 	//-------------------------------------------------------
 	drawText: function(string, x, y) {
-		this.renderer.drawText(string, x, y);
+		if(x != undefined) {
+			this.renderer.drawText(string, x, y);
+		} else {
+			this.renderer.drawText(string, this.cursorX, this.cursorY);
+		}
+	},
+	
+	//-------------------------------------------------------
+	drawTextfield: function(textfield) {
+		this.renderer.drawTextfield(textfield);
 	}
 });
