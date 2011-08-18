@@ -24,6 +24,7 @@ Pixel.App = new Class({
 	fpsSamples:[],
 	curFpsSample:-1,
 	curFps:0,
+	fpsFont:null,
 	
 	startTime:0,
 	prevTime:0,
@@ -31,12 +32,14 @@ Pixel.App = new Class({
 	
 	//-------------------------------------------------------
 	initialize:function(renderMode, bIsMobileApp) {
-		console.log(Pixel.getBrowserName());
 		//Default to 2D Renderer
 		this.parent(Pixel.RENDER_MODE_2D);
 		
 		this.startTime = new Date().getTime();
 		this.prevTime = this.startTime;
+		
+		//FPS Font
+		this.fpsFont = new Pixel.Font("Verdana", 10, Pixel.TEXT_ALIGN_LEFT);
 		
 		//Event Listeners
 		if(Pixel.getBrowserName() == Pixel.BROWSER_TYPE_IPHONE) {
@@ -141,8 +144,7 @@ Pixel.App = new Class({
 	
 	//-------------------------------------------------------
 	drawFPS: function() {
-		this.setFont("Verdana", 10);
-		
+		this.setFont(this.fpsFont);
 		
 		this.setColor(0,0,0);
 		this.drawText("FPS: " + this.curFps.toFixed(2), 20, 20);
