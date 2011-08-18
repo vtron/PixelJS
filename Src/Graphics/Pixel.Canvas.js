@@ -17,6 +17,10 @@ Pixel.Canvas = new Class({
 	width:0,
 	height:0,
 	
+	//Cursor, useful for text layout
+	cursorX:0,
+	cursorY:0,
+	
 	bPixelDoubling:window.devicePixelRatio >= 2,
 	
 	//-------------------------------------------------------
@@ -88,5 +92,14 @@ Pixel.Canvas = new Class({
 	//-------------------------------------------------------
 	getHeight: function() {
 		return this.height;
+	},
+	
+	
+	//-------------------------------------------------------
+	//Cursor
+	//-------------------------------------------------------
+	setCursor: function(x,y) {
+		this.cursorX = x;
+		this.cursorY = y;
 	}
 });
