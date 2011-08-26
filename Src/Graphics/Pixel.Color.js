@@ -2,23 +2,19 @@
 //Pixel.Color.js
 //Color class
 
-Pixel.Color = new Class({
-	r:0,
-	g:0,
-	b:0,
-	a:0,
+Pixel.Color = function(r,g,b,a) {
+	this.r = 0;
+	this.g = 0;
+	this.b = 0;
 	
-	h:0,
-	s:0,
-	l:0,
-	v:0,
-	
-	//-------------------------------------------------------
-	initialize:function(r,g,b,a) {
-		this.set(r,g,b,a);
-	},
-	
-	
+	this.h = 0;
+	this.s = 0;
+	this.l = 0;
+	this.v = 0;
+}
+
+
+Pixel.Color.prototype = {
 	//-------------------------------------------------------
 	set:function(r,g,b,a) {
 		if(r != undefined) this.r = r;
@@ -62,8 +58,7 @@ Pixel.Color = new Class({
 		this.setHSV(hsv.h, hsv.s, hsv.v);
 		return hsv;
 	}
-});
-
+}
 
 //-------------------------------------------------------
 //From http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
