@@ -3,19 +3,168 @@
 // Or build this file again with packager using: packager build More/Assets
 /*
 ---
-copyrights:
-  - [MooTools](http://mootools.net)
 
-licenses:
-  - [MIT License](http://mootools.net/license.txt)
+script: More.js
+
+name: More
+
+description: MooTools More
+
+license: MIT-style license
+
+authors:
+  - Guillermo Rauch
+  - Thomas Aylott
+  - Scott Kyle
+  - Arian Stolwijk
+  - Tim Wienk
+  - Christoph Pojer
+  - Aaron Newton
+  - Jacob Thornton
+
+requires:
+  - Core/MooTools
+
+provides: [MooTools.More]
+
 ...
 */
-MooTools.More={version:"1.3.2.1",build:"e586bcd2496e9b22acfde32e12f84d49ce09e59d"};var Asset={javascript:function(f,c){if(!c){c={};}var a=new Element("script",{src:f,type:"text/javascript"}),g=c.document||document,b=0,d=c.onload||c.onLoad;
-var e=d?function(){if(++b==1){d.call(this);}}:function(){};delete c.onload;delete c.onLoad;delete c.document;return a.addEvents({load:e,readystatechange:function(){if(["loaded","complete"].contains(this.readyState)){e.call(this);
-}}}).set(c).inject(g.head);},css:function(d,a){if(!a){a={};}var b=new Element("link",{rel:"stylesheet",media:"screen",type:"text/css",href:d});var c=a.onload||a.onLoad,e=a.document||document;
-delete a.onload;delete a.onLoad;delete a.document;if(c){b.addEvent("load",c);}return b.set(a).inject(e.head);},image:function(c,b){if(!b){b={};}var d=new Image(),a=document.id(d)||new Element("img");
-["load","abort","error"].each(function(e){var g="on"+e,f="on"+e.capitalize(),h=b[g]||b[f]||function(){};delete b[f];delete b[g];d[g]=function(){if(!d){return;
-}if(!a.parentNode){a.width=d.width;a.height=d.height;}d=d.onload=d.onabort=d.onerror=null;h.delay(1,a,a);a.fireEvent(e,a,1);};});d.src=a.src=c;if(d&&d.complete){d.onload.delay(1);
-}return a.set(b);},images:function(c,b){c=Array.from(c);var d=function(){},a=0;b=Object.merge({onComplete:d,onProgress:d,onError:d,properties:{}},b);return new Elements(c.map(function(f,e){return Asset.image(f,Object.append(b.properties,{onload:function(){a++;
-b.onProgress.call(this,a,e,f);if(a==c.length){b.onComplete();}},onerror:function(){a++;b.onError.call(this,a,e,f);if(a==c.length){b.onComplete();}}}));
-}));}};
+
+MooTools.More = {
+	'version': '1.3.2.1',
+	'build': 'e586bcd2496e9b22acfde32e12f84d49ce09e59d'
+};
+
+
+/*
+---
+
+script: Assets.js
+
+name: Assets
+
+description: Provides methods to dynamically load JavaScript, CSS, and Image files into the document.
+
+license: MIT-style license
+
+authors:
+  - Valerio Proietti
+
+requires:
+  - Core/Element.Event
+  - /MooTools.More
+
+provides: [Assets]
+
+...
+*/
+
+var Asset = {
+
+	javascript: function(source, properties){
+		if (!properties) properties = {};
+
+		var script = new Element('script', {src: source, type: 'text/javascript'}),
+			doc = properties.document || document,
+			loaded = 0,
+			loadEvent = properties.onload || properties.onLoad;
+
+		var load = loadEvent ? function(){ // make sure we only call the event once
+			if (++loaded == 1) loadEvent.call(this);
+		} : function(){};
+
+		delete properties.onload;
+		delete properties.onLoad;
+		delete properties.document;
+
+		return script.addEvents({
+			load: load,
+			readystatechange: function(){
+				if (['loaded', 'complete'].contains(this.readyState)) load.call(this);
+			}
+		}).set(properties).inject(doc.head);
+	},
+
+	css: function(source, properties){
+		if (!properties) properties = {};
+
+		var link = new Element('link', {
+			rel: 'stylesheet',
+			media: 'screen',
+			type: 'text/css',
+			href: source
+		});
+
+		var load = properties.onload || properties.onLoad,
+			doc = properties.document || document;
+
+		delete properties.onload;
+		delete properties.onLoad;
+		delete properties.document;
+
+		if (load) link.addEvent('load', load);
+		return link.set(properties).inject(doc.head);
+	},
+
+	image: function(source, properties){
+		if (!properties) properties = {};
+
+		var image = new Image(),
+			element = document.id(image) || new Element('img');
+
+		['load', 'abort', 'error'].each(function(name){
+			var type = 'on' + name,
+				cap = 'on' + name.capitalize(),
+				event = properties[type] || properties[cap] || function(){};
+
+			delete properties[cap];
+			delete properties[type];
+
+			image[type] = function(){
+				if (!image) return;
+				if (!element.parentNode){
+					element.width = image.width;
+					element.height = image.height;
+				}
+				image = image.onload = image.onabort = image.onerror = null;
+				event.delay(1, element, element);
+				element.fireEvent(name, element, 1);
+			};
+		});
+
+		image.src = element.src = source;
+		if (image && image.complete) image.onload.delay(1);
+		return element.set(properties);
+	},
+
+	images: function(sources, options){
+		sources = Array.from(sources);
+
+		var fn = function(){},
+			counter = 0;
+
+		options = Object.merge({
+			onComplete: fn,
+			onProgress: fn,
+			onError: fn,
+			properties: {}
+		}, options);
+
+		return new Elements(sources.map(function(source, index){
+			return Asset.image(source, Object.append(options.properties, {
+				onload: function(){
+					counter++;
+					options.onProgress.call(this, counter, index, source);
+					if (counter == sources.length) options.onComplete();
+				},
+				onerror: function(){
+					counter++;
+					options.onError.call(this, counter, index, source);
+					if (counter == sources.length) options.onComplete();
+				}
+			}));
+		}));
+	}
+
+};
+

@@ -1,7 +1,6 @@
-if(!Pixel) {
-	var Pixel = {};
-	if(!px) var px = Pixel;
-};
+//-------------------------------------------------------
+//Pixel.Constants.js
+//Constant var names for various settings
 
 //Browser Type
 Pixel.BROWSER_TYPE_CHROME	= "chrome";

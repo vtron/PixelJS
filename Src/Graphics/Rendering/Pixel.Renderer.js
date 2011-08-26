@@ -1,14 +1,8 @@
-//------------------------------------------------------
+//-------------------------------------------------------
+//Pixel.Renderer.js
 //Abstract Class for Rendering, calls the appropriate renderer and passes items
 //Works as both a ghetto Javascript Interface and a way to Implement drawing functionality in main app
 //Right now a bit overkill b/c only 2D rendering is implemented :)
-
-if(!Pixel) {
-	var Pixel = {};
-	if(!px) var px = Pixel;
-}
-
-
 
 Pixel.Renderer = new Class({
 	renderer:null,

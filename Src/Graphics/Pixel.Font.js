@@ -1,10 +1,8 @@
-if(!Pixel) {
-	var Pixel = {};
-	if(!px) var px = Pixel;
-};
+//-------------------------------------------------------
+//Pixel.Font.js
+//Used for storing font information for convenience 
 
 Pixel.FontSizeCvs = null;
-
 
 Pixel.Font = new Class({
 	ctx:null,

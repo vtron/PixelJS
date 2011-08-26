@@ -1,11 +1,6 @@
 //-------------------------------------------------------
-//-------------------------------------------------------
-//App Runner
+//Pixel.App.js
 
-if(!Pixel) {
-	var Pixel = {};
-	if(!px) var px = Pixel;
-}
 
 Pixel.App = new Class({
 	Extends:Pixel.Canvas,
@@ -88,6 +83,7 @@ Pixel.App = new Class({
 			
 			
 			window.requestAnimFrame(this.run.bind(this));
+			//this.run.delay(0,this);
 		}
 	},
 	

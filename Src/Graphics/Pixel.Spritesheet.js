@@ -1,8 +1,6 @@
-if(!Pixel) {
-	var Pixel = {};
-	if(!px) var px = Pixel;
-}
-
+//-------------------------------------------------------
+//Pixel.Spritesheet.js
+//Sprite based animation
 
 Pixel.Spritesheet = new Class({
 	sheet: null,

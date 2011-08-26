@@ -1,12 +1,7 @@
-if(!Pixel) {
-	var Pixel = {};
-	if(!px) var px = Pixel;
-}
-
-
 //-------------------------------------------------------
-//Rectangle Class
-//-------------------------------------------------------
+//Pixel.Math.js
+//Various classes and functions that make math easier
+
 Pixel.Rectangle = new Class({
 	x:0,
 	y:0,

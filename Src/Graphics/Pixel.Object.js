@@ -1,10 +1,6 @@
 //-------------------------------------------------------
 //-------------------------------------------------------
 //Main Object
-if(!Pixel) {
-	var Pixel = {};
-	if(!px) var px = Pixel;
-}
 
 Pixel.Object = new Class({
 	bInitPressed:false,

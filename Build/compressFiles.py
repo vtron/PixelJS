@@ -8,10 +8,44 @@ import sys
 headers = { "Content-type": "application/x-www-form-urlencoded" }
 conn = http.client.HTTPConnection('closure-compiler.appspot.com')
 
+libs = "../Libs/";
+src = "../src/";
+
+#------------------------------------------------------------
+#Files to Add, in order
+files = []
+
+#Libs
+files.append(libs + "MooTools/mootools-core-1.3.2.js")
+files.append(libs + "MooTools/mootools-more-1.3.2.1.js")
+files.append(libs + "Tween.js/Tween.js")
+
+#Src
+#Pixel
+files.append(src + "Pixel.js")
+
+#Utils
+files.append(src + "Utils/Pixel.Constants.js")
+files.append(src + "Utils/Pixel.Utils.js")
+files.append(src + "Utils/Pixel.Math.js")
+
+#Renderers
+files.append(src + "Graphics/Rendering/Pixel.Renderer.js")
+files.append(src + "Graphics/Rendering/Pixel.Renderer2D.js")
+
+#Graphics
+files.append(src + "Graphics/Pixel.Color.js")
+files.append(src + "Graphics/Pixel.Canvas.js")
+files.append(src + "Graphics/Pixel.Object.js")
+files.append(src + "Graphics/Pixel.Image.js")
+files.append(src + "Graphics/Pixel.Font.js")
+files.append(src + "Graphics/Pixel.Textfield.js")
+
+#App
+files.append(src + "App/Pixel.App.js")
 
 
-dir = "../src";
-
+#------------------------------------------------------------
 #Does the compression
 def compressFile(file):
 	with open(file, 'r' ) as f:
@@ -36,17 +70,48 @@ def compressFile(file):
 			print("Done!")
 
 
+#------------------------------------------------------------
+def addFile(inputFile, combinedFile):
+	with open(inputFile,'r') as file:
+		inputContent	= file.read()
+		combinedFile.write(inputContent)
 
 
-#Combine all JS
-with open("Pixel.js",'w') as combinedFile:
-	for root, subFolders, files in os.walk(dir):
-		for filename in files:
-			if(filename.endswith('.js')):
-				inputFile		= os.path.join(root, filename)
-				inputContent	= open(inputFile,'r').read()
-				combinedFile.write(inputContent)
 
 
-#Do the compression
+
+
+#Combine Files
+with open("Pixel.js", 'w') as combinedFile:
+	for file in files:
+		addFile(file, combinedFile)
+	
+#Compress
 compressFile("Pixel.js")
+
+
+
+
+
+
+
+
+#------------------------------------------------------------
+#Loop through directory, add all js
+def addFiles(dir, combinedFile):
+	#with open(file, 'w') as combinedFile:
+		for root, subFolders, files in os.walk(dir):
+			for filename in files:
+				if(filename.endswith('.js')):
+					inputFile		= os.path.join(root, filename)
+					inputContent	= open(inputFile,'r').read()
+					combinedFile.write(inputContent)
+
+# #Combine all JS
+# with open("Pixel.js",'w') as combinedFile:
+# 	for root, subFolders, files in os.walk(dir):
+# 		for filename in files:
+# 			if(filename.endswith('.js')):
+# 				inputFile		= os.path.join(root, filename)
+# 				inputContent	= open(inputFile,'r').read()
+# 				combinedFile.write(inputContent)

@@ -1,11 +1,7 @@
-if(!Pixel) {
-	var Pixel = {};
-	if(!px) var px = Pixel;
-}
+//-------------------------------------------------------
+//Pixel.Image.js
+//Forloading, storing, manipulating, etc
 
-//-------------------------------------------------------
-//-------------------------------------------------------
-//Image Class
 Pixel.Image = new Class({
 	Extends:Pixel.Object,
 	

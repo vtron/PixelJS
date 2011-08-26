@@ -1,10 +1,6 @@
-/* 2D Context Renderer */
-
-if(!Pixel) {
-	var Pixel = {};
-	if(!px) var px = Pixel;
-}
-
+//-------------------------------------------------------
+//Pixel.Renderer2D.js
+//2D Rendering
 
 Pixel.Renderer2D = new Class({
 	ctx:null,

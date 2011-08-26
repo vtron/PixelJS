@@ -1,8 +1,7 @@
-if(!Pixel) {
-	var Pixel = {};
-	if(!px) var px = Pixel;
-}
-
+//-------------------------------------------------------
+//Pixel.Canvas.js
+//Canvas Wrapper, implements Renderer functions and adds DOM specific stuff 
+//+ generic vars shared between renderers (i.e. Cursor)
 
 Pixel.Canvas = new Class({
 	Implements:Pixel.Renderer,

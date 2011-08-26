@@ -1,13 +1,6 @@
 //-------------------------------------------------------
-//-------------------------------------------------------
-//Textfield Class
+//Pixel.Textfield.js
 //Font class with added capabilities like position, size, etc
-
-if(!Pixel) {
-	var Pixel = {};
-	if(!px) var px = Pixel;
-}
-
 
 Pixel.Textfield = new Class({
 	Extends:Pixel.Object,
