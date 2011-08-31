@@ -10,7 +10,7 @@ Pixel.Spritesheet = new Class({
 	//-------------------------------------------------------
 	initialize:function() {
 		sheet = new Pixel.Image();
-	},
+	}
 	
 	//-------------------------------------------------------
 	load: function(folder, name) {

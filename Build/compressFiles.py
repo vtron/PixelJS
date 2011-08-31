@@ -16,9 +16,9 @@ src = "../src/";
 files = []
 
 #Libs
-files.append(libs + "MooTools/mootools-core-1.3.2.js")
-files.append(libs + "MooTools/mootools-more-1.3.2.1.js")
-files.append(libs + "Tween.js/Tween.js")
+# files.append(libs + "MooTools/mootools-core-1.3.2.js")
+# files.append(libs + "MooTools/mootools-more-1.3.2.1.js")
+# files.append(libs + "Tween.js/Tween.js")
 
 #Src
 #Pixel

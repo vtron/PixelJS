@@ -1,336 +1,344 @@
 //-------------------------------------------------------
 //Pixel.App.js
-
-
-Pixel.App = new Class({
-	Extends:Pixel.Canvas,
-	Implements:Events,
+Pixel.App = function(renderMode, program) {
+	this.bSetup = false;
+	this.bRunning = true;
 	
-	bSetup:false,
-	bRunning:true,
+	this.bIsMobileApp = false;
 	
-	browserType: null,
-	bIsMobileApp:false,
-	
-	fps:60,
-	curFPS:0,
-	bShowFPS:false,
-	nFPSSamples:50,
-	fpsSamples:[],
-	curFpsSample:-1,
-	curFps:0,
-	fpsFont:null,
-	
-	startTime:0,
-	prevTime:0,
-	
-	
-	//-------------------------------------------------------
-	initialize:function(renderMode, bIsMobileApp) {
-		//Default to 2D Renderer
-		this.parent(Pixel.RENDER_MODE_2D);
-		
-		this.startTime = new Date().getTime();
-		this.prevTime = this.startTime;
-		
-		//FPS Font
-		this.fpsFont = new Pixel.Font("Verdana", 10, Pixel.TEXT_ALIGN_LEFT);
-		
-		//Event Listeners
-		if(Pixel.getBrowserName() == Pixel.BROWSER_TYPE_IPHONE) {
-			$(document.body).addEvent("touchstart",		this.touchStartListener.bind(this));
-			$(document.body).addEvent("touchmove",		this.touchMovedListener.bind(this));
-			$(document.body).addEvent("touchend",		this.touchEndListener.bind(this));
-		} else {		
-			$(document.body).addEvent("mousedown",		this.mouseDownListener.bind(this));
-			$(document.body).addEvent("mousemove",		this.mouseMovedListener.bind(this));
-			$(document.body).addEvent("mouseup",		this.mouseUpListener.bind(this));
-		}
-		
-		//Start Tweening
-		TWEEN.start();
-	},
-	
-	
-	//-------------------------------------------------------
-	start: function() {
-		this.bRunning = true;
-	},
-	
-	
-	//-------------------------------------------------------
-	stop: function() {
-		this.bRunning = false;
-	},
-	
-	
-	//-------------------------------------------------------
-	run: function() {
-		if(this.bRunning) {
-			//Run App Setup if uninitalised
-			if(this.setup != undefined && this.bSetup == false) {
-				this.setup();
-				this.bSetup = true;
-			}
-		
-			this.update();
-			this.draw();
-			
-			if(this.bShowFPS) {
-				this.updateFPS();
-				this.drawFPS();
-			}
-			
-			
-			window.requestAnimFrame(this.run.bind(this));
-			//this.run.delay(0,this);
-		}
-	},
-	
-	//-------------------------------------------------------
 	//FPS
-	//-------------------------------------------------------
-	setFPS: function(fps) {
-		this.fps = fps;
-	},
+	this.fps			= 60;
+	this.curFPS			= 0;
+	this.bShowFPS		= false;
+	this.nFPSSamples	= 50;
+	this.fpsSamples		= [];
+	this.curFpsSample	= -1;
+	this.curFps			= 0;
+	this.fpsFont		= new Pixel.Font("Verdana", 10, Pixel.TEXT_ALIGN_LEFT);
 	
+	this.startTime	= 0;
+	this.prevTime	= 0;
 	
-	//-------------------------------------------------------
-	getFPS: function() {
-		return this.fps;
-	},
+	//Default to 2D Renderer
+	Pixel.Canvas.call(this, renderMode || Pixel.RENDER_MODE_2D);
 	
-	//-------------------------------------------------------
-	showFPS: function() {
-		//Clear samples
-		for(var i=0;i<this.fpsSamples.length; i++) {
-			this.fpsSamples[i] = 0;
-		}
-		
-		this.bShowFPS = true;
-	},
+	this.startTime = new Date().getTime();
+	this.prevTime = this.startTime;
 	
-	//-------------------------------------------------------
-	hideFPS: function() {
-		this.bShowFPS = false;
-	},
+	//FPS Font
+	this.fpsFont = new Pixel.Font("Verdana", 10, Pixel.TEXT_ALIGN_LEFT);
 	
-	
-	//-------------------------------------------------------
-	updateFPS: function() {
-		this.curFpsSample++;
-		if(this.curFpsSample >= this.nFPSSamples) {
-			this.curFpsSample = 0;
-		}
-		
-		var curTime = this.getElapsedTime();
-		this.fpsSamples[this.curFpsSample] = 1000.0/(curTime - this.prevTime);
-		
-		var avgFps = 0;
-		for(var i=0;i<this.fpsSamples.length; i++) {
-			avgFps += this.fpsSamples[i];
-		}
-		
-		avgFps /= this.fpsSamples.length;
-		
-		this.curFps = Math.floor(avgFps);
-		
-		this.prevTime = curTime;
-	},
-	
-	//-------------------------------------------------------
-	drawFPS: function() {
-		this.setFont(this.fpsFont);
-		
-		this.setColor(0,0,0);
-		this.drawText("FPS: " + this.curFps.toFixed(2), 20, 20);
-		this.setColor(255,255,2550);
-		this.drawText("FPS: " + this.curFps.toFixed(2), 22, 22);
-	},
-	
-	
-	//-------------------------------------------------------
-	//Time
-	getElapsedTime: function() {
-		var curTime = new Date().getTime();
-		return curTime - this.startTime;
-	},
-	
-	
-	//-------------------------------------------------------
 	//Event Listeners
-	//Events are sent to functions that can be implemented by extending classes
-	//If event functions aren't implemented, they're ignored
 	
-	//-------------------------------------------------------
-	//Touch Listener
-	touches:[],
+	var self = this;
+	/*
+	if(Pixel.isTouchDevice) {
+		this.canvas.addEventListener("touchstart",	function(e) { self.touchStartListener.call(self, e) });
+		document.body.addEventListener("touchmove",		function(e) { self.touchMovedListener.call(self, e) });
+		document.body.addEventListener("touchend",		function(e) { self.touchEndListener.call(self, e) });
+	} else {	
+*/	
+		document.body.addEventListener("mousedown",		function(e) { self.mouseDownListener.call(self, e) });
+		document.body.addEventListener("mousemove",		function(e) { self.mouseMovedListener.call(self, e) });
+		document.body.addEventListener("mouseup",		function(e) { self.mouseUpListener.call(self, e) });
+	//}
 	
-	//Default functions (called by listeners, extend in App)
 	
-	//-------------------------------------------------------
-	touchStartListener: function(e) {
-		if(this.touchStart != undefined) {
-			for(var i=0;i < e.changedTouches.length; i++) {
-				//Find empty slot for touch
-				var emptyTouchPos = null;
-				for(var j=0; j<this.touches.length; j++) {
-					if(this.touches[j]==null) {
-						emptyTouchPos = j;
-						break;
-					}
-				}
-				
-				//If slot not found, create new item in touches array (javascript way of doing things)
-				if(emptyTouchPos == null) emptyTouchPos = this.touches.length;
-				
-				//Get the touch position, divide by half if pixel Doubling!
-				var xPos = !this.bPixelDoubling ? e.changedTouches[i].pageX : e.changedTouches[i].pageX/2;
-				var yPos = !this.bPixelDoubling ? e.changedTouches[i].pageY : e.changedTouches[i].pageY/2;
-				
-				//Set the touch
-				this.touches[emptyTouchPos] = {
-					id:j,
-					pos:{
-						x:xPos - this.pos.x,
-						y:yPos - this.pos.y
-					},
-					uniqueID:e.changedTouches[i].identifier
-				}
-				
-				//Deploy Event		
-				this.touchStart(this.touches[emptyTouchPos]);
-			}
+	for(var item in program) {
+		this[item] = program[item];
+	}
+}
+
+Pixel.App.prototype = new Pixel.Canvas();
+
+
+//-------------------------------------------------------
+Pixel.App.prototype.start = function() {
+	this.bRunning = true;
+}
+
+
+//-------------------------------------------------------
+Pixel.App.prototype.stop = function() {
+	this.bRunning = false;
+}
+
+//-------------------------------------------------------
+Pixel.App.prototype.run = function() {
+	if(this.bRunning) {
+		//Run App Setup if uninitalised
+		if(this.setup != undefined && this.bSetup == false) {
+			this.setup();
+			this.bSetup = true;
 		}
-	},
 	
-	
-	//-------------------------------------------------------
-	touchMovedListener: function(e) {
-		if(this.touchMoved != undefined) {
-			//Get Changed touches, these are the ones that moved
-			for(var i=0; i<e.changedTouches.length; i++) {
-				//Get each touch's unique ID
-				var uniqueID = e.changedTouches[i].identifier;
-					
-				//Find corresponding touch object
-				for(var j=0; j<this.touches.length;j++) {
-					if(this.touches[j] != null && uniqueID == this.touches[j].uniqueID) {
-						//Get the touch position, divide by half if pixel Doubling!
-						var xPos = !this.bPixelDoubling ? e.changedTouches[i].pageX : e.changedTouches[i].pageX/2;
-						var yPos = !this.bPixelDoubling ? e.changedTouches[i].pageY : e.changedTouches[i].pageY/2;
-						
-						
-						//Update touch pos
-						this.touches[j].pos = {
-							x:xPos - this.pos.x,
-							y:yPos - this.pos.y
-						}
-						
-						//Deploy Event
-						this.touchMoved(this.touches[j]);
-						break;
-					}
-				}
-			}
-		}
-	},
-	
-	
-	//-------------------------------------------------------
-	touchEndListener: function(e) {
-		if(this.touchEnd != undefined) {
-			for(var i=0; i<e.changedTouches.length; i++) {
-				//Get each touch's unique ID
-				var uniqueID = e.changedTouches[i].identifier;
-				
-				for(var j=0; j<this.touches.length; j++) {
-					if(this.touches[j] != null && uniqueID == this.touches[j].uniqueID) {
-						this.touchEnd(this.touches[j]);
-						this.touches[j] = null;
-						break;
-					}
-				}
-			}
-		}
-	},
-	
-	
-	//-------------------------------------------------------
-	//Mouse Listeners
-	
-	bMouseDown:false,
-	
-	//-------------------------------------------------------
-	mouseDownListener: function(e) {
-		this.bMouseDown = true;
+		this.update();
+		this.draw();
 		
-		//Get Position of Event
-		var position = {
-			x:e.client.x,
-			y:e.client.y
-		}
-			
-		if(this.bIsMobileApp) {
-			if(this.touchStart != undefined) {
-				this.touchStart({id:0, pos:position});
-			}
-		} else {
-			if(this.mouseDown != undefined) {
-				this.mouseDown(position.x, pos.y);
-			}
-		}
-	},
-	
-	//-------------------------------------------------------
-	mouseMovedListener: function(e) {
-		if(this.bMouseDown) {
-			this.mouseDraggedListener(e);
+		if(this.bShowFPS) {
+			this.updateFPS();
+			this.drawFPS();
 		}
 		
-		//Get Position of Event
-		var position = {
-			x:e.client.x,
-			y:e.client.y
-		}
-			
-		if(this.bIsMobileApp) {
-			if(this.touchMoved != undefined) {
-				this.touchMoved({id:0, pos:position});
-			}
-		} else {
-			if(this.mouseMoved != undefined) {
-				this.mouseMoved(pos.x, pos.y);
-			}
-		}
-	},
-	
-	
-	//-------------------------------------------------------
-	mouseUpListener: function(e) {
-		this.bMouseDown = false;
 		
-		//Get Position of Event
-		var position = {
-			x:e.client.x,
-			y:e.client.y
-		}
-			
-		if(this.bIsMobileApp) {
-			if(this.touchEnd != undefined) {
-				this.touchEnd({id:0, pos:position});
-			}
-		} else {
-			if(this.mouseUp != undefined) {
-				this.mouseUp(pos.x, pos.y);
-			}
-		}
-	},
-	
-	
-	//-------------------------------------------------------
-	mouseDraggedListener: function(e) {
-		
+		window.requestAnimFrame(this.run.bind(this));
+		//this.run.delay(0,this);
+	}
+}
+
+//-------------------------------------------------------
+//FPS
+//-------------------------------------------------------
+Pixel.App.prototype.setFPS = function(fps) {
+	this.fps = fps;
+}
+
+
+//-------------------------------------------------------
+Pixel.App.prototype.getFPS = function() {
+	return this.fps;
+}
+
+//-------------------------------------------------------
+Pixel.App.prototype.showFPS = function() {
+	//Clear samples
+	for(var i=0;i<this.fpsSamples.length; i++) {
+		this.fpsSamples[i] = 0;
 	}
 	
-});
+	this.bShowFPS = true;
+}
+
+
+
+
+//-------------------------------------------------------
+Pixel.App.prototype.hideFPS = function() {
+	this.bShowFPS = false;
+}
+
+
+
+
+//-------------------------------------------------------
+Pixel.App.prototype.updateFPS = function() {
+	this.curFpsSample++;
+	if(this.curFpsSample >= this.nFPSSamples) {
+		this.curFpsSample = 0;
+	}
+	
+	var curTime = this.getElapsedTime();
+	this.fpsSamples[this.curFpsSample] = 1000.0/(curTime - this.prevTime);
+	
+	var avgFps = 0;
+	for(var i=0;i<this.fpsSamples.length; i++) {
+		avgFps += this.fpsSamples[i];
+	}
+	
+	avgFps /= this.fpsSamples.length;
+	
+	this.curFps = Math.floor(avgFps);
+	
+	this.prevTime = curTime;
+}
+
+
+
+
+//-------------------------------------------------------
+Pixel.App.prototype.drawFPS = function() {
+	this.setFont(this.fpsFont);
+	
+	this.setColor(0,0,0);
+	this.drawText("FPS: " + this.curFps.toFixed(2), 20, 20);
+	this.setColor(255,255,2550);
+	this.drawText("FPS: " + this.curFps.toFixed(2), 22, 22);
+}
+
+
+
+
+//-------------------------------------------------------
+//Time
+Pixel.App.prototype.getElapsedTime = function() {
+	var curTime = new Date().getTime();
+	return curTime - this.startTime;
+}
+
+
+
+//-------------------------------------------------------
+//Event Listeners
+//Events are sent to functions that can be implemented by extending classes
+//If event functions aren't implemented, they're ignored
+
+//-------------------------------------------------------
+//Touch Listener
+Pixel.App.prototype.touches = [],
+
+//Default functions (called by listeners, extend in App)
+
+//-------------------------------------------------------
+Pixel.App.prototype.touchStartListener = function(e) {
+	if(this.touchStart != undefined) {
+		for(var i=0;i < e.changedTouches.length; i++) {
+			//Find empty slot for touch
+			var emptyTouchPos = null;
+			for(var j=0; j<this.touches.length; j++) {
+				if(this.touches[j]==null) {
+					emptyTouchPos = j;
+					break;
+				}
+			}
+			
+			//If slot not found, create new item in touches array (javascript way of doing things)
+			if(emptyTouchPos == null) emptyTouchPos = this.touches.length;
+			
+			//Get the touch position, divide by half if pixel Doubling!
+			var xPos = !this.bPixelDoubling ? e.changedTouches[i].pageX : e.changedTouches[i].pageX/2;
+			var yPos = !this.bPixelDoubling ? e.changedTouches[i].pageY : e.changedTouches[i].pageY/2;
+			
+			//Set the touch
+			this.touches[emptyTouchPos] = {
+				id:j,
+				pos:{
+					x:xPos - this.pos.x,
+					y:yPos - this.pos.y
+				},
+				uniqueID:e.changedTouches[i].identifier
+			}
+			
+			//Deploy Event		
+			this.touchStart(this.touches[emptyTouchPos]);
+		}
+	}
+}
+
+
+//-------------------------------------------------------
+Pixel.App.prototype.touchMovedListener = function(e) {
+	if(this.touchMoved != undefined) {
+		//Get Changed touches, these are the ones that moved
+		for(var i=0; i<e.changedTouches.length; i++) {
+			//Get each touch's unique ID
+			var uniqueID = e.changedTouches[i].identifier;
+				
+			//Find corresponding touch object
+			for(var j=0; j<this.touches.length;j++) {
+				if(this.touches[j] != null && uniqueID == this.touches[j].uniqueID) {
+					//Get the touch position, divide by half if pixel Doubling!
+					var xPos = !this.bPixelDoubling ? e.changedTouches[i].pageX : e.changedTouches[i].pageX/2;
+					var yPos = !this.bPixelDoubling ? e.changedTouches[i].pageY : e.changedTouches[i].pageY/2;
+					
+					
+					//Update touch pos
+					this.touches[j].pos = {
+						x:xPos - this.pos.x,
+						y:yPos - this.pos.y
+					}
+					
+					//Deploy Event
+					this.touchMoved(this.touches[j]);
+					break;
+				}
+			}
+		}
+	}
+}
+
+
+//-------------------------------------------------------
+Pixel.App.prototype.touchEndListener = function(e) {
+	if(this.touchEnd != undefined) {
+		for(var i=0; i<e.changedTouches.length; i++) {
+			//Get each touch's unique ID
+			var uniqueID = e.changedTouches[i].identifier;
+			
+			for(var j=0; j<this.touches.length; j++) {
+				if(this.touches[j] != null && uniqueID == this.touches[j].uniqueID) {
+					this.touchEnd(this.touches[j]);
+					this.touches[j] = null;
+					break;
+				}
+			}
+		}
+	}
+}
+
+
+//-------------------------------------------------------
+//Mouse Listeners
+
+Pixel.App.prototype.bMouseDown = false,
+
+//-------------------------------------------------------
+Pixel.App.prototype.mouseDownListener = function(e) {
+	this.bMouseDown = true;
+	
+	//Get Position of Event
+	var position = {
+		x:e.clientX,
+		y:e.clientY
+	}
+		
+	if(this.bIsMobileApp) {
+		if(this.touchStart != undefined) {
+			this.touchStart({id:0, pos:position});
+		}
+	} else {
+		if(this.mouseDown != undefined) {
+			this.mouseDown(position.x, pos.y);
+		}
+	}
+}
+
+//-------------------------------------------------------
+Pixel.App.prototype.mouseMovedListener = function(e) {
+	if(this.bMouseDown) {
+		this.mouseDraggedListener(e);
+	}
+	
+	//Get Position of Event
+	var position = {
+		x:e.clientX,
+		y:e.clientY
+	}
+		
+	if(this.bIsMobileApp) {
+		if(this.touchMoved != undefined) {
+			this.touchMoved({id:0, pos:position});
+		}
+	} else {
+		if(this.mouseMoved != undefined) {
+			this.mouseMoved(pos.x, pos.y);
+		}
+	}
+}
+
+
+//-------------------------------------------------------
+Pixel.App.prototype.mouseUpListener = function(e) {
+	this.bMouseDown = false;
+	
+	//Get Position of Event
+	var position = {
+		x:e.clientX,
+		y:e.clientY
+	}
+		
+	if(this.bIsMobileApp) {
+		if(this.touchEnd != undefined) {
+			this.touchEnd({id:0, pos:position});
+		}
+	} else {
+		if(this.mouseUp != undefined) {
+			this.mouseUp(pos.x, pos.y);
+		}
+	}
+}
+
+
+//-------------------------------------------------------
+Pixel.App.prototype.mouseDraggedListener = function(e) {
+	
+}

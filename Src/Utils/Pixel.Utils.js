@@ -11,12 +11,16 @@ Pixel.log = function(message) {
 	console.log("PixelJS Log: " + message)
 }
 
-Pixel.getBrowserName = function() {
-	if((navigator.userAgent.match(/iPhone/i)) || (navigator.userAgent.match(/iPod/i))) {
-		return Pixel.BROWSER_TYPE_IPHONE;
-	} else {
-		return Browser.name;
-	}
+//-------------------------------------------------------
+//Touch device detection
+//from http://stackoverflow.com/questions/2607248/optimize-website-for-touch-devices
+Pixel.isTouchDevice = function() {
+    try {
+        document.createEvent("TouchEvent");
+        return true;
+    } catch (e) {
+        return false;
+    }
 }
 
 //-------------------------------------------------------

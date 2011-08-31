@@ -14,51 +14,52 @@ Pixel.Color = function(r,g,b,a) {
 }
 
 
-Pixel.Color.prototype = {
-	//-------------------------------------------------------
-	set:function(r,g,b,a) {
-		if(r != undefined) this.r = r;
-		if(g != undefined) this.g = g;
-		if(b != undefined) this.b = b;
-		
-		this.a = a != undefined ? a : 1;
-	},
+
+//-------------------------------------------------------
+Pixel.Color.prototype.set = function(r,g,b,a) {
+	if(r != undefined) this.r = r;
+	if(g != undefined) this.g = g;
+	if(b != undefined) this.b = b;
 	
-	
-	//-------------------------------------------------------
-	setHSL: function(h,s,l,a) {
-		if(h != undefined) this.h = h;
-		if(s != undefined) this.s = g;
-		if(l != undefined) this.l = b;
-		
-		this.a = a != undefined ? a : 1;
-	},
-	
-	
-	//-------------------------------------------------------
-	setHSV: function(h,s,v,a) {
-		if(h != undefined) this.h = h;
-		if(s != undefined) this.s = g;
-		if(v != undefined) this.l = b;
-		if(a != undefined) this.a = a;
-	},
-	
-	
-	//-------------------------------------------------------
-	toHSL: function() {
-		var hsl = Pixel.rgbToHSL(this.r, this.g, this.b);
-		this.setHSL(hsl.h, hsl.s, hsl.l);
-		return hsl;
-	},
-	
-	
-	//-------------------------------------------------------
-	toHSV: function() {
-		var hsv = Pixel.rgbToHSV(this.r, this.g, this.b);
-		this.setHSV(hsv.h, hsv.s, hsv.v);
-		return hsv;
-	}
+	this.a = a != undefined ? a : 1;
 }
+
+
+//-------------------------------------------------------
+Pixel.Color.prototype.setHSL = function(h,s,l,a) {
+	if(h != undefined) this.h = h;
+	if(s != undefined) this.s = g;
+	if(l != undefined) this.l = b;
+	
+	this.a = a != undefined ? a : 1;
+}
+
+
+//-------------------------------------------------------
+Pixel.Color.prototype.setHSV = function(h,s,v,a) {
+	if(h != undefined) this.h = h;
+	if(s != undefined) this.s = g;
+	if(v != undefined) this.l = b;
+	if(a != undefined) this.a = a;
+}
+
+
+//-------------------------------------------------------
+Pixel.Color.prototype.toHSL = function() {
+	var hsl = Pixel.rgbToHSL(this.r, this.g, this.b);
+	this.setHSL(hsl.h, hsl.s, hsl.l);
+	return hsl;
+}
+
+
+//-------------------------------------------------------
+Pixel.Color.prototype.toHSV = function() {
+	var hsv = Pixel.rgbToHSV(this.r, this.g, this.b);
+	this.setHSV(hsv.h, hsv.s, hsv.v);
+	return hsv;
+}
+
+
 
 //-------------------------------------------------------
 //From http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript

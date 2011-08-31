@@ -41,6 +41,7 @@ Pixel.ORIGIN_BOTTOM_CENTER	= 7;
 Pixel.ORIGIN_CENTER			= 8;
 
 //Tween Types
+/*
 Pixel.NO_EASE		= TWEEN.Easing.Linear.EaseNone;
 
 Pixel.EASE_IN_QUAD		= TWEEN.Easing.Quadratic.EaseIn;
@@ -70,3 +71,4 @@ Pixel.EASE_IN_OUT_EXPO	= TWEEN.Easing.Exponential.EaseInOut;
 Pixel.EASE_IN_CIRC		= TWEEN.Easing.Circular.EaseIn;
 Pixel.EASE_OUT_CIRC		= TWEEN.Easing.Circular.EaseOut;
 Pixel.EASE_IN_OUT_CIRC	= TWEEN.Easing.Circular.EaseInOut;
+*/

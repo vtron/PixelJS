@@ -13,3 +13,4 @@ if(typeof Pixel == 'undefined') {
 } else {
 	console.log("Pixel Namespace Already Exists!");
 }
+
