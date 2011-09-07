@@ -117,9 +117,3 @@ Pixel.Image.prototype.setFromPixels = function(pixels, width, height){
 	
 	this.image.src = this.canvas.toDataURL("image/png");
 };
-
-
-//-------------------------------------------------------
-Pixel.Image.prototype.draw = function(pxCanvas, x, y) {
-	pxCanvas.drawImage(this, x,y);
-};
