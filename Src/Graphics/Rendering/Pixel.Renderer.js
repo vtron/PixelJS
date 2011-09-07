@@ -78,7 +78,7 @@ Pixel.Renderer.prototype.noStroke = function() {
 //-------------------------------------------------------
 //IMAGE DRAWING
 //-------------------------------------------------------
-Pixel.Renderer.prototype.drawImage = function(pxImage, x, y) {
+Pixel.Renderer.prototype.drawImage = function(pxImage, x, y, width, height) {
 	this.renderer.drawImage(pxImage, x, y);
 }
 
