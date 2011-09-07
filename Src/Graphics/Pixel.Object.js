@@ -19,7 +19,11 @@ Pixel.Object = function() {
 	this.shapeMode = Pixel.OBJECT_SHAPE_RECT;
 	
 	this.rect = new Pixel.Rectangle();
+	
+	Pixel.EventDispatcher.call(this);
 }
+
+Pixel.Object.prototype = new Pixel.EventDispatcher();
 
 
 //-------------------------------------------------------
