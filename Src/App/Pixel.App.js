@@ -1,6 +1,6 @@
 //-------------------------------------------------------
 //Pixel.App.js
-Pixel.App = function(renderMode, program) {
+Pixel.App = function() {
 	this.bSetup = false;
 	this.bRunning = true;
 	
@@ -18,9 +18,6 @@ Pixel.App = function(renderMode, program) {
 	
 	this.startTime	= 0;
 	this.prevTime	= 0;
-	
-	//Default to 2D Renderer
-	Pixel.Canvas.call(this, renderMode || Pixel.RENDER_MODE_2D);
 	
 	this.startTime = new Date().getTime();
 	this.prevTime = this.startTime;
@@ -44,9 +41,6 @@ Pixel.App = function(renderMode, program) {
 	//}
 	
 	
-	for(var item in program) {
-		this[item] = program[item];
-	}
 }
 
 Pixel.App.prototype = new Pixel.Canvas();
@@ -62,6 +56,15 @@ Pixel.App.prototype.start = function() {
 Pixel.App.prototype.stop = function() {
 	this.bRunning = false;
 }
+
+
+//-------------------------------------------------------
+//Empty functions in case someone doesn't want to define them
+Pixel.App.prototype.setup = function(){};
+Pixel.App.prototype.update = function(){};
+Pixel.App.prototype.draw = function(){};	
+
+
 
 //-------------------------------------------------------
 Pixel.App.prototype.run = function() {
@@ -80,9 +83,7 @@ Pixel.App.prototype.run = function() {
 			this.drawFPS();
 		}
 		
-		
 		window.requestAnimFrame(this.run.bind(this));
-		//this.run.delay(0,this);
 	}
 }
 
