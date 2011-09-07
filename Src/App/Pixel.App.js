@@ -26,24 +26,21 @@ Pixel.App = function() {
 	this.fpsFont = new Pixel.Font("Verdana", 10, Pixel.TEXT_ALIGN_LEFT);
 	
 	//Event Listeners
-	
 	var self = this;
-	/*
-	if(Pixel.isTouchDevice) {
-		this.canvas.addEventListener("touchstart",	function(e) { self.touchStartListener.call(self, e) });
-		document.body.addEventListener("touchmove",		function(e) { self.touchMovedListener.call(self, e) });
-		document.body.addEventListener("touchend",		function(e) { self.touchEndListener.call(self, e) });
+	
+	if(Pixel.isTouchDevice()) {
+		this.canvas.addEventListener("touchstart",		function(e) { self.touchStartListener.call(self, e) },	false);
+		this.canvas.addEventListener("touchmove",		function(e) { self.touchMovedListener.call(self, e) },	false);
+		this.canvas.addEventListener("touchend",		function(e) { self.touchEndListener.call(self, e) },	false);
 	} else {	
-*/	
-		document.body.addEventListener("mousedown",		function(e) { self.mouseDownListener.call(self, e) });
-		document.body.addEventListener("mousemove",		function(e) { self.mouseMovedListener.call(self, e) });
-		document.body.addEventListener("mouseup",		function(e) { self.mouseUpListener.call(self, e) });
-	//}
-	
-	
+		this.canvas.addEventListener("mousedown",		function(e) { self.mouseDownListener.call(self, e) },	false);
+		this.canvas.addEventListener("mousemove",		function(e) { self.mouseMovedListener.call(self, e) },	false);
+		this.canvas.addEventListener("mouseup",			function(e) { self.mouseUpListener.call(self, e) },		false);
+	}
 }
 
 Pixel.App.prototype = new Pixel.Canvas();
+
 
 
 //-------------------------------------------------------
@@ -169,15 +166,15 @@ Pixel.App.prototype.getElapsedTime = function() {
 
 
 //-------------------------------------------------------
-//Event Listeners
-//Events are sent to functions that can be implemented by extending classes
-//If event functions aren't implemented, they're ignored
+//Events
+
+
 
 //-------------------------------------------------------
-//Touch Listener
+//Touch Events (touch start, touchemoved, touchend)
+//Touch Events have an id and position (x,y)
 Pixel.App.prototype.touches = [],
 
-//Default functions (called by listeners, extend in App)
 
 //-------------------------------------------------------
 Pixel.App.prototype.touchStartListener = function(e) {
@@ -209,11 +206,12 @@ Pixel.App.prototype.touchStartListener = function(e) {
 				uniqueID:e.changedTouches[i].identifier
 			}
 			
-			//Deploy Event		
-			this.touchStart(this.touches[emptyTouchPos]);
+			//Deploy Event
+			this.dispatch("touch start", this.touches[emptyTouchPos]);
 		}
 	}
 }
+
 
 
 //-------------------------------------------------------
@@ -239,13 +237,14 @@ Pixel.App.prototype.touchMovedListener = function(e) {
 					}
 					
 					//Deploy Event
-					this.touchMoved(this.touches[j]);
+					this.dispatch("touch moved", this.touches[j]);
 					break;
 				}
 			}
 		}
 	}
 }
+
 
 
 //-------------------------------------------------------
@@ -257,7 +256,7 @@ Pixel.App.prototype.touchEndListener = function(e) {
 			
 			for(var j=0; j<this.touches.length; j++) {
 				if(this.touches[j] != null && uniqueID == this.touches[j].uniqueID) {
-					this.touchEnd(this.touches[j]);
+					this.dispatch("touchend", this.touches[j]);
 					this.touches[j] = null;
 					break;
 				}
@@ -268,7 +267,9 @@ Pixel.App.prototype.touchEndListener = function(e) {
 
 
 //-------------------------------------------------------
-//Mouse Listeners
+//Mouse Events
+//Mouse Events (touch start, touchemoved, touchend)
+//Mouse Events have an x and y position
 
 Pixel.App.prototype.bMouseDown = false,
 
@@ -277,21 +278,17 @@ Pixel.App.prototype.mouseDownListener = function(e) {
 	this.bMouseDown = true;
 	
 	//Get Position of Event
-	var position = {
-		x:e.clientX,
-		y:e.clientY
-	}
+	var position = Pixel.getRelativeMouseCoords(e, this.canvas);
 		
 	if(this.bIsMobileApp) {
 		if(this.touchStart != undefined) {
-			this.touchStart({id:0, pos:position});
+			this.dispatch("touchstart", {id:0, "position":position});
 		}
 	} else {
-		if(this.mouseDown != undefined) {
-			this.mouseDown(position.x, pos.y);
-		}
+		this.dispatch("mousedown", position);
 	}
 }
+
 
 //-------------------------------------------------------
 Pixel.App.prototype.mouseMovedListener = function(e) {
@@ -300,21 +297,15 @@ Pixel.App.prototype.mouseMovedListener = function(e) {
 	}
 	
 	//Get Position of Event
-	var position = {
-		x:e.clientX,
-		y:e.clientY
-	}
-		
+	var position = Pixel.getRelativeMouseCoords(e, this.canvas);
+			
 	if(this.bIsMobileApp) {
-		if(this.touchMoved != undefined) {
-			this.touchMoved({id:0, pos:position});
-		}
+		this.dispatch("touchmoved", {id:0, "position":position});
 	} else {
-		if(this.mouseMoved != undefined) {
-			this.mouseMoved(pos.x, pos.y);
-		}
+		this.dispatch("mousemoved", position);
 	}
 }
+
 
 
 //-------------------------------------------------------
@@ -322,21 +313,15 @@ Pixel.App.prototype.mouseUpListener = function(e) {
 	this.bMouseDown = false;
 	
 	//Get Position of Event
-	var position = {
-		x:e.clientX,
-		y:e.clientY
-	}
+	var position = Pixel.getRelativeMouseCoords(e, this.canvas);
 		
 	if(this.bIsMobileApp) {
-		if(this.touchEnd != undefined) {
-			this.touchEnd({id:0, pos:position});
-		}
+		this.dispatch("touchend", {id:0, "position":position});
 	} else {
-		if(this.mouseUp != undefined) {
-			this.mouseUp(pos.x, pos.y);
-		}
+		this.dispatch("mouseup", position);
 	}
 }
+
 
 
 //-------------------------------------------------------

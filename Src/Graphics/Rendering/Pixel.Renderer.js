@@ -5,8 +5,11 @@
 //Right now a bit overkill b/c only 2D rendering is implemented :)
 
 Pixel.Renderer = function(canvasElement, rendererType) {
-	
+	Pixel.EventDispatcher.call(this);
 }
+
+
+Pixel.Renderer.prototype = new Pixel.EventDispatcher();
 
 
 //-------------------------------------------------------
