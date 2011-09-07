@@ -28,6 +28,7 @@ files.append(src + "Pixel.js")
 files.append(src + "Utils/Pixel.Constants.js")
 files.append(src + "Utils/Pixel.Utils.js")
 files.append(src + "Utils/Pixel.Math.js")
+files.append(src + "Utils/Pixel.EventDispatcher.js")
 
 #Renderers
 files.append(src + "Graphics/Rendering/Pixel.Renderer.js")
@@ -75,9 +76,6 @@ def addFile(inputFile, combinedFile):
 	with open(inputFile,'r') as file:
 		inputContent	= file.read()
 		combinedFile.write(inputContent)
-
-
-
 
 
 
