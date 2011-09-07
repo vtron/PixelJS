@@ -12,11 +12,7 @@ Pixel.Canvas = function() {
 	this.canvas.setAttribute('width', this.width);
 	this.canvas.setAttribute('height', this.height);
 	
-	this.canvas.style.position	= "absolute";
-	this.canvas.style.top		= "0px";
-	this.canvas.style.left		= "0px";
-	
-	this.canvas.webkitTransformOrigin = "0 0 0";
+	//this.canvas.webkitTransformOrigin = "0 0 0";
 	
 	this.pos = {
 		x:0,
@@ -34,7 +30,7 @@ Pixel.Canvas = function() {
 	this.bPixelDoubling = window.devicePixelRatio >= 2;
 	
 	//Init Vars
-	this.setPos(0,0);
+	//this.setPos(0,0);
 	this.setSize(50,400);
 	
 	//Set Renderer (default is 2D)
