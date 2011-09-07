@@ -1,9 +1,33 @@
 <html>
 	<head>
 		<script src="../../Build/Pixel.js"></script>
+		
 	</head>
 	
 	<body>
-	
+		<script>
+			var x = 0;
+			
+			var App = new Pixel.App();
+			
+			App.setup = function() {
+				console.log("Setup");
+			}
+				
+			App.update = function() {
+				if(x<App.getWidth()) {
+					x++;
+				}			
+			}
+				
+			App.draw = function() {
+				App.clear(0,0,400,400);
+				App.drawRect(x,0, 50,50);
+			}
+			
+			document.body.appendChild(App.canvas);
+			App.setSize(200,400);
+			App.run();
+		</script>
 	</body>
 </html>
