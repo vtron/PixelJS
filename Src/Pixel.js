@@ -6,7 +6,6 @@
 //Define Bind for browsers that don't have it
 //See https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind
 if (!Function.prototype.bind) {
-
   Function.prototype.bind = function (oThis) {
 
     if (typeof this !== "function") // closest thing possible to the ECMAScript 5 internal IsCallable function
@@ -24,7 +23,6 @@ if (!Function.prototype.bind) {
 
     return fBound;
   };
-
 }
 
 
