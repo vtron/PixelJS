@@ -2,31 +2,69 @@
 	<head>
 		<script src="../../Build/Pixel.js"></script>
 		
+		<style>
+			#wrapper {
+				margin:50px auto;
+				border:1px solid #ccc;
+			}
+		</style>
 	</head>
 	
 	<body>
+		<div id="wrapper"></div>
 		<script>
 			var x = 0;
-			
+			//Create App
 			var App = new Pixel.App();
 			
+			//-------------------------------------------------------
+			//Declare setup, update & draw functions
+			
+			//-------------------------------------------------------
 			App.setup = function() {
-				console.log("Setup");
 			}
 				
+			//-------------------------------------------------------	
 			App.update = function() {
 				if(x<App.getWidth()) {
 					x++;
 				}			
 			}
-				
+			
+			//-------------------------------------------------------	
 			App.draw = function() {
-				App.clear(0,0,400,400);
+				App.clear(0,0,App.getWidth(),App.getHeight());
 				App.drawRect(x,0, 50,50);
 			}
 			
-			document.body.appendChild(App.canvas);
-			App.setSize(200,400);
+			
+			//-------------------------------------------------------
+			//Set the size of the app
+			App.setSize(800,600);
+			
+			//Add to the DOM
+			var wrapper = document.getElementById("wrapper");
+			wrapper.appendChild(App.canvas);
+			wrapper.style.width		= App.getWidth() + "px";
+			wrapper.style.height	= App.getHeight() + "px";
+			
+			
+			App.addEventListener("mousedown", function(e) {
+				console.log("mousedown");
+				console.log(e.x);
+			});
+			
+			App.addEventListener("mousemoved", function(e){
+				console.log("mousemoved");
+				console.log(e.x);
+			});
+			
+			App.addEventListener("mouseup", function(e){
+				console.log("mouseup");
+				console.log(e.x);
+			});
+			//-------------------------------------------------------
+			//Run App
 			App.run();
 		</script>
 	</body>
