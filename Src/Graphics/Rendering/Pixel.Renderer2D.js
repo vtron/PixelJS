@@ -83,14 +83,15 @@ Pixel.Renderer2D.prototype.noStroke = function() {
 
 //-------------------------------------------------------
 //IMAGE DRAWING
-Pixel.Renderer2D.prototype.drawImage = function(pxImage, x, y) {
+Pixel.Renderer2D.prototype.drawImage = function(pxImage, x, y, w, h) {
+	x = x || pxImage.getPos().x;
+	y = y || pxImage.getPos().y;
+	
 	if(pxImage.isLoaded()) {
-		if(x != undefined && y != undefined) {
-			this.ctx.drawImage(pxImage.image, x, y);
-		} else {
-			this.ctx.drawImage(pxImage.image, pxImage.getPos().x, pxImage.getPos().y);
-		}
-	}	
+		this.ctx.drawImage(pxImage.image, x, y);
+	} else {
+		Pixel.log("Image not yet loaded!");
+	}
 }
 
 
