@@ -3,7 +3,7 @@
 //Canvas Wrapper, implements Renderer functions and adds DOM specific stuff 
 //+ generic vars shared between renderers (i.e. Cursor)
 
-Pixel.Canvas = function(renderMode) {
+Pixel.Canvas = function() {
 	Pixel.Renderer.call(this);
 	
 	//Create Canvas
@@ -17,19 +17,6 @@ Pixel.Canvas = function(renderMode) {
 	this.canvas.style.left		= "0px";
 	
 	this.canvas.webkitTransformOrigin = "0 0 0";
-	
-	/*
-	this.canvas = new Element('canvas', {
-		width:this.width,
-		height:this.height,
-		styles: {
-			position:"absolute",
-			top:"0px",
-			left:"0px",
-			"-webkit-transform-origin":"0 0 0"
-		}
-	});
-	*/
 	
 	this.pos = {
 		x:0,
@@ -50,8 +37,8 @@ Pixel.Canvas = function(renderMode) {
 	this.setPos(0,0);
 	this.setSize(50,400);
 	
-	//Set Renderer
-	this.setRenderer(this.canvas, renderMode);
+	//Set Renderer (default is 2D)
+	this.setRenderer(this.canvas, Pixel.RENDER_MODE_2D);
 }
 
 Pixel.Canvas.prototype = new Pixel.Renderer();
