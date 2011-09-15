@@ -106,10 +106,10 @@ Pixel.Object.prototype.touchStart = function(touch) {
 	//Touch Detection
 	switch(this.shapeMode) {
 		case Pixel.OBJECT_SHAPE_RECT:
-			this.bInitPressed = (this.rect.isInside(touch.pos.x,touch.pos.y));
+			this.bInitPressed = (this.rect.isInside(touch.x,touch.y));
 			break;
 		case Pixel.OBJECT_SHAPE_CIRCLE:
-			this.bInitPressed = Pixel.dist(this.pos.x, this.pos.y, touch.pos.x, touch.pos.y) < this.radius * 2;
+			this.bInitPressed = Pixel.dist(this.pos.x, this.pos.y, touch.x, touch.y) < this.radius * 2;
 			break;
 		default:
 			break;
@@ -125,10 +125,10 @@ Pixel.Object.prototype.touchMoved = function(touch) {
 	if(this.bInitPressed) {
 		switch(this.shapeMode) {
 			case Pixel.OBJECT_SHAPE_RECT:
-				this.bPressed	= (this.rect.isInside(touch.pos.x,touch.pos.y));
+				this.bPressed	= (this.rect.isInside(touch.x,touch.y));
 				break;
 			case Pixel.OBJECT_SHAPE_CIRCLE:
-				this.bPressed = Pixel.dist(this.pos.x, this.post.y, touch.pos.x, touch.pos.y) < this.radius * 2;
+				this.bPressed = Pixel.dist(this.pos.x, this.pos.y, touch.x, touch.y) < this.radius * 2;
 				break;
 			default:
 				break;
