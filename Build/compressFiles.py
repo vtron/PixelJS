@@ -4,6 +4,10 @@ import http.client ,urllib.request, urllib.parse, urllib.error
 from urllib.parse import urlencode
 import sys
 
+bCompress = False
+if len(sys.argv) > 1:
+	bCompress = True
+
 # Always use the following value for the Content-type header.
 headers = { "Content-type": "application/x-www-form-urlencoded" }
 conn = http.client.HTTPConnection('closure-compiler.appspot.com')
@@ -31,7 +35,6 @@ files.append(src + "Utils/Pixel.Math.js")
 files.append(src + "Utils/Pixel.EventDispatcher.js")
 
 #Renderers
-files.append(src + "Graphics/Rendering/Pixel.Renderer.js")
 files.append(src + "Graphics/Rendering/Pixel.Renderer2D.js")
 
 #Graphics
@@ -85,7 +88,8 @@ with open("Pixel.js", 'w') as combinedFile:
 		addFile(file, combinedFile)
 	
 #Compress
-compressFile("Pixel.js")
+if bCompress:
+	compressFile("Pixel.js")
 
 
 
