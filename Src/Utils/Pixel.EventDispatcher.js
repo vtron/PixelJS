@@ -1,7 +1,8 @@
 //-------------------------------------------------------
 //Pixel.EventDispatcher.js
 //Allows everything to dispense events like DOM elements and others to listen for them
-//From http://www.nonobtrusive.com/2009/07/24/custom-events-in-javascript-by-making-your-own-dispatcher-class/
+//Based on http://www.nonobtrusive.com/2009/07/24/custom-events-in-javascript-by-making-your-own-dispatcher-class/
+//with data passing added
 
 Pixel.EventDispatcher = function() {
 	this.events=[];
