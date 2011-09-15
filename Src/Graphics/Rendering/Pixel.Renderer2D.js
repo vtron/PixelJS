@@ -6,6 +6,9 @@ Pixel.Renderer2D = function(canvas) {
 	this.ctx		= canvas.getContext('2d');
 	this.bFill		= true;
 	this.bStroke	= false;
+	
+	
+	this.shapePos = {x:0,y:0};
 }
 
 
@@ -103,6 +106,8 @@ Pixel.Renderer2D.prototype.drawImage = function(pxImage, x, y, w, h) {
 Pixel.Renderer2D.prototype.beginShape = function(x,y) {
 	this.ctx.beginPath();
 	this.ctx.moveTo(x,y);
+	
+	this.shapePos = {"x":x,"y":y};
 }
 
 
@@ -114,13 +119,41 @@ Pixel.Renderer2D.prototype.addVertex = function(x,y, bEnd) {
 	if(bEnd != undefined) {
 		this.endShape();
 	}
+	
+	this.shapePos = {"x":x,"y":y};
 }
 
+
+//-------------------------------------------------------
+Pixel.Renderer2D.prototype.curveVertex = function(x, y) {
+	var x0,y0,x1,x2, y1, y2;
+	
+	x0 = this.shapePos.x;
+	y0 = this.shapePos.y;
+	
+	x2 = x;  
+	y2 = y;
+	
+	if((x0 > x && y0 > y) || (x0 < x && y0 < y)) {
+		x1 = x2;
+		y1 = y0;
+	} else {
+		x1 = x0;
+		y1 = y2;
+	}
+	
+	radius = (Math.abs(x0 - x2) + Math.abs(y0 - y2))/2;
+	this.ctx.arcTo(x1, y1, x2, y2, radius);
+	
+	this.shapePos = {"x":x,"y":y};
+}
 
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.endShape = function(x,y) {
 	this.ctx.closePath();
+	this.shapePos = {"x":x,"y":y};
+	
 	this.ctx.fill();
 }
 
@@ -198,7 +231,40 @@ Pixel.Renderer2D.prototype.drawRect = function(x,y,width,height) {
 	}
 }
 
-
+//-------------------------------------------------------
+Pixel.Renderer2D.prototype.drawRoundedRect = function(x,y,width,height, radius) {
+	if(typeof(radius) === 'number') {
+		radius = {
+			"tl":radius,
+			"tr":radius,
+			"br":radius,
+			"bl":radius
+		}
+	}
+	
+	this.beginShape();
+	
+	//Top Right
+	this.addVertex(x + width-radius.tr, y);
+	this.curveVertex(x + width, y + radius.tr);
+	
+	//Bottom Right
+	this.addVertex(x + width, y + height - radius.br);
+	this.curveVertex(x + width - radius.br, y + height);
+	
+	//Bottom Left
+	this.addVertex(x + radius.bl, y + height);
+	this.curveVertex(x, y + height - radius.bl);
+	
+	//Top Left
+	this.addVertex(x, y + radius.tl);
+	this.curveVertex(x + radius.tl, y);
+	
+	this.endShape();
+	
+	if(this.bFill)	this.ctx.fill();
+	if(this.bStroke) this.ctx.stroke();
+}
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.drawSquare = function(x,y,size) {
@@ -338,7 +404,6 @@ Pixel.Renderer2D.prototype.drawText = function(string, x, y) {
 	if(x != undefined) {
 		this.ctx.fillText(string, x, y);
 	} else {
-		console.log('yea');
 		this.ctx.fillText(string, this.cursorX, this.cursorY);
 	}
 }
