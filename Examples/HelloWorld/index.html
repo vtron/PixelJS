@@ -1,7 +1,6 @@
 <html>
 	<head>
-		<script src="../../Build/Pixel.js"></script>
-		
+		<script type="text/javascript" src="../../Build/Pixel.js"></script>
 		<style>
 			#wrapper {
 				margin:50px auto;
@@ -12,96 +11,8 @@
 	
 	<body>
 		<div id="wrapper"></div>
-		<script>
-			var wrapper = document.getElementById("wrapper");
-				
-				
-			
-			//Create App
-			var App = new Pixel.App();
-			var x = 0;
-			var speed = 1;
-			
-			//-------------------------------------------------------
-			//Declare setup, update & draw functions
-			
-			App.setup = function() {
-				
-				//Set the size of the app
-				App.setSize(800,600);
-				
-				App.showFPS();
-				
-				//Add Listeners
-				App.addEventListener("mousedown", function(e) {
-/*
-					console.log("mousedown");
-					console.log(e.y);
-*/
-				});
-				
-				App.addEventListener("mousemoved", function(e){
-/*
-					console.log("mousemoved");
-					console.log(e.y);
-*/
-				});
-				
-				App.addEventListener("mouseup", function(e){
-/*
-					console.log("mouseup");
-					console.log(e.y);
-*/
-				});
-				
-				//Add App to DOM
-				wrapper.appendChild(App.canvas);
-				wrapper.style.width		= App.getWidth() + "px";
-				wrapper.style.height	= App.getHeight() + "px";
-				
-				App.clear(0,0,App.getWidth(),App.getHeight());
-				App.setColor(0,0,0, 0.5);
-				App.drawRoundedRect(50,50,100,100, {tl:10, tr:20, br:5, bl:15});
-			}
-				
-			
-			//-------------------------------------------------------	
-			App.update = function() {
-				if(x>App.getWidth() || x < 0) {
-					speed *= -1;
-				}
-				
-				x+=speed;	
-			}
-			
-			
-			//-------------------------------------------------------	
-			App.draw = function() {
-				
-				
-				/*
-				App.setColor(255,0,0);
-				
-				for(var i=0; i<x/2; i++) {
-					App.drawLine(i*10, 0, 0, i*10);
-					App.drawLine(App.getWidth() - (i*50), 0, 0, App.getHeight() - i*50);
-					App.drawLine(App.getWidth() - (i*50), 0, 0, i*50);
-					App.drawLine(i*50, 0, 0, App.getWidth() - (i*50));
-				}
-
-				
-				App.setColor(0,0,0);
-				App.drawRect(x,0, 50,50);
-*/			
-			}
-			
-			
-			//-------------------------------------------------------
-			//Run App
-			App.run();
-			
-			
-			
-		</script>
 	</body>
+	
+	
+		<script type="text/javascript" src="src/Main.js"></script>
 </html>
