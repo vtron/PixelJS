@@ -12,6 +12,11 @@ Pixel.BROWSER_TYPE_IPHONE	= "iphone"
 Pixel.RENDER_MODE_2D		= 0;
 Pixel.RENDER_MODE_WEBGL		= 1;
 
+//Line Cap
+Pixel.LINE_CAP_NORMAL	= "butt";
+Pixel.LINE_CAP_ROUND	= "round";
+Pixel.LINE_CAP_SQUARE	= "square";
+
 //Font Alignment
 Pixel.TEXT_ALIGN_LEFT	= "left";
 Pixel.TEXT_ALIGN_CENTER = "center";

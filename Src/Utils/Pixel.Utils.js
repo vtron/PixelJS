@@ -9,14 +9,21 @@ Pixel.isSet = function(item) { return item != undefined ? item : false; };
 //-------------------------------------------------------
 Pixel.log = function(message) {
 	console.log("PixelJS Log: " + message)
-}
+};
 
 //-------------------------------------------------------
+//IPHONE (maybe android too but only tested on iPhone so far)
+
 //Touch device detection
 //from http://stackoverflow.com/questions/2607248/optimize-website-for-touch-devices
 Pixel.isTouchDevice = function() {
 	return "ontouchstart" in window;
 }
+
+//Hide menu bar
+Pixel.hideAddressBar = function() {
+	window.scrollTo(0,1);
+};
 
 //-------------------------------------------------------
 //RequestAnimationFrame finder by Paul Irish

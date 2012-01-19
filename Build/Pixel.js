@@ -25,6 +25,74 @@ if (!Function.prototype.bind) {
   };
 }
 
+//-------------------------------------------------------
+//Basic class system by John Resig
+//See http://ejohn.org/blog/simple-javascript-inheritance/
+/* Simple JavaScript Inheritance
+ * By John Resig http://ejohn.org/
+ * MIT Licensed.
+ */
+// Inspired by base2 and Prototype
+(function(){
+  var initializing = false, fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
+  // The base Class implementation (does nothing)
+  this.Class = function(){};
+  
+  // Create a new Class that inherits from this class
+  Class.extend = function(prop) {
+    var _super = this.prototype;
+    
+    // Instantiate a base class (but only create the instance,
+    // don't run the init constructor)
+    initializing = true;
+    var prototype = new this();
+    initializing = false;
+    
+    // Copy the properties over onto the new prototype
+    for (var name in prop) {
+      // Check if we're overwriting an existing function
+      prototype[name] = typeof prop[name] == "function" && 
+        typeof _super[name] == "function" && fnTest.test(prop[name]) ?
+        (function(name, fn){
+          return function() {
+            var tmp = this._super;
+            
+            // Add a new ._super() method that is the same method
+            // but on the super-class
+            this._super = _super[name];
+            
+            // The method only need to be bound temporarily, so we
+            // remove it when we're done executing
+            var ret = fn.apply(this, arguments);        
+            this._super = tmp;
+            
+            return ret;
+          };
+        })(name, prop[name]) :
+        prop[name];
+    }
+    
+    // The dummy class constructor
+    function Class() {
+      // All construction is actually done in the init method
+      if ( !initializing && this.init )
+        this.init.apply(this, arguments);
+    }
+    
+    // Populate our constructed prototype object
+    Class.prototype = prototype;
+    
+    // Enforce the constructor to be what we expect
+    Class.prototype.constructor = Class;
+
+    // And make this class extendable
+    Class.extend = arguments.callee;
+    
+    return Class;
+  };
+})();
+
+
 
 //-------------------------------------------------------
 //Create Main Class Object, checking for namespace
@@ -55,6 +123,11 @@ Pixel.BROWSER_TYPE_IPHONE	= "iphone"
 //Render Modes
 Pixel.RENDER_MODE_2D		= 0;
 Pixel.RENDER_MODE_WEBGL		= 1;
+
+//Line Cap
+Pixel.LINE_CAP_NORMAL	= "butt";
+Pixel.LINE_CAP_ROUND	= "round";
+Pixel.LINE_CAP_SQUARE	= "square";
 
 //Font Alignment
 Pixel.TEXT_ALIGN_LEFT	= "left";
@@ -126,14 +199,21 @@ Pixel.isSet = function(item) { return item != undefined ? item : false; };
 //-------------------------------------------------------
 Pixel.log = function(message) {
 	console.log("PixelJS Log: " + message)
-}
+};
 
 //-------------------------------------------------------
+//IPHONE (maybe android too but only tested on iPhone so far)
+
 //Touch device detection
 //from http://stackoverflow.com/questions/2607248/optimize-website-for-touch-devices
 Pixel.isTouchDevice = function() {
 	return "ontouchstart" in window;
 }
+
+//Hide menu bar
+Pixel.hideAddressBar = function() {
+	window.scrollTo(0,1);
+};
 
 //-------------------------------------------------------
 //RequestAnimationFrame finder by Paul Irish
@@ -174,65 +254,74 @@ Pixel.getRelativeMouseCoords = function(event, element){
 //Pixel.Math.js
 //Various classes and functions that make math easier
 
-Pixel.Rectangle = function(x,y,width,height) {
-	this.x = 0;
-	this.y = 0;
-	this.width = 0;
-	this.height = 0;
+Pixel.Rectangle = Class.extend({
+	init: function(x,y,width,height) {
+		this.x = 0;
+		this.y = 0;
+		this.width = 0;
+		this.height = 0;
+		
+		this.set(x,y,width,height);
+	},
 	
-	this.set(x,y,width,height);
-}
-
-
-//-------------------------------------------------------
-Pixel.Rectangle.prototype.initialize = function(x,y,width,height) { 
-	this.set(x,y,width,height);
-}
-
-
-//-------------------------------------------------------
-Pixel.Rectangle.prototype.set = function(x,y,width,height) {
-	this.setPos(x,y);
-	this.setSize(width,height);
-}
-
-//-------------------------------------------------------
-Pixel.Rectangle.prototype.setPos =  function(x,y) {
-	if(Pixel.isSet(x)) this.x = x;
-	if(Pixel.isSet(y)) this.y = y;
-}
-
-//-------------------------------------------------------
-Pixel.Rectangle.prototype.setSize = function(width,height) {
-	this.width	= width;
-	this.height = height;
-}
-
-//-------------------------------------------------------
-Pixel.Rectangle.prototype.getPos = function() {
-	return {
-		x:this.x,
-		y:this.y
-	};
-}
-
-//-------------------------------------------------------
-Pixel.Rectangle.prototype.getSize = function() {
-	return {
-		width:this.width,
-		height:this.height
+	
+	//-------------------------------------------------------
+	initialize: function(x,y,width,height) { 
+		this.set(x,y,width,height);
+	},
+	
+	
+	//-------------------------------------------------------
+	set: function(x,y,width,height) {
+		this.setPos(x,y);
+		this.setSize(width,height);
+	},
+	
+	
+	//-------------------------------------------------------
+	setPos: function(x,y) {
+		if(Pixel.isSet(x)) this.x = x;
+		if(Pixel.isSet(y)) this.y = y;
+	},
+	
+	
+	//-------------------------------------------------------
+	setSize: function(width,height) {
+		this.width	= width;
+		this.height = height;
+	},
+	
+	
+	//-------------------------------------------------------
+	getPos: function() {
+		return {
+			x:this.x,
+			y:this.y
+		};
+	},
+	
+	
+	//-------------------------------------------------------
+	getSize: function() {
+		return {
+			width:this.width,
+			height:this.height
+		}
+	},
+	
+	
+	//-------------------------------------------------------
+	isInside: function(x,y) {
+		return (x > this.x) && (x < this.x + this.width) && (y > this.y) && (y < this.y + this.height);
 	}
-}
+});
 
-//-------------------------------------------------------
-Pixel.Rectangle.prototype.isInside = function(x,y) {
-	return (x > this.x) && (x < this.x + this.width) && (y > this.y) && (y < this.y + this.height);
-}
+
 
 
 
 //-------------------------------------------------------
-//Convert Radians to Degrees
+//Radians & Degrees
 //-------------------------------------------------------
 Pixel.radToDeg = function(rad) {
 	return rad * (180/Math.PI);
@@ -248,7 +337,7 @@ Pixel.degToRad = function(deg) {
 //-------------------------------------------------------
 //Mapping/Distance
 //-----------------------------------------------------
-Pixel.map = function(value, iStart, iStop, oStart, oStop, bClamp) {
+Pixel.map = function(iStart, iStop, value, oStart, oStop, bClamp) {
 	value = oStart + (oStop - oStart) * ((value - iStart) / (iStop - iStart));
 	return bClamp ? Pixel.clamp(value) : value;
 }
@@ -279,6 +368,51 @@ Pixel.getAngle = function(x1, y1, x2, y2) {
 //Based on http://www.nonobtrusive.com/2009/07/24/custom-events-in-javascript-by-making-your-own-dispatcher-class/
 //with data passing added
 
+Pixel.EventDispatcher = Class.extend({
+	events:[],
+	
+	init: function() {
+	},
+	
+	//-------------------------------------------------------
+	addEventListener: function(event,callback){
+		this.events[event] = this.events[event] || [];
+		if ( this.events[event] ) {
+			this.events[event].push(callback);
+		}
+	},
+	
+	
+	//-------------------------------------------------------
+	removeEventListener: function(event,callback){
+		if ( this.events[event] ) {
+			var listeners = this.events[event];
+			for ( var i = listeners.length-1; i>=0; --i ){
+				if ( listeners[i] === callback ) {
+					listeners.splice( i, 1 );
+					return true;
+				}
+			}
+		}
+		return false;
+	},
+	
+	
+	//-------------------------------------------------------
+	dispatch: function(event, data) {
+		if ( this.events[event] ) {
+			var listeners = this.events[event], len = listeners.length;
+			while ( len-- ) {
+				listeners[len](data);	//callback with self
+			}		
+		}
+	}
+}); 
+
+
+
+
+/*
 Pixel.EventDispatcher = function() {
 	this.events=[];
 }
@@ -317,485 +451,482 @@ Pixel.EventDispatcher.prototype.dispatch = function(event, data) {
 		}		
 	}
 }
-//-------------------------------------------------------
+*///-------------------------------------------------------
 //Pixel.Renderer2D.js
 //2D Rendering
 
-Pixel.Renderer2D = function(canvas) {
-	this.ctx		= canvas.getContext('2d');
-	this.bFill		= true;
-	this.bStroke	= false;
-	
-	
-	this.shapePos = {x:0,y:0};
-}
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.clear = function(x,y,width,height) {
-	this.ctx.clearRect(x,y,width,height);
-	//console.log(width);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.setColor = function(r,g,b,a) {
-	r = Math.round(r);
-	g = Math.round(g);
-	b = Math.round(b);
-
-	//Hex
-	if(g==undefined) {
-		this.ctx.fillStyle		= "rgb(" + r + "," + r + "," + r + ")";
-		this.ctx.strokeStyle	= "rgb(" + r + "," + r + "," + r + ")";
-		return;
-	} 
+Pixel.Renderer2D = Class.extend({ 
+	init:function(canvas) {
+		this.ctx		= canvas.getContext('2d');
+		this.bFill		= true;
+		this.bStroke	= false;
 		
-	//RGB
-	if(a==undefined) {
-		this.ctx.fillStyle		= "rgb(" + r + "," + g + "," + b + ")";
-		this.ctx.strokeStyle	= "rgb(" + r + "," + g + "," + b + ")";
-		return;
-	} 
+		this.shapePos = {x:0,y:0};
+	},
 	
-	//RGBA
-	this.ctx.fillStyle		= "rgba(" + r + "," + g + "," + b + "," + a + ")";
-	this.ctx.strokeStyle	= "rgba(" + r + "," + g + "," + b + "," + a + ")";
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.useColor = function(color) {
-	this.ctx.fillStyle		= "rgba(" + color.r + "," + color.g + "," + color.b + "," + color.a + ")";
-	this.ctx.strokeStyle	= "rgba(" + color.r + "," + color.g + "," + color.b + "," + color.a + ")";
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.fill = function() {
-	this.bFill = true;
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.noFill = function() {
-	this.bFill = false;
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.stroke =  function(size) {
-	this.bStroke = true;
-	this.ctx.lineWidth = size;
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.noStroke = function() {
-	this.bStroke = false;
-}
-
-
-
-//-------------------------------------------------------
-//IMAGE DRAWING
-Pixel.Renderer2D.prototype.drawImage = function(pxImage, x, y, w, h) {
-	x = x || pxImage.getPos().x;
-	y = y || pxImage.getPos().y;
 	
-	if(pxImage.isLoaded()) {
-		this.ctx.drawImage(pxImage.image, x, y);
-	} else {
-		Pixel.log("Image not yet loaded!");
-	}
-}
-
-
-
-//-------------------------------------------------------
-//SHAPE DRAWING
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.beginShape = function(x,y) {
-	this.ctx.beginPath();
-	this.ctx.moveTo(x,y);
+	//-------------------------------------------------------
+	clear: function(x,y,width,height) {
+		this.ctx.clearRect(x,y,width,height);
+		//console.log(width);
+	},
 	
-	this.shapePos = {"x":x,"y":y};
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.addVertex = function(x,y, bEnd) {
-	this.ctx.lineTo(x,y);
 	
-	if(bEnd != undefined) {
-		this.endShape();
-	}
+	//-------------------------------------------------------
+	getColorAsString: function(r,g,b,a) {
+		r = Math.round(r);
+		g = Math.round(g);
+		b = Math.round(b);
 	
-	this.shapePos = {"x":x,"y":y};
-}
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.curveVertex = function(x, y) {
-	var x0,y0,x1,x2, y1, y2;
+		//Set using color Object if only first var is combined (ghetto overloading?)
+		if(g==undefined) {
+			return "rgba(" + r.r + "," + r.g + "," + r.b + "," + r.a + ")";
+		} 
+			
+		//RGB
+		if(a==undefined) {
+			return "rgb(" + r + "," + g + "," + b + ")";
+		} 
+		
+		//RGBA
+		return "rgba(" + r + "," + g + "," + b + "," + a + ")";
+	},
 	
-	x0 = this.shapePos.x;
-	y0 = this.shapePos.y;
 	
-	x2 = x;  
-	y2 = y;
+	//-------------------------------------------------------
+	setFillColor: function(r,g,b,a) {
+		this.ctx.fillStyle = this.getColorAsString(r,g,b,a);
+	},
 	
-	if((x0 > x && y0 > y) || (x0 < x && y0 < y)) {
-		x1 = x2;
-		y1 = y0;
-	} else {
-		x1 = x0;
-		y1 = y2;
-	}
+	//-------------------------------------------------------
+	noFill: function() {
+		this.bFill = false;
+	},
 	
-	radius = (Math.abs(x0 - x2) + Math.abs(y0 - y2))/2;
-	this.ctx.arcTo(x1, y1, x2, y2, radius);
 	
-	this.shapePos = {"x":x,"y":y};
-}
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.endShape = function(x,y) {
-	this.ctx.closePath();
-	this.shapePos = {"x":x,"y":y};
+	//-------------------------------------------------------
+	setStrokeColor: function(r,g,b,a) {
+		this.ctx.strokeStyle = this.getColorAsString(r,g,b,a);
+		this.bStroke = true;
+	},
 	
-	this.ctx.fill();
-}
+	
+	//-------------------------------------------------------
+	noStroke: function() {
+		this.bStroke = false;
+	},
+	
 
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.drawLine = function(x1,y1,x2,y2) {
-	this.ctx.beginPath();
-	this.ctx.moveTo(x1,y1);
-	this.ctx.lineTo(x2,y2);
-	this.ctx.stroke();
-}
-
-
-
-
-//-------------------------------------------------------
-//Dashed line code from http://davidowens.wordpress.com/2010/09/07/html-5-canvas-and-dashed-lines/
-Pixel.Renderer2D.prototype.dashedLine = function (fromX, fromY, toX, toY, pattern) {
-// Our growth rate for our line can be one of the following:
-  //   (+,+), (+,-), (-,+), (-,-)
-  // Because of this, our algorithm needs to understand if the x-coord and
-  // y-coord should be getting smaller or larger and properly cap the values
-  // based on (x,y).
-  var lt = function (a, b) { return a <= b; };
-  var gt = function (a, b) { return a >= b; };
-  var capmin = function (a, b) { return Math.min(a, b); };
-  var capmax = function (a, b) { return Math.max(a, b); };
-
-  var checkX = { thereYet: gt, cap: capmin };
-  var checkY = { thereYet: gt, cap: capmin };
-
-  if (fromY - toY > 0) {
-    checkY.thereYet = lt;
-    checkY.cap = capmax;
-  }
-  if (fromX - toX > 0) {
-    checkX.thereYet = lt;
-    checkX.cap = capmax;
-  }
-
-  this.ctx.moveTo(fromX, fromY);
-  this.ctx.beginPath();
-  var offsetX = fromX;
-  var offsetY = fromY;
-  var idx = 0, dash = true;
-  while (!(checkX.thereYet(offsetX, toX) && checkY.thereYet(offsetY, toY))) {
-    var ang = Math.atan2(toY - fromY, toX - fromX);
-    var len = pattern[idx];
-
-    offsetX = checkX.cap(toX, offsetX + (Math.cos(ang) * len));
-    offsetY = checkY.cap(toY, offsetY + (Math.sin(ang) * len));
-
-    if (dash) this.ctx.lineTo(offsetX, offsetY);
-    else this.ctx.moveTo(offsetX, offsetY);
-    
-    this.ctx.stroke();
-
-    idx = (idx + 1) % pattern.length;
-    dash = !dash;
-  }
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.drawRect = function(x,y,width,height) {
-	if(y != undefined) {
-		if(this.bFill) this.ctx.fillRect(x,y,width,height);
-		if(this.bStroke) this.ctx.strokeRect(x,y,width,height);
-	} else {
-		var r = x;
-		if(this.bFill) this.ctx.fillRect(r.x,r.y, r.width, r.height);
-		if(this.bStroke) this.ctx.strokeRect(r.x, r.y,r.width, r.height);
-	}
-}
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.drawRoundedRect = function(x,y,width,height, radius) {
-	if(typeof(radius) === 'number') {
-		radius = {
-			"tl":radius,
-			"tr":radius,
-			"br":radius,
-			"bl":radius
+	//-------------------------------------------------------
+	setStrokeSize: function(size) {
+		this.ctx.lineWidth = size;
+	},
+	
+	//-------------------------------------------------------
+	setLineCap: function(style) {
+		this.ctx.lineCap = style;
+	},
+		
+	//-------------------------------------------------------
+	shadow: function(size, xOffset, yOffset) {
+		this.ctx.shadowBlur = size;
+		this.ctx.shadowOffsetX = xOffset;
+		this.ctx.shadowOffsetY = yOffset;
+	},
+	
+	
+	//-------------------------------------------------------
+	setShadowColor: function(r,g,b,a) {
+		this.ctx.shadowColor	= this.getColorAsString(r,g,b,a)
+	},
+	
+	
+	//-------------------------------------------------------
+	noShadow: function() {
+		this.ctx.shadowBlur		= 0;
+		this.ctx.shadowOffsetX	= 0;
+		this.ctx.shadowOffsetY	= 0;
+	},
+	
+	
+	//-------------------------------------------------------
+	//IMAGE DRAWING
+	drawImage: function(pxImage, x, y, w, h) {
+		x = x || pxImage.getPos().x;
+		y = y || pxImage.getPos().y;
+		
+		if(pxImage.isLoaded()) {
+			this.ctx.drawImage(pxImage.image, x, y);
+		} else {
+			Pixel.log("Image not yet loaded!");
 		}
+	},
+	
+	
+	//-------------------------------------------------------
+	//SHAPE DRAWING
+	
+	//-------------------------------------------------------
+	beginShape: function(x,y) {
+		this.ctx.beginPath();
+		this.ctx.moveTo(x,y);
+		
+		this.shapePos = {"x":x,"y":y};
+	},
+	
+	
+	//-------------------------------------------------------
+	addVertex: function(x,y, bEnd) {
+		this.ctx.lineTo(x,y);
+		
+		if(bEnd != undefined) {
+			this.endShape();
+		}
+		
+		this.shapePos = {"x":x,"y":y};
+	},
+	
+	
+	//-------------------------------------------------------
+	curveVertex: function(x, y) {
+		var x0,y0,x1,x2, y1, y2;
+		
+		x0 = this.shapePos.x;
+		y0 = this.shapePos.y;
+		
+		x2 = x;  
+		y2 = y;
+		
+		if((x0 > x && y0 > y) || (x0 < x && y0 < y)) {
+			x1 = x2;
+			y1 = y0;
+		} else {
+			x1 = x0;
+			y1 = y2;
+		}
+		
+		radius = (Math.abs(x0 - x2) + Math.abs(y0 - y2))/2;
+		this.ctx.arcTo(x1, y1, x2, y2, radius);
+		
+		this.shapePos = {"x":x,"y":y};
+	},
+	
+	
+	//-------------------------------------------------------
+	endShape: function(x,y) {
+		this.ctx.closePath();
+		this.shapePos = {"x":x,"y":y};
+		
+		this.ctx.fill();
+	},
+	
+	
+	//-------------------------------------------------------
+	drawLine: function(x1,y1,x2,y2) {
+		this.ctx.beginPath();
+		this.ctx.moveTo(x1,y1);
+		this.ctx.lineTo(x2,y2);
+		this.ctx.stroke();
+	},
+	
+	
+	//-------------------------------------------------------
+	//Dashed line code from http://davidowens.wordpress.com/2010/09/07/html-5-canvas-and-dashed-lines/
+	dashedLine: function (fromX, fromY, toX, toY, pattern) {
+	// Our growth rate for our line can be one of the following:
+	  //   (+,+), (+,-), (-,+), (-,-)
+	  // Because of this, our algorithm needs to understand if the x-coord and
+	  // y-coord should be getting smaller or larger and properly cap the values
+	  // based on (x,y).
+	  var lt = function (a, b) { return a <= b; };
+	  var gt = function (a, b) { return a >= b; };
+	  var capmin = function (a, b) { return Math.min(a, b); };
+	  var capmax = function (a, b) { return Math.max(a, b); };
+	
+	  var checkX = { thereYet: gt, cap: capmin };
+	  var checkY = { thereYet: gt, cap: capmin };
+	
+	  if (fromY - toY > 0) {
+	    checkY.thereYet = lt;
+	    checkY.cap = capmax;
+	  }
+	  if (fromX - toX > 0) {
+	    checkX.thereYet = lt;
+	    checkX.cap = capmax;
+	  }
+	
+	  this.ctx.moveTo(fromX, fromY);
+	  this.ctx.beginPath();
+	  var offsetX = fromX;
+	  var offsetY = fromY;
+	  var idx = 0, dash = true;
+	  while (!(checkX.thereYet(offsetX, toX) && checkY.thereYet(offsetY, toY))) {
+	    var ang = Math.atan2(toY - fromY, toX - fromX);
+	    var len = pattern[idx];
+	
+	    offsetX = checkX.cap(toX, offsetX + (Math.cos(ang) * len));
+	    offsetY = checkY.cap(toY, offsetY + (Math.sin(ang) * len));
+	
+	    if (dash) this.ctx.lineTo(offsetX, offsetY);
+	    else this.ctx.moveTo(offsetX, offsetY);
+	    
+	    this.ctx.stroke();
+	
+	    idx = (idx + 1) % pattern.length;
+	    dash = !dash;
+	  }
+	},
+	
+	
+	//-------------------------------------------------------
+	drawRect: function(x,y,width,height) {
+		if(y != undefined) {
+			if(this.bFill) this.ctx.fillRect(x,y,width,height);
+			if(this.bStroke) this.ctx.strokeRect(x,y,width,height);
+		} else {
+			var r = x;
+			if(this.bFill) this.ctx.fillRect(r.x,r.y, r.width, r.height);
+			if(this.bStroke) this.ctx.strokeRect(r.x, r.y,r.width, r.height);
+		}
+	},
+	
+	
+	//-------------------------------------------------------
+	drawRoundedRect: function(x,y,width,height, radius) {
+		if(typeof(radius) === 'number') {
+			radius = {
+				"tl":radius,
+				"tr":radius,
+				"br":radius,
+				"bl":radius
+			}
+		}
+		
+		this.beginShape();
+		
+		//Top Right
+		this.addVertex(x + width-radius.tr, y);
+		this.curveVertex(x + width, y + radius.tr);
+		
+		//Bottom Right
+		this.addVertex(x + width, y + height - radius.br);
+		this.curveVertex(x + width - radius.br, y + height);
+		
+		//Bottom Left
+		this.addVertex(x + radius.bl, y + height);
+		this.curveVertex(x, y + height - radius.bl);
+		
+		//Top Left
+		this.addVertex(x, y + radius.tl);
+		this.curveVertex(x + radius.tl, y);
+		
+		this.endShape();
+		
+		if(this.bFill)	this.ctx.fill();
+		if(this.bStroke) this.ctx.stroke();
+	},
+	
+	
+	//-------------------------------------------------------
+	drawSquare: function(x,y,size) {
+		this.rectangle(x,y,size,size);
+	},
+	
+	
+	//-------------------------------------------------------
+	//From http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+	drawEllipse: function(x,y,width,height) {
+		var kappa = .5522848;
+	      ox = (width / 2) * kappa, 	// control point offset horizontal
+	      oy = (height / 2) * kappa, 	// control point offset vertical
+	      xe = x + width,           	// x-end
+	      ye = y + height,          	// y-end
+	      xm = x + width / 2,       	// x-middle
+	      ym = y + height / 2;      	// y-middle
+	
+	  this.ctx.beginPath();
+	  this.ctx.moveTo(x, ym);
+	  this.ctx.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+	  this.ctx.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+	  this.ctx.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+	  this.ctx.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+	  this.ctx.closePath();
+	  
+	  if(this.bStroke) this.ctx.stroke();
+	  if(this.bFill) this.ctx.fill();
+	},
+	
+	
+	//-------------------------------------------------------
+	drawCircle: function(x,y,radius) {
+		this.ctx.beginPath();
+		this.ctx.arc(x, y, radius, 0, Math.PI*2,false);
+		
+		if(this.bStroke) this.ctx.stroke();
+	  	if(this.bFill) this.ctx.fill();
+	},
+	
+	
+	//-------------------------------------------------------
+	//TRANSFORMATIONS
+	//-------------------------------------------------------
+	pushMatrix: function() {
+		this.ctx.save();
+	},
+	
+	
+	//-------------------------------------------------------
+	popMatrix: function() {
+		this.ctx.restore();
+	},
+	
+	
+	//-------------------------------------------------------
+	translate: function(x,y) {
+		this.ctx.translate(x,y);
+	},
+	
+	
+	//-------------------------------------------------------
+	scale: function(x,y) {
+		this.ctx.scale(x,y);
+	},
+	
+	
+	//-------------------------------------------------------
+	rotate: function(angle) {
+		this.ctx.rotate(angle);
+	},
+	
+	
+	//-------------------------------------------------------
+	transform: function(m11, m12, m21, m22, dx, dy) {
+		this.ctx.transform(m11, m12, m21, m22, dx, dy);
+	},
+	
+	
+	//-------------------------------------------------------
+	setTransform: function(m11, m12, m21, m22, dx, dy) {
+		this.ctx.setTransform(m11, m12, m21, m22, dx, dy);
+	},
+	
+	
+	//-------------------------------------------------------
+	//FONTS/TEXT
+	//-------------------------------------------------------
+	
+	//-------------------------------------------------------
+	setFont: function(font, size) {
+		if(size == undefined) {
+			this.setFont(font.font, font.size);
+		} else {
+			this.ctx.font = size + "pt " + font;
+		}
+		
+		this.setTextAlignment(font.alignment);
+		this.setTextBaseline(font.baseline);
+	},
+	
+	
+	//-------------------------------------------------------
+	setTextAlignment: function(alignment) {
+		this.ctx.textAlign = alignment;
+	},
+	
+	
+	//-------------------------------------------------------
+	setTextBaseline: function(baseline) {
+		this.ctx.textBaseline = baseline;
+	},
+	
+	
+	//-------------------------------------------------------
+	getTextWidth: function(string) {
+		return this.ctx.measureText(string).width;
+	},
+	
+	
+	//-------------------------------------------------------
+	drawText: function(string, x, y) {
+		if(x != undefined) {
+			this.ctx.fillText(string, x, y);
+		} else {
+			this.ctx.fillText(string, this.cursorX, this.cursorY);
+		}
+	},
+	
+	
+	//-------------------------------------------------------
+	drawTextfield: function(tf) {
+		this.setFont(tf.font);
+		this.setFillColor(tf.color);
+		this.drawText(tf.text, tf.pos.x, tf.pos.y);
 	}
-	
-	this.beginShape();
-	
-	//Top Right
-	this.addVertex(x + width-radius.tr, y);
-	this.curveVertex(x + width, y + radius.tr);
-	
-	//Bottom Right
-	this.addVertex(x + width, y + height - radius.br);
-	this.curveVertex(x + width - radius.br, y + height);
-	
-	//Bottom Left
-	this.addVertex(x + radius.bl, y + height);
-	this.curveVertex(x, y + height - radius.bl);
-	
-	//Top Left
-	this.addVertex(x, y + radius.tl);
-	this.curveVertex(x + radius.tl, y);
-	
-	this.endShape();
-	
-	if(this.bFill)	this.ctx.fill();
-	if(this.bStroke) this.ctx.stroke();
-}
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.drawSquare = function(x,y,size) {
-	this.rectangle(x,y,size,size);
-}
-
-
-
-//-------------------------------------------------------
-//From http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
-Pixel.Renderer2D.prototype.drawEllipse = function(x,y,width,height) {
-	var kappa = .5522848;
-      ox = (width / 2) * kappa, 	// control point offset horizontal
-      oy = (height / 2) * kappa, 	// control point offset vertical
-      xe = x + width,           	// x-end
-      ye = y + height,          	// y-end
-      xm = x + width / 2,       	// x-middle
-      ym = y + height / 2;      	// y-middle
-
-  this.ctx.beginPath();
-  this.ctx.moveTo(x, ym);
-  this.ctx.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-  this.ctx.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-  this.ctx.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-  this.ctx.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-  this.ctx.closePath();
-  
-  if(this.bStroke) this.ctx.stroke();
-  if(this.bFill) this.ctx.fill();
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.drawCircle = function(x,y,radius) {
-	this.ctx.beginPath();
-	this.ctx.arc(x, y, radius, 0, Math.PI*2,false);
-	
-	if(this.bStroke) this.ctx.stroke();
-  	if(this.bFill) this.ctx.fill();
-}
-
-
-
-//-------------------------------------------------------
-//TRANSFORMATIONS
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.pushMatrix = function() {
-	this.ctx.save();
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.popMatrix = function() {
-	this.ctx.restore();
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.translate = function(x,y) {
-	this.ctx.translate(x,y);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.scale = function(x,y) {
-	this.ctx.scale(x,y);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.rotate = function(angle) {
-	this.ctx.rotate(angle);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.transform = function(m11, m12, m21, m22, dx, dy) {
-	this.ctx.transform(m11, m12, m21, m22, dx, dy);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.setTransform = function(m11, m12, m21, m22, dx, dy) {
-	this.ctx.setTransform(m11, m12, m21, m22, dx, dy);
-}
-
-
-
-//-------------------------------------------------------
-//FONTS/TEXT
-//-------------------------------------------------------
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.setFont = function(font, size) {
-	if(size == undefined) {
-		this.setFont(font.font, font.size);
-	} else {
-		this.ctx.font = size + "pt " + font;
-	}
-	
-	this.setTextAlignment(font.alignment);
-	this.setTextBaseline(font.baseline);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.setTextAlignment = function(alignment) {
-	this.ctx.textAlign = alignment;
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.setTextBaseline = function(baseline) {
-	this.ctx.textBaseline = baseline;
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.getTextWidth = function(string) {
-	return this.ctx.measureText(string).width;
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.drawText = function(string, x, y) {
-	if(x != undefined) {
-		this.ctx.fillText(string, x, y);
-	} else {
-		this.ctx.fillText(string, this.cursorX, this.cursorY);
-	}
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.drawTextfield = function(tf) {
-	this.setFont(tf.font);
-	this.useColor(tf.color);
-	this.drawText(tf.text, tf.pos.x, tf.pos.y);
-}//-------------------------------------------------------
+});//-------------------------------------------------------
 //Pixel.Color.js
+
 //Color class
+Pixel.Color = Class.extend({
+	init: function(r,g,b,a) {
+		this.r = 0;
+		this.g = 0;
+		this.b = 0;
+		
+		this.h = 0;
+		this.s = 0;
+		this.l = 0;
+		this.v = 0;
+	},
 
-Pixel.Color = function(r,g,b,a) {
-	this.r = 0;
-	this.g = 0;
-	this.b = 0;
+
+	//-------------------------------------------------------
+	set: function(r,g,b,a) {
+		if(r != undefined) this.r = r;
+		if(g != undefined) this.g = g;
+		if(b != undefined) this.b = b;
+		
+		this.a = a != undefined ? a : 1;
+	},
 	
-	this.h = 0;
-	this.s = 0;
-	this.l = 0;
-	this.v = 0;
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Color.prototype.set = function(r,g,b,a) {
-	if(r != undefined) this.r = r;
-	if(g != undefined) this.g = g;
-	if(b != undefined) this.b = b;
 	
-	this.a = a != undefined ? a : 1;
-}
-
-
-//-------------------------------------------------------
-Pixel.Color.prototype.setHSL = function(h,s,l,a) {
-	if(h != undefined) this.h = h;
-	if(s != undefined) this.s = g;
-	if(l != undefined) this.l = b;
+	//-------------------------------------------------------
+	setHSL: function(h,s,l,a) {
+		if(h != undefined) this.h = h;
+		if(s != undefined) this.s = g;
+		if(l != undefined) this.l = b;
+		
+		this.a = a != undefined ? a : 1;
+	},
 	
-	this.a = a != undefined ? a : 1;
-}
+	
+	//-------------------------------------------------------
+	setHSV: function(h,s,v,a) {
+		if(h != undefined) this.h = h;
+		if(s != undefined) this.s = g;
+		if(v != undefined) this.l = b;
+		if(a != undefined) this.a = a;
+	},
+	
+	
+	//-------------------------------------------------------
+	toHSL: function() {
+		var hsl = Pixel.rgbToHSL(this.r, this.g, this.b);
+		this.setHSL(hsl.h, hsl.s, hsl.l);
+		return hsl;
+	},
+	
+	
+	//-------------------------------------------------------
+	toHSV: function() {
+		var hsv = Pixel.rgbToHSV(this.r, this.g, this.b);
+		this.setHSV(hsv.h, hsv.s, hsv.v);
+		return hsv;
+	}
+});
 
 
 //-------------------------------------------------------
-Pixel.Color.prototype.setHSV = function(h,s,v,a) {
-	if(h != undefined) this.h = h;
-	if(s != undefined) this.s = g;
-	if(v != undefined) this.l = b;
-	if(a != undefined) this.a = a;
-}
-
-
-//-------------------------------------------------------
-Pixel.Color.prototype.toHSL = function() {
-	var hsl = Pixel.rgbToHSL(this.r, this.g, this.b);
-	this.setHSL(hsl.h, hsl.s, hsl.l);
-	return hsl;
-}
-
-
-//-------------------------------------------------------
-Pixel.Color.prototype.toHSV = function() {
-	var hsv = Pixel.rgbToHSV(this.r, this.g, this.b);
-	this.setHSV(hsv.h, hsv.s, hsv.v);
-	return hsv;
-}
-
-
+//Color Utils
 
 //-------------------------------------------------------
 //From http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript
@@ -911,1066 +1042,1041 @@ Pixel.hsvToRgb = function(h, s, v){
 //Canvas Wrapper, implements Renderer functions and adds DOM specific stuff 
 //+ generic vars shared between renderers (i.e. Cursor)
 
-Pixel.Canvas = function() {
-	Pixel.EventDispatcher(this);
+Pixel.Canvas = Pixel.EventDispatcher.extend({
+	init: function() {
+		Pixel.EventDispatcher(this);
+		
+		//Create Canvas
+		this.canvas = document.createElement('canvas');
+		this.canvas.innerHTML = "Your browser does not support HTML5 Canvas."
+		this.canvas.setAttribute('width', this.width);
+		this.canvas.setAttribute('height', this.height);
+		
+		this.pos = {
+			x:0,
+			y:0
+		}
+		
+		this.width = 0;
+		this.height = 0;
+		
+		//Cursor, useful for text layout
+		cursorX = 0;
+		cursorY = 0;
+		
+		//Pixel doubling for iOS 
+		this.bPixelDoubling = window.devicePixelRatio >= 2;
+		
+		//Init Vars
+		//this.setPos(0,0);
+		this.setSize(50,400);
+		
+		//Set Renderer (default is 2D)
+		this.setRenderer(this.canvas, Pixel.RENDER_MODE_2D);
+		
+		this._super();
+	},
+
+
+	//-------------------------------------------------------
+	//Size Info
 	
-	//Create Canvas
-	this.canvas = document.createElement('canvas');
-	this.canvas.innerHTML = "Your browser does not support HTML5 Canvas."
-	this.canvas.setAttribute('width', this.width);
-	this.canvas.setAttribute('height', this.height);
+	//-------------------------------------------------------
+	setSize: function(width,height, renderer) {
+		this.width = width;
+		this.height = height;
+		
+		this.canvas.setAttribute('width',	this.width);
+		this.canvas.setAttribute('height',	this.height);
+		
+		
+		if(renderer != undefined) {
+			this.setRenderer(renderer);
+		}
+	},
+
+
+	//-------------------------------------------------------
+	getWidth: function() {
+		return this.width;
+	},
+
+
+	//-------------------------------------------------------
+	getHeight: function() {
+		return this.height;
+	},
+
+
+	//-------------------------------------------------------
+	//Cursor
+	//-------------------------------------------------------
+	setCursor: function(x,y) {
+		this.cursorX = x;
+		this.cursorY = y;
+	},
+
+
+	//-------------------------------------------------------
+	//Drawing
+	//-------------------------------------------------------
+	setRenderer: function(canvasElement, rendererType) {
+		switch(rendererType) {
+			case Pixel.RENDER_MODE_2D:
+				this.renderer = new Pixel.Renderer2D(canvasElement);
+				break;
+			case Pixel.RENDER_MODE_WEBGL:
+				Pixel.log("WebGL Renderer not yet implemented!");
+				break;
+			default:
+				//Pixel.log("Renderer Type does not exist");
+				break;
+		}
+	},
+
+
+	//-------------------------------------------------------
+	clear: function(x,y,width,height) { 
+		this.renderer.clear(x,y,width,height); 
+	},
+
+
+	//-------------------------------------------------------
+	//COLOR	
+	//-------------------------------------------------------
+	setFillColor: function(r,g,b,a) {
+		this.renderer.setFillColor(r,g,b,a);
+	},
 	
-	this.pos = {
-		x:0,
-		y:0
+
+	//-------------------------------------------------------
+	noFill: function() {
+		this.renderer.noFill();
+	},
+
+	
+	//-------------------------------------------------------
+	setStrokeColor: function(r,g,b,a) {
+		this.renderer.setStrokeColor(r,g,b,a);
+	},
+
+	//-------------------------------------------------------
+	noStroke: function() {
+		this.renderer.noStroke();
+	},
+
+
+	//-------------------------------------------------------
+	setStrokeSize: function(size) {
+		this.renderer.setStrokeSize(size);
+	},
+
+	//-------------------------------------------------------
+	setLineCap: function(style) {
+		this.renderer.setLineCap(style);
+	},
+	
+
+
+	//-------------------------------------------------------
+	//IMAGE DRAWING
+	//-------------------------------------------------------
+	drawImage: function(pxImage, x, y, width, height) {
+		this.renderer.drawImage(pxImage, x, y);
+	},
+
+
+
+	//-------------------------------------------------------
+	//SHAPE DRAWING
+	
+	//-------------------------------------------------------
+	beginShape: function(x,y) {
+		this.renderer.beginShape(x,y);
+	},
+
+
+	//-------------------------------------------------------
+	addVertex: function(x,y, bEnd) {
+		this.renderer.addVertex(x,y, bEnd);
+	},
+
+
+	//-------------------------------------------------------
+	endShape: function(x,y) {
+		this.renderer.endShape(x,y);
+	},
+
+
+	//-------------------------------------------------------
+	drawLine: function(x1,y1,x2,y2) {
+		this.renderer.drawLine(x1,y1,x2,y2);
+	},
+
+
+
+	//-------------------------------------------------------
+	dashedLine: function (fromX, fromY, toX, toY, pattern) {
+		this.renderer.dashedLine(fromX, fromY, toX, toY, pattern);  
+	},
+
+
+	//-------------------------------------------------------
+	drawRect: function(x,y,width,height) {
+		this.renderer.drawRect(x,y,width,height);
+	},
+
+
+	//-------------------------------------------------------
+	drawRoundedRect: function(x,y,width,height, borderRadius) {
+		this.renderer.drawRoundedRect(x,y,width,height, borderRadius);
+	},
+
+
+	//-------------------------------------------------------
+	drawSquare: function(x,y,size) {
+		this.renderer.drawSquare(x,y,size);
+	},
+
+
+	//-------------------------------------------------------
+	drawEllipse: function(x,y,width,height) {
+		this.renderer.drawEllipse();
+	},
+
+
+
+	//-------------------------------------------------------
+	drawCircle: function(x,y,radius) {
+		this.renderer.drawCircle(x,y,radius);
+	},
+
+
+	//-------------------------------------------------------
+	//TRANSFORMATIONS
+	//-------------------------------------------------------
+	pushMatrix: function() {
+		this.renderer.pushMatrix();
+	},
+
+
+	//-------------------------------------------------------
+	popMatrix: function() {
+		this.renderer.popMatrix();
+	},
+
+
+	//-------------------------------------------------------
+	translate: function(x,y) {
+		this.renderer.translate(x,y);
+	},
+
+
+
+	//-------------------------------------------------------
+	scale: function(x,y) {
+		this.renderer.scale(x,y);
+	},
+
+
+	//-------------------------------------------------------
+	rotate: function(angle) {
+		this.renderer.rotate(angle);
+	},
+
+
+	//-------------------------------------------------------
+	transform: function(m11, m12, m21, m22, dx, dy) {
+		this.renderer.transform(m11, m12, m21, m22, dx, dy);
+	},
+
+	//-------------------------------------------------------
+	setTransform: function(m11, m12, m21, m22, dx, dy) {
+		this.renderer.setTransform(m11, m12, m21, m22, dx, dy);
+	},
+
+
+
+	//-------------------------------------------------------
+	//TEXT
+	
+	//-------------------------------------------------------	
+	setFont: function(font, size) {
+		this.renderer.setFont(font,size);
+	},
+
+
+	//-------------------------------------------------------
+	setTextAlignment: function(alignment) {
+		this.renderer.setTextAlignment(alignment);
+	},
+	
+	
+	//-------------------------------------------------------
+	setTextBaseline: function(baseline) {
+		this.renderer.setTextBaseline(baseline);
+	},
+	
+	
+	//-------------------------------------------------------
+	getTextWidth: function(string) {
+		return this.renderer.getTextWidth(string);
+	},
+	
+	
+	//-------------------------------------------------------
+	drawText: function(string, x, y) {
+		if(x != undefined) {
+			this.renderer.drawText(string, x, y);
+		} else {
+			this.renderer.drawText(string, this.cursorX, this.cursorY);
+		}
+	},
+	
+	
+	//-------------------------------------------------------
+	drawTextfield: function(textfield) {
+		this.renderer.drawTextfield(textfield);
 	}
-	
-	this.width = 0;
-	this.height = 0;
-	
-	//Cursor, useful for text layout
-	cursorX = 0;
-	cursorY = 0;
-	
-	//Pixel doubling for iOS 
-	this.bPixelDoubling = window.devicePixelRatio >= 2;
-	
-	//Init Vars
-	//this.setPos(0,0);
-	this.setSize(50,400);
-	
-	//Set Renderer (default is 2D)
-	this.setRenderer(this.canvas, Pixel.RENDER_MODE_2D);
-}
-
-Pixel.Canvas.prototype = new Pixel.EventDispatcher();
-
-
-
-//-------------------------------------------------------
-//Size Info
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.setSize = function(width,height, renderer) {
-	this.width = width;
-	this.height = height;
-	
-	this.canvas.setAttribute('width',	this.width);
-	this.canvas.setAttribute('height',	this.height);
-	
-	
-	if(renderer != undefined) {
-		this.setRenderer(renderer);
-	}
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.getWidth = function() {
-	return this.width;
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.getHeight = function() {
-	return this.height;
-}
-
-
-
-//-------------------------------------------------------
-//Cursor
-//-------------------------------------------------------
-Pixel.Canvas.prototype.setCursor = function(x,y) {
-	this.cursorX = x;
-	this.cursorY = y;
-}
-
-
-
-
-
-
-
-//-------------------------------------------------------
-//Drawing
-//-------------------------------------------------------
-Pixel.Canvas.prototype.setRenderer = function(canvasElement, rendererType) {
-	switch(rendererType) {
-		case Pixel.RENDER_MODE_2D:
-			this.renderer = new Pixel.Renderer2D(canvasElement);
-			break;
-		case Pixel.RENDER_MODE_WEBGL:
-			Pixel.log("WebGL Renderer not yet implemented!");
-			break;
-		default:
-			//Pixel.log("Renderer Type does not exist");
-			break;
-	}
-}
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.clear = function(x,y,width,height) { 
-	this.renderer.clear(x,y,width,height); 
-}
-
-
-//-------------------------------------------------------
-//COLOR	
-//-------------------------------------------------------
-Pixel.Canvas.prototype.setColor = function(r,g,b,a) {
-	this.renderer.setColor(r,g,b,a);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.useColor = function(color) {
-	this.renderer.useColor(color);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.fill = function() {
-	this.renderer.fill();
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.noFill = function() {
-	this.renderer.noFill();
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.stroke = function(size) {
-	this.renderer.stroke(size);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.noStroke = function() {
-	this.renderer.noStroke();
-}
-
-
-
-//-------------------------------------------------------
-//IMAGE DRAWING
-//-------------------------------------------------------
-Pixel.Canvas.prototype.drawImage = function(pxImage, x, y, width, height) {
-	this.renderer.drawImage(pxImage, x, y);
-}
-
-
-
-//-------------------------------------------------------
-//SHAPE DRAWING
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.beginShape = function(x,y) {
-	this.renderer.beginShape(x,y);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.addVertex = function(x,y, bEnd) {
-	this.renderer.addVertex(x,y, bEnd);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.endShape = function(x,y) {
-	this.renderer.endShape(x,y);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.drawLine = function(x1,y1,x2,y2) {
-	this.renderer.drawLine(x1,y1,x2,y2);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.dashedLine = function (fromX, fromY, toX, toY, pattern) {
-	this.renderer.dashedLine(fromX, fromY, toX, toY, pattern);  
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.drawRect = function(x,y,width,height) {
-	this.renderer.drawRect(x,y,width,height);
-}
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.drawRoundedRect = function(x,y,width,height, borderRadius) {
-	this.renderer.drawRoundedRect(x,y,width,height, borderRadius);
-}
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.drawSquare = function(x,y,size) {
-	this.renderer.drawSquare(x,y,size);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.drawEllipse = function(x,y,width,height) {
-	this.renderer.drawEllipse();
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.drawCircle = function(x,y,radius) {
-	this.renderer.drawCircle(x,y,radius);
-}
-
-
-
-//-------------------------------------------------------
-//TRANSFORMATIONS
-//-------------------------------------------------------
-Pixel.Canvas.prototype.pushMatrix = function() {
-	this.renderer.pushMatrix();
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.popMatrix = function() {
-	this.renderer.popMatrix();
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.translate = function(x,y) {
-	this.renderer.translate(x,y);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.scale = function(x,y) {
-	this.renderer.scale(x,y);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.rotate = function(angle) {
-	this.renderer.rotate(angle);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.transform = function(m11, m12, m21, m22, dx, dy) {
-	this.renderer.transform(m11, m12, m21, m22, dx, dy);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.setTransform = function(m11, m12, m21, m22, dx, dy) {
-	this.renderer.setTransform(m11, m12, m21, m22, dx, dy);
-}
-
-
-
-//-------------------------------------------------------
-//TEXT
-
-//-------------------------------------------------------	
-Pixel.Canvas.prototype.setFont = function(font, size) {
-	this.renderer.setFont(font,size);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.setTextAlignment = function(alignment) {
-	this.renderer.setTextAlignment(alignment);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.setTextBaseline = function(baseline) {
-	this.renderer.setTextBaseline(baseline);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.getTextWidth = function(string) {
-	return this.renderer.getTextWidth(string);
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.drawText = function(string, x, y) {
-	if(x != undefined) {
-		this.renderer.drawText(string, x, y);
-	} else {
-		this.renderer.drawText(string, this.cursorX, this.cursorY);
-	}
-}
-
-
-
-//-------------------------------------------------------
-Pixel.Canvas.prototype.drawTextfield = function(textfield) {
-	this.renderer.drawTextfield(textfield);
-}//-------------------------------------------------------
+});//-------------------------------------------------------
 //-------------------------------------------------------
 //Main Object
 
-Pixel.Object = function() {
-	this.bInitPressed = false;
-	this.bPressed = false;
+Pixel.Object = Pixel.EventDispatcher.extend({
+	init: function() {
+		this.bInitPressed = false;
+		this.bPressed = false;
+		this.width = 0;
+		this.height = 0;
+		
+		this.radius = 0;
+		
+		this.shapeMode = Pixel.OBJECT_SHAPE_RECT;
+		
+		this.rect = new Pixel.Rectangle();
+		
+		this.pos = {
+			x:0,
+			y:0
+		};
+		
+		this._super();
+	},
 	
-	this.pos = {
-		x:0,
-		y:0
-	}
 	
-	this.width = 0;
-	this.height = 0;
+	//-------------------------------------------------------
+	show: function() {
 	
-	this.radius = 0;
+	},
 	
-	this.shapeMode = Pixel.OBJECT_SHAPE_RECT;
 	
-	this.rect = new Pixel.Rectangle();
+	//-------------------------------------------------------
+	hide: function() {
+	},
 	
-	Pixel.EventDispatcher.call(this);
-}
-
-Pixel.Object.prototype = new Pixel.EventDispatcher();
-
-
-//-------------------------------------------------------
-Pixel.Object.prototype.show = function() {
-},
-
-
-//-------------------------------------------------------
-Pixel.Object.prototype.hide = function() {
-},
-
-
-//-------------------------------------------------------
-Pixel.Object.prototype.setPos = function(x,y) {
-	if(Pixel.isSet(x)) this.pos.x = x;
-	if(Pixel.isSet(y)) this.pos.y = y;
 	
-	this.setRect();
-},
-
-
-//-------------------------------------------------------
-Pixel.Object.prototype.getPos = function() {
-	return this.pos;
-},
-
-
-//-------------------------------------------------------
-Pixel.Object.prototype.setSize = function(width, height) {
-	if(Pixel.isSet(width))	this.width	= width;
-	if(Pixel.isSet(height)) this.height = height;
+	//-------------------------------------------------------
+	setPos: function(x,y) {
+		if(Pixel.isSet(x)) this.pos.x = x;
+		if(Pixel.isSet(y)) this.pos.y = y;
+		
+		this.setRect();
+	},
 	
-	this.setRect();
-},
-
-
-//-------------------------------------------------------
-//Set Rect, for touches, can be overridden for cases like textfields (alignment + baseline issues)
-Pixel.Object.prototype.setRect = function() {
-	this.rect.set(this.pos.x, this.pos.y, this.width, this.height);
-},
-
-
-//-------------------------------------------------------
-Pixel.Object.prototype.getRect = function() {
-	return this.rect;
-},
-
-
-//-------------------------------------------------------
-Pixel.Object.prototype.getWidth = function() {
-	return this.width;
-},
-
-
-//-------------------------------------------------------
-Pixel.Object.prototype.getHeight = function() {
-	return this.height
-},
-
-
-//-------------------------------------------------------
-Pixel.Object.prototype.setShapeMode = function(shapeMode) {
-	this.shapeMode = shapeMode;
-},
-
-//-------------------------------------------------------
-//Event Listeners
-
-//-------------------------------------------------------
-Pixel.Object.prototype.isPressed = function() {
-	return this.bPressed;
-},
-
-
-//-------------------------------------------------------
-Pixel.Object.prototype.touchStart = function(touch) {
-	this.setRect(this.pos.x, this.pos.y, this.width, this.height);
 	
-	//Touch Detection
-	switch(this.shapeMode) {
-		case Pixel.OBJECT_SHAPE_RECT:
-			this.bInitPressed = (this.rect.isInside(touch.x,touch.y));
-			break;
-		case Pixel.OBJECT_SHAPE_CIRCLE:
-			this.bInitPressed = Pixel.dist(this.pos.x, this.pos.y, touch.x, touch.y) < this.radius * 2;
-			break;
-		default:
-			break;
-	}
+	//-------------------------------------------------------
+	getPos: function() {
+		return this.pos;
+	},
 	
-	this.bPressed = this.bInitPressed;
-	return this.bPressed;
-},
-
-
-//-------------------------------------------------------
-Pixel.Object.prototype.touchMoved = function(touch) {
-	if(this.bInitPressed) {
+	
+	//-------------------------------------------------------
+	setSize: function(width, height) {
+		if(Pixel.isSet(width))	this.width	= width;
+		if(Pixel.isSet(height)) this.height = height;
+		
+		this.setRect();
+	},
+	
+	
+	//-------------------------------------------------------
+	//Set Rect, for touches, can be overridden for cases like textfields (alignment + baseline issues)
+	setRect: function() {
+		this.rect.set(this.pos.x, this.pos.y, this.width, this.height);
+	},
+	
+	
+	//-------------------------------------------------------
+	getRect: function() {
+		return this.rect;
+	},
+	
+	
+	//-------------------------------------------------------
+	getWidth: function() {
+		return this.width;
+	},
+	
+	
+	//-------------------------------------------------------
+	getHeight: function() {
+		return this.height
+	},
+	
+	
+	//-------------------------------------------------------
+	setShapeMode: function(shapeMode) {
+		this.shapeMode = shapeMode;
+	},
+	
+	//-------------------------------------------------------
+	//Event Listeners
+	
+	//-------------------------------------------------------
+	isPressed: function() {
+		return this.bPressed;
+	},
+	
+	
+	//-------------------------------------------------------
+	touchStart: function(touch) {
+		this.setRect(this.pos.x, this.pos.y, this.width, this.height);
+		
+		//Touch Detection
 		switch(this.shapeMode) {
 			case Pixel.OBJECT_SHAPE_RECT:
-				this.bPressed	= (this.rect.isInside(touch.x,touch.y));
+				this.bInitPressed = (this.rect.isInside(touch.x,touch.y));
 				break;
 			case Pixel.OBJECT_SHAPE_CIRCLE:
-				this.bPressed = Pixel.dist(this.pos.x, this.pos.y, touch.x, touch.y) < this.radius * 2;
+				this.bInitPressed = Pixel.dist(this.pos.x, this.pos.y, touch.x, touch.y) < this.radius * 2;
 				break;
 			default:
 				break;
 		}
-	}
-	
-	return this.bPressed;
-},
-
-
-//-------------------------------------------------------
-Pixel.Object.prototype.touchEnd = function(touch) {
-	this.bInitPressed = this.bPressed = false;
-	return this.bPressed;
-}//-------------------------------------------------------
-//Pixel.Image.js
-//Forloading, storing, manipulating, etc
-
-Pixel.Image = function(url) {
-	Pixel.Object.call(this);
-	
-	if(url != undefined) this.load(url);
-	
-	this.bAllocated = false;
-}
-
-Pixel.Image.prototype = new Pixel.Object();
-
-
-//-------------------------------------------------------
-Pixel.Image.prototype.load = function(src) {
-	this.clear();
-	
-	this.image = new Image();
-	var self = this;
-	this.image.addEventListener("load", function() { 
-		self.bLoaded = true;
 		
-		//Get Size of Image
-		self.setSize(this.width, this.height);
-	});
+		this.bPressed = this.bInitPressed;
+		return this.bPressed;
+	},
 	
 	
-	this.image.addEventListener("error", function() {
-		console.log("Could not load image from '" + url + "'");
-	});
+	//-------------------------------------------------------
+	touchMoved: function(touch) {
+		if(this.bInitPressed) {
+			switch(this.shapeMode) {
+				case Pixel.OBJECT_SHAPE_RECT:
+					this.bPressed	= (this.rect.isInside(touch.x,touch.y));
+					break;
+				case Pixel.OBJECT_SHAPE_CIRCLE:
+					this.bPressed = Pixel.dist(this.pos.x, this.pos.y, touch.x, touch.y) < this.radius * 2;
+					break;
+				default:
+					break;
+			}
+		}
+		
+		return this.bPressed;
+	},
 	
 	
-	this.image.src = src;
-};
-
-
-
-//-------------------------------------------------------
-Pixel.Image.prototype.isLoaded = function() {
-	return this.bLoaded;
-};
-
-
-
-//-------------------------------------------------------
-Pixel.Image.prototype.clear = function() {
-	this.bLoaded	= false;
-	this.pixels		= null;
-	this.imageData	= null;
-	this.image		= null;
-};
-
-
-
-//-------------------------------------------------------
-Pixel.Image.prototype.setSize = function(width, height) {
-	Pixel.Object.prototype.setSize.call(this, width,height);
-	
-	if(this.bAllocated == false) {			
-		//Get Canvas Ref
-		this.canvas = document.createElement('canvas');
-		this.ctx = this.canvas.getContext('2d');
-		this.imageData = this.ctx.getImageData(0,0,this.getWidth(), this.getHeight());
+	//-------------------------------------------------------
+	touchEnd: function(touch) {
+		this.bInitPressed = this.bPressed = false;
+		return this.bPressed;
 	}
+});//-------------------------------------------------------
+//Pixel.Image.js
+//For loading, storing, manipulating, etc
+
+Pixel.Image = Pixel.Object.extend({
+	init: function() {
+		this._super;
+		
+		if(url != undefined) this.load(url);
+	
+		this.bAllocated = false;
+		this.canvas = null;
+		this.imageData = null;
+	},
 	
 	
-	this.canvas.setAttribute("width", this.width);
-	this.canvas.setAttribute("height", this.height);
-};
-
-
-
-//-------------------------------------------------------
-Pixel.Image.prototype.getImageData = function() {
-	return this.imageData;
-};
-
-
-
-//-------------------------------------------------------
-Pixel.Image.prototype.getPixels = function() {
-	if(this.bLoaded) {			
-		this.ctx.drawImage(this.image, 0,0);
-		this.imageData	= this.ctx.getImageData(0,0,this.size.width, this.size.height)
+	//-------------------------------------------------------
+	load: function(src) {
+		this.clear();
+		
+		this.image = new Image();
+		
+		this.image.addEventListener("load", function() { 
+			this.bLoaded = true;
+			this.dispatch("loaded", this);
+			
+			//Get Size of Image
+			this.setSize(this.image.width, this.image.height);
+		}.bind(this));
+		
+		
+		this.image.addEventListener("error", function() {
+			console.log("Could not load image from '" + url + "'");
+		});
+		
+		
+		this.image.src = src;
+	},
+	
+	
+	//-------------------------------------------------------
+	isLoaded: function() {
+		return this.bLoaded;
+	},
+	
+	
+	//-------------------------------------------------------
+	clear: function() {
+		this.bLoaded	= false;
+		this.pixels		= null;
+		this.imageData	= null;
+		this.image		= null;
+	},
+	
+	
+	//-------------------------------------------------------
+	setSize: function(width, height) {
+		Pixel.Object.prototype.setSize.call(this, width,height);
+		
+		if(this.bAllocated == false) {			
+			//Get Canvas Ref
+			this.canvas = document.createElement('canvas');
+			this.ctx = this.canvas.getContext('2d');
+			this.imageData = this.ctx.getImageData(0,0,this.getWidth(), this.getHeight());
+		}
+		
+		
+		this.canvas.setAttribute("width", this.width);
+		this.canvas.setAttribute("height", this.height);
+	},
+	
+	
+	//-------------------------------------------------------
+	getImageData: function() {
+		return this.imageData;
+	},
+	
+	
+	//-------------------------------------------------------
+	getPixels: function() {
+		if(this.bLoaded) {			
+			this.ctx.drawImage(this.image, 0,0);
+			this.imageData	= this.ctx.getImageData(0,0,this.size.width, this.size.height)
+			this.pixels		= this.imageData.data;
+			return this.pixels;
+		}
+		
+		return null;
+	},
+	
+	
+	//-------------------------------------------------------
+	setFromPixels: function(pixels, width, height){
+		this.clear();
+		
+		//Resize the Canvas, get the new image data obj
+		this.setSize(width, height);
+		this.imageData	= this.ctx.getImageData(0,0,this.size.width, this.size.height);
 		this.pixels		= this.imageData.data;
-		return this.pixels;
+		
+		//Copy pixels into image data
+		var i=pixels.length;
+		while(i--) this.pixels[i] = pixels[i];
+		
+		//Draw Data back into the canvas object
+		this.ctx.putImageData(this.imageData, 0,0);
+		
+		//Store info as an IMG, drawing using drawImage() is WAY faster than putImageData()
+		this.image = new Element("img");  
+		this.image.addEvent("load", function() {
+			this.image.removeEvent("load");
+			this.dispatch("loaded", this);
+			this.bLoaded = true;
+		}.bind(this));
+		
+		this.image.src = this.canvas.toDataURL("image/png");
 	}
-	return null;
-};
-
-
-
-//-------------------------------------------------------
-Pixel.Image.prototype.setFromPixels = function(pixels, width, height){
-	this.clear();
-	
-	//Resize the Canvas, get the new image data obj
-	this.setSize(width, height);
-	this.imageData	= this.ctx.getImageData(0,0,this.size.width, this.size.height);
-	this.pixels		= this.imageData.data;
-	
-	//Copy pixels into image data
-	var i=pixels.length;
-	while(i--) this.pixels[i] = pixels[i];
-	
-	//Draw Data back into the canvas object
-	this.ctx.putImageData(this.imageData, 0,0);
-	
-	//Store info as an IMG, drawing using drawImage() is WAY faster than putImageData()
-	this.image = new Element("img");  
-	this.image.addEvent("load", function() {
-		this.image.removeEvent("load");
-		this.bLoaded = true;
-	}.bind(this));
-	
-	this.image.src = this.canvas.toDataURL("image/png");
-};//-------------------------------------------------------
+});//-------------------------------------------------------
 //Pixel.Font.js
 //Used for storing font information for convenience 
 
+//Empty canvas object for rendering
 Pixel.FontSizeCvs = null;
 
-Pixel.Font = function(font, size, alignment, baseline) {
-	this.font		= font || "Arial";
-	this.size		= size || 12;
-	this.alignment	= alignment || Pixel.TEXT_BASELINE_LEFT;
-	this.baseline	= baseline || Pixel.TEXT_BASELINE_TOP;
+Pixel.Font = Class.extend({
+	init: function(font, size, alignment, baseline) {
+		this.font		= font || "Arial";
+		this.size		= size || 12;
+		this.alignment	= alignment || Pixel.TEXT_BASELINE_LEFT;
+		this.baseline	= baseline || Pixel.TEXT_BASELINE_TOP;
+		
+		//Create canvas for getting sizes, if not defined yet
+		if(Pixel.FontSizeCvs == null) {
+			Pixel.FontSizeCvs = new Pixel.Canvas(Pixel.RENDER_MODE_2D);
+		}
+	},
+
+
+	//-------------------------------------------------------
+	setSize: function(size) {
+		this.size = size;
+	},
 	
-	//Create canvas for getting sizes, if not defined yet
-	if(Pixel.FontSizeCvs == null) {
-		Pixel.FontSizeCvs = new Pixel.Canvas(Pixel.RENDER_MODE_2D);
+	
+	//-------------------------------------------------------
+	setFont: function(font) {
+		this.font = font;
+	},
+	
+	
+	//-------------------------------------------------------
+	setSize: function(size) {
+		this.size = size;
+	},
+	
+	
+	//-------------------------------------------------------
+	setFont: function(font) {
+		this.font = font;
+	},
+	
+	
+	//-------------------------------------------------------
+	setAlignment: function(alignment) {
+		this.alignment = alignment;
+	},
+	
+	
+	//-------------------------------------------------------
+	setBaseline: function(baseline) {
+		this.baseline = baseline;
+	},
+	
+	
+	//-------------------------------------------------------
+	getSize: function() {
+		return this.size;
+	},
+	
+	
+	//-------------------------------------------------------
+	getTextWidth: function(text) {
+		Pixel.FontSizeCvs.setFont(this);
+		return Pixel.FontSizeCvs.getTextWidth(text);
+	},
+	
+	
+	//-------------------------------------------------------
+	getTextHeight: function() {
+		return Math.round(this.size * 1.5);
 	}
-}
-
-
-//-------------------------------------------------------
-Pixel.Font.prototype.setSize = function(size) {
-	this.size = size;
-}
-
-
-//-------------------------------------------------------
-Pixel.Font.prototype.setFont = function(font) {
-	this.font = font;
-}
-
-
-//-------------------------------------------------------
-Pixel.Font.prototype.setSize = function(size) {
-	this.size = size;
-}
-
-
-//-------------------------------------------------------
-Pixel.Font.prototype.setFont = function(font) {
-	this.font = font;
-}
-
-//-------------------------------------------------------
-Pixel.Font.prototype.setAlignment = function(alignment) {
-	this.alignment = alignment;
-}
-
-
-//-------------------------------------------------------
-Pixel.Font.prototype.setBaseline = function(baseline) {
-	this.baseline = baseline;
-}
-
-//-------------------------------------------------------
-Pixel.Font.prototype.getSize = function() {
-	return this.size;
-}
-
-//-------------------------------------------------------
-Pixel.Font.prototype.getTextWidth = function(text) {
-	Pixel.FontSizeCvs.setFont(this);
-	return Pixel.FontSizeCvs.getTextWidth(text);
-}
-
-//-------------------------------------------------------
-Pixel.Font.prototype.getTextHeight = function() {
-	return Math.round(this.size * 1.5);
-}//-------------------------------------------------------
+});//-------------------------------------------------------
 //Pixel.Textfield.js
 //Font class with added capabilities like position, size, etc
 
-
-Pixel.Textfield = function(text, font) {
-	Pixel.Object.call(this);
-
-	this.font 	= font || new Pixel.Font("Arial", 14);
-	this.color	= new Pixel.Color(255,255,255,1);
+Pixel.Textfield = Pixel.Object.extend({
+	init: function(text, font) {
+		this._super();
 	
-	this.text	= text || "Text not set";
-	this.setText(this.text);
-}
-
-Pixel.Textfield.prototype = new Pixel.Object();
-
-
-//-------------------------------------------------------
-Pixel.Textfield.prototype.setFont = function(font, size, alignment, baseline) {
-	if(size != undefined) {
-		this.font = new Pixel.Font(font, size, alignment, baseline);
-	} else {
-		this.font = font;
-	}
-}
-
-//-------------------------------------------------------
-Pixel.Textfield.prototype.setColor = function(r,g,b,a) {
-	this.color.set(r,g,b,a);
-}
-
-//-------------------------------------------------------
-Pixel.Textfield.prototype.setText = function(text) {
-	this.text = text;
+		this.font 	= font || new Pixel.Font("Arial", 14);
+		this.color	= new Pixel.Color(255,255,255,1);
+		
+		this.text	= text || "Text not set";
+		this.setText(this.text);
+	},
 	
-	this.width	= this.font.getTextWidth(this.text);
-	this.height	= this.font.getTextHeight(this.text);
 	
-	this.setRect();
-}
-
-
-//-------------------------------------------------------
-Pixel.Textfield.prototype.setRect = function() {
-	switch(this.font.alignment) {
-		case Pixel.TEXT_ALIGN_LEFT:
-			switch(this.font.baseline) {
-				case Pixel.TEXT_BASELINE_TOP:
-					this.rect.set(this.pos.x, this.pos.y, this.width, this.height);
-					break;
-				case Pixel.TEXT_BASELINE_MIDDLE:
-					this.rect.set(this.pos.x, this.pos.y - this.height/2, this.width, this.height);
-					break;
-				case Pixel.TEXT_BASELINE_BOTTOM:
-					this.rect.set(this.pos.x, this.pos.y - this.height, this.width, this.height);
-					break;
-			}
-			break;
-			
-		case Pixel.TEXT_ALIGN_CENTER:
-			switch(this.font.baseline) {
-				case Pixel.TEXT_BASELINE_TOP:
-					this.rect.set(this.pos.x - this.width/2, this.pos.y, this.width, this.height);
-					break;
-				case Pixel.TEXT_BASELINE_MIDDLE:
-					this.rect.set(this.pos.x - this.width/2, this.pos.y - this.height/2, this.width, this.height);
-					break;
-				case Pixel.TEXT_BASELINE_BOTTOM:
-					this.rect.set(this.pos.x - this.width/2, this.pos.y - this.height, this.width, this.height);
-					break;
-			}
-			break;
-			
-		case Pixel.TEXT_ALIGN_RIGHT:
-			switch(this.font.baseline) {
-				case Pixel.TEXT_BASELINE_TOP:
-					this.rect.set(this.pos.x - this.width, this.pos.y, this.width, this.height);
-					break;
-				case Pixel.TEXT_BASELINE_MIDDLE:
-					this.rect.set(this.pos.x - this.width, this.pos.y - this.height/2, this.width, this.height);
-					break;
-				case Pixel.TEXT_BASELINE_BOTTOM:
-					this.rect.set(this.pos.x - this.width, this.pos.y - this.height, this.width, this.height);
-					break;
-			}				
-			break;
-	}
-}//-------------------------------------------------------
-//Pixel.App.js
-Pixel.App = function() {
-	this.bSetup = false;
-	this.bRunning = true;
-	
-	this.bIsMobileApp = false;
-	
-	//FPS
-	this.fps			= 60;
-	this.curFPS			= 0;
-	this.bShowFPS		= false;
-	this.nFPSSamples	= 50;
-	this.fpsSamples		= [];
-	this.curFpsSample	= -1;
-	this.curFps			= 0;
-	this.fpsFont		= new Pixel.Font("Verdana", 10, Pixel.TEXT_ALIGN_LEFT);
-	
-	this.startTime	= 0;
-	this.prevTime	= 0;
-	
-	this.startTime = new Date().getTime();
-	this.prevTime = this.startTime;
-	
-	//FPS Font
-	this.fpsFont = new Pixel.Font("Verdana", 10, Pixel.TEXT_ALIGN_LEFT);
-	
-	//Event Listeners
-	var self = this;
-	
-	if(Pixel.isTouchDevice()) {
-		this.canvas.addEventListener('touchstart',		function(e) { self.touchStartListener.call(self, e) },	false);
-		this.canvas.addEventListener("touchmove",		function(e) { self.touchMovedListener.call(self, e) },	false);
-		this.canvas.addEventListener("touchend",		function(e) { self.touchEndListener.call(self, e) },	false);
-	} else {	
-		this.canvas.addEventListener("mousedown",		function(e) { self.mouseDownListener.call(self, e) },	false);
-		this.canvas.addEventListener("mousemove",		function(e) { self.mouseMovedListener.call(self, e) },	false);
-		this.canvas.addEventListener("mouseup",			function(e) { self.mouseUpListener.call(self, e) },		false);
-	}
-}
-
-Pixel.App.prototype = new Pixel.Canvas();
-
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.start = function() {
-	this.bRunning = true;
-}
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.stop = function() {
-	this.bRunning = false;
-}
-
-
-//-------------------------------------------------------
-//Empty functions in case someone doesn't want to define them
-Pixel.App.prototype.setup = function(){};
-Pixel.App.prototype.update = function(){};
-Pixel.App.prototype.draw = function(){};	
-
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.run = function() {
-	if(this.bRunning) {
-		//Run App Setup if uninitalised
-		if(this.setup != undefined && this.bSetup == false) {
-			this.setup();
-			this.bSetup = true;
+	//-------------------------------------------------------
+	setFont: function(font, size, alignment, baseline) {
+		if(size != undefined) {
+			this.font = new Pixel.Font(font, size, alignment, baseline);
+		} else {
+			this.font = font;
 		}
+	},
 	
-		this.update();
-		this.draw();
+	
+	//-------------------------------------------------------
+	setColor: function(r,g,b,a) {
+		this.color.set(r,g,b,a);
+	},
+	
+	
+	//-------------------------------------------------------
+	setText: function(text) {
+		this.text = text;
 		
-		if(this.bShowFPS) {
-			this.updateFPS();
-			this.drawFPS();
-		}
+		this.width	= this.font.getTextWidth(this.text);
+		this.height	= this.font.getTextHeight(this.text);
 		
-		window.requestAnimFrame(this.run.bind(this));
-	}
-}
-
-//-------------------------------------------------------
-//FPS
-//-------------------------------------------------------
-Pixel.App.prototype.setFPS = function(fps) {
-	this.fps = fps;
-}
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.getFPS = function() {
-	return this.fps;
-}
-
-//-------------------------------------------------------
-Pixel.App.prototype.showFPS = function() {
-	//Clear samples
-	for(var i=0;i<this.fpsSamples.length; i++) {
-		this.fpsSamples[i] = 0;
-	}
+		this.setRect();
+	},
 	
-	this.bShowFPS = true;
-}
-
-
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.hideFPS = function() {
-	this.bShowFPS = false;
-}
-
-
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.updateFPS = function() {
-	this.curFpsSample++;
-	if(this.curFpsSample >= this.nFPSSamples) {
-		this.curFpsSample = 0;
-	}
 	
-	var curTime = this.getElapsedTime();
-	this.fpsSamples[this.curFpsSample] = 1000.0/(curTime - this.prevTime);
-	
-	var avgFps = 0;
-	for(var i=0;i<this.fpsSamples.length; i++) {
-		avgFps += this.fpsSamples[i];
-	}
-	
-	avgFps /= this.fpsSamples.length;
-	
-	this.curFps = Math.floor(avgFps);
-	
-	this.prevTime = curTime;
-}
-
-
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.drawFPS = function() {
-	this.setFont(this.fpsFont);
-	
-	this.setColor(0,0,0);
-	this.drawText("FPS: " + this.curFps.toFixed(2), 20, 20);
-	this.setColor(255,255,2550);
-	this.drawText("FPS: " + this.curFps.toFixed(2), 22, 22);
-}
-
-
-
-
-//-------------------------------------------------------
-//Time
-Pixel.App.prototype.getElapsedTime = function() {
-	var curTime = new Date().getTime();
-	return curTime - this.startTime;
-}
-
-
-
-//-------------------------------------------------------
-//Events
-
-
-
-//-------------------------------------------------------
-//Touch Events (touch start, touchemoved, touchend)
-//Touch Events have an id and position (x,y)
-Pixel.App.prototype.touches = [],
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.touchStartListener = function(e) {
-	for(var i=0;i < e.changedTouches.length; i++) {
-		//Find empty slot for touch
-		var emptyTouchPos = null;
-		for(var j=0; j<this.touches.length; j++) {
-			if(this.touches[j]==null) {
-				emptyTouchPos = j;
-				break;
-			}
-		}
-		
-		//If slot not found, create new item in touches array (javascript way of doing things)
-		if(emptyTouchPos == null) emptyTouchPos = this.touches.length;
-		
-		//Get the touch position, divide by half if pixel Doubling!
-		var xPos = !this.bPixelDoubling ? e.changedTouches[i].pageX : e.changedTouches[i].pageX/2;
-		var yPos = !this.bPixelDoubling ? e.changedTouches[i].pageY : e.changedTouches[i].pageY/2;
-		
-		//Set the touch
-		this.touches[emptyTouchPos] = {
-			id:j,
-			x:xPos - this.pos.x,
-			y:yPos - this.pos.y,
-			uniqueID:e.changedTouches[i].identifier
-		}
-		
-		//Deploy Event
-		this.dispatch("touchstart", this.touches[emptyTouchPos]);
-	}
-}
-
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.touchMovedListener = function(e) {
-	//Get Changed touches, these are the ones that moved
-	for(var i=0; i<e.changedTouches.length; i++) {
-		//Get each touch's unique ID
-		var uniqueID = e.changedTouches[i].identifier;
-			
-		//Find corresponding touch object
-		for(var j=0; j<this.touches.length;j++) {
-			if(this.touches[j] != null && uniqueID == this.touches[j].uniqueID) {
-				//Get the touch position, divide by half if pixel Doubling!
-				var xPos = !this.bPixelDoubling ? e.changedTouches[i].pageX : e.changedTouches[i].pageX/2;
-				var yPos = !this.bPixelDoubling ? e.changedTouches[i].pageY : e.changedTouches[i].pageY/2;
-				
-				
-				//Update touch pos
-				this.touches[j].pos = {
-					x:xPos - this.pos.x,
-					y:yPos - this.pos.y
+	//-------------------------------------------------------
+	setRect: function() {
+		switch(this.font.alignment) {
+			case Pixel.TEXT_ALIGN_LEFT:
+				switch(this.font.baseline) {
+					case Pixel.TEXT_BASELINE_TOP:
+						this.rect.set(this.pos.x, this.pos.y, this.width, this.height);
+						break;
+					case Pixel.TEXT_BASELINE_MIDDLE:
+						this.rect.set(this.pos.x, this.pos.y - this.height/2, this.width, this.height);
+						break;
+					case Pixel.TEXT_BASELINE_BOTTOM:
+						this.rect.set(this.pos.x, this.pos.y - this.height, this.width, this.height);
+						break;
 				}
+				break;
 				
-				//Deploy Event
-				this.dispatch("touchmoved", this.touches[j]);
+			case Pixel.TEXT_ALIGN_CENTER:
+				switch(this.font.baseline) {
+					case Pixel.TEXT_BASELINE_TOP:
+						this.rect.set(this.pos.x - this.width/2, this.pos.y, this.width, this.height);
+						break;
+					case Pixel.TEXT_BASELINE_MIDDLE:
+						this.rect.set(this.pos.x - this.width/2, this.pos.y - this.height/2, this.width, this.height);
+						break;
+					case Pixel.TEXT_BASELINE_BOTTOM:
+						this.rect.set(this.pos.x - this.width/2, this.pos.y - this.height, this.width, this.height);
+						break;
+				}
 				break;
-			}
+				
+			case Pixel.TEXT_ALIGN_RIGHT:
+				switch(this.font.baseline) {
+					case Pixel.TEXT_BASELINE_TOP:
+						this.rect.set(this.pos.x - this.width, this.pos.y, this.width, this.height);
+						break;
+					case Pixel.TEXT_BASELINE_MIDDLE:
+						this.rect.set(this.pos.x - this.width, this.pos.y - this.height/2, this.width, this.height);
+						break;
+					case Pixel.TEXT_BASELINE_BOTTOM:
+						this.rect.set(this.pos.x - this.width, this.pos.y - this.height, this.width, this.height);
+						break;
+				}				
+				break;
 		}
 	}
-}
-
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.touchEndListener = function(e) {
-	for(var i=0; i<e.changedTouches.length; i++) {
-		//Get each touch's unique ID
-		var uniqueID = e.changedTouches[i].identifier;
+});//-------------------------------------------------------
+//Pixel.App.js
+Pixel.App = Pixel.Canvas.extend({
+	init:function() {
+		this._super();
 		
-		for(var j=0; j<this.touches.length; j++) {
-			if(this.touches[j] != null && uniqueID == this.touches[j].uniqueID) {
-				this.dispatch("touchend", this.touches[j]);
-				this.touches[j] = null;
-				break;
-			}
+		this.bSetup = false;
+		this.bRunning = true;
+		
+		this.bIsMobileApp = false;
+		
+		//FPS
+		this.fps			= 60;
+		this.curFPS			= 0;
+		this.bShowFPS		= false;
+		this.nFPSSamples	= 50;
+		this.fpsSamples		= [];
+		this.curFpsSample	= -1;
+		this.curFps			= 0;
+		this.fpsFont		= new Pixel.Font("Verdana", 10, Pixel.TEXT_ALIGN_LEFT);
+		
+		this.startTime	= 0;
+		this.prevTime	= 0;
+		
+		this.startTime = new Date().getTime();
+		this.prevTime = this.startTime;
+		
+		//FPS Font
+		this.fpsFont = new Pixel.Font("Verdana", 10, Pixel.TEXT_ALIGN_LEFT);
+		
+		//Event Listeners
+		var self = this;
+		
+		if(Pixel.isTouchDevice()) {
+			this.canvas.addEventListener('touchstart',		function(e) { self.touchStartListener.call(self, e) },	false);
+			this.canvas.addEventListener("touchmove",		function(e) { self.touchMovedListener.call(self, e) },	false);
+			this.canvas.addEventListener("touchend",		function(e) { self.touchEndListener.call(self, e) },	false);
+		} else {	
+			this.canvas.addEventListener("mousedown",		function(e) { self.mouseDownListener.call(self, e) },	false);
+			this.canvas.addEventListener("mousemove",		function(e) { self.mouseMovedListener.call(self, e) },	false);
+			this.canvas.addEventListener("mouseup",			function(e) { self.mouseUpListener.call(self, e) },		false);
 		}
-	}
-}
-
-
-//-------------------------------------------------------
-//Mouse Events
-//Mouse Events (touch start, touchemoved, touchend)
-//Mouse Events have an x and y position
-
-Pixel.App.prototype.bMouseDown = false,
-
-//-------------------------------------------------------
-Pixel.App.prototype.mouseDownListener = function(e) {
-	this.bMouseDown = true;
+	},
 	
-	//Get Position of Event
-	var position = Pixel.getRelativeMouseCoords(e, this.canvas);
+	//-------------------------------------------------------
+	start: function() {
+		this.bRunning = true;
+	},
+	
+	//-------------------------------------------------------
+	stop: function() {
+		this.bRunning = false;
+	},
+	
+	
+	//-------------------------------------------------------
+	setup: function() {
+	},
+	
+	
+	//-------------------------------------------------------
+	update: function() {
+	},
+	
+	
+	//-------------------------------------------------------
+	draw: function() {
+	},
+	
+	
+	//-------------------------------------------------------
+	run: function() {
+		if(this.bRunning) {
+			//Run App Setup if uninitalised
+			if(this.setup != undefined && this.bSetup == false) {
+				this.setup();
+				this.bSetup = true;
+			}
 		
-	if(this.bIsMobileApp) {
-		this.dispatch("touchstart", {id:0, x:position.x, y: position.y});
-	} else {
-		this.dispatch("mousedown", position);
-	}
-}
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.mouseMovedListener = function(e) {
-	if(this.bMouseDown) {
-		this.mouseDraggedListener(e);
-	}
-	
-	//Get Position of Event
-	var position = Pixel.getRelativeMouseCoords(e, this.canvas);
+			this.update();
+			this.draw();
 			
-	if(this.bIsMobileApp) {
-		this.dispatch("touchmoved", {id:0, x:position.x, y: position.y});
-	} else {
-		this.dispatch("mousemoved", position);
-	}
-}
-
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.mouseUpListener = function(e) {
-	this.bMouseDown = false;
+			if(this.bShowFPS) {
+				this.updateFPS();
+				this.drawFPS();
+			}
+			
+			window.requestAnimFrame(this.run.bind(this));
+		}
+	},
 	
-	//Get Position of Event
-	var position = Pixel.getRelativeMouseCoords(e, this.canvas);
+
+	//-------------------------------------------------------
+	//FPS
+	//-------------------------------------------------------
+	setFPS: function(fps) {
+		this.fps = fps;
+	},
+	
+	
+	//-------------------------------------------------------
+	getFPS: function() {
+		return this.fps;
+	},
+	
+	
+	//-------------------------------------------------------
+	showFPS: function() {
+		//Clear samples
+		for(var i=0;i<this.fpsSamples.length; i++) {
+			this.fpsSamples[i] = 0;
+		}
 		
-	if(this.bIsMobileApp) {
-		this.dispatch("touchend", {id:0, x:position.x, y: position.y});
-	} else {
-		this.dispatch("mouseup", position);
-	}
-}
-
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.mouseDraggedListener = function(e) {
+		this.bShowFPS = true;
+	},
 	
-}
+	
+	//-------------------------------------------------------
+	hideFPS: function() {
+		this.bShowFPS = false;
+	},
+	
+	
+	//-------------------------------------------------------
+	updateFPS: function() {
+		this.curFpsSample++;
+		if(this.curFpsSample >= this.nFPSSamples) {
+			this.curFpsSample = 0;
+		}
+		
+		var curTime = this.getElapsedTime();
+		this.fpsSamples[this.curFpsSample] = 1000.0/(curTime - this.prevTime);
+		
+		var avgFps = 0;
+		for(var i=0;i<this.fpsSamples.length; i++) {
+			avgFps += this.fpsSamples[i];
+		}
+		
+		avgFps /= this.fpsSamples.length;
+		
+		this.curFps = Math.floor(avgFps);
+		
+		this.prevTime = curTime;
+	},
+	
+	
+	//-------------------------------------------------------
+	drawFPS: function() {
+		this.setFont(this.fpsFont);
+		
+		this.setFillColor(0,0,0);
+		this.drawText("FPS: " + this.curFps.toFixed(2), 20, 20);
+		this.setFillColor(255,255,2550);
+		this.drawText("FPS: " + this.curFps.toFixed(2), 22, 22);
+	},
+	
+	
+	//-------------------------------------------------------
+	//Time
+	getElapsedTime: function() {
+		var curTime = new Date().getTime();
+		return curTime - this.startTime;
+	},
+	
+	
+	//-------------------------------------------------------
+	//Events
+	
+	
+	
+	//-------------------------------------------------------
+	//Touch Events (touch start, touchemoved, touchend)
+	//Touch Events have an id and position (x,y)
+	touches: [],
+	
+	
+	//-------------------------------------------------------
+	touchStartListener: function(e) {
+		for(var i=0;i < e.changedTouches.length; i++) {
+			//Find empty slot for touch
+			var emptyTouchPos = null;
+			for(var j=0; j<this.touches.length; j++) {
+				if(this.touches[j]==null) {
+					emptyTouchPos = j;
+					break;
+				}
+			}
+			
+			//If slot not found, create new item in touches array (javascript way of doing things)
+			if(emptyTouchPos == null) emptyTouchPos = this.touches.length;
+			
+			//Get the touch position, divide by half if pixel Doubling!
+			var xPos = !this.bPixelDoubling ? e.changedTouches[i].pageX : e.changedTouches[i].pageX/2;
+			var yPos = !this.bPixelDoubling ? e.changedTouches[i].pageY : e.changedTouches[i].pageY/2;
+			
+			//Set the touch
+			this.touches[emptyTouchPos] = {
+				id:j,
+				x:xPos - this.pos.x,
+				y:yPos - this.pos.y,
+				uniqueID:e.changedTouches[i].identifier
+			}
+			
+			//Deploy Event
+			this.dispatch("touchstart", this.touches[emptyTouchPos]);
+		}
+	},
+	
+	
+	
+	//-------------------------------------------------------
+	touchMovedListener: function(e) {
+		//Get Changed touches, these are the ones that moved
+		for(var i=0; i<e.changedTouches.length; i++) {
+			//Get each touch's unique ID
+			var uniqueID = e.changedTouches[i].identifier;
+				
+			//Find corresponding touch object
+			for(var j=0; j<this.touches.length;j++) {
+				if(this.touches[j] != null && uniqueID == this.touches[j].uniqueID) {
+					//Get the touch position, divide by half if pixel Doubling!
+					var xPos = !this.bPixelDoubling ? e.changedTouches[i].pageX : e.changedTouches[i].pageX/2;
+					var yPos = !this.bPixelDoubling ? e.changedTouches[i].pageY : e.changedTouches[i].pageY/2;
+					
+					
+					//Update touch pos
+					this.touches[j].pos = {
+						x:xPos - this.pos.x,
+						y:yPos - this.pos.y
+					}
+					
+					//Deploy Event
+					this.dispatch("touchmoved", this.touches[j]);
+					break;
+				}
+			}
+		}
+	},
+	
+	
+	
+	//-------------------------------------------------------
+	touchEndListener: function(e) {
+		for(var i=0; i<e.changedTouches.length; i++) {
+			//Get each touch's unique ID
+			var uniqueID = e.changedTouches[i].identifier;
+			
+			for(var j=0; j<this.touches.length; j++) {
+				if(this.touches[j] != null && uniqueID == this.touches[j].uniqueID) {
+					this.dispatch("touchend", this.touches[j]);
+					this.touches[j] = null;
+					break;
+				}
+			}
+		}
+	},
+	
+	
+	//-------------------------------------------------------
+	//Mouse Events
+	//Mouse Events (touch start, touchemoved, touchend)
+	//Mouse Events have an x and y position
+	
+	bMouseDown: false,
+	
+	//-------------------------------------------------------
+	mouseDownListener: function(e) {
+		this.bMouseDown = true;
+		
+		//Get Position of Event
+		var position = Pixel.getRelativeMouseCoords(e, this.canvas);
+			
+		if(this.bIsMobileApp) {
+			this.dispatch("touchstart", {id:0, x:position.x, y: position.y});
+		} else {
+			this.dispatch("mousedown", position);
+		}
+	},
+	
+	
+	//-------------------------------------------------------
+	mouseMovedListener: function(e) {
+		if(this.bMouseDown) {
+			this.mouseDraggedListener(e);
+		}
+		
+		//Get Position of Event
+		var position = Pixel.getRelativeMouseCoords(e, this.canvas);
+				
+		if(this.bIsMobileApp) {
+			this.dispatch("touchmoved", {id:0, x:position.x, y: position.y});
+		} else {
+			this.dispatch("mousemoved", position);
+		}
+	},
+	
+	
+	//-------------------------------------------------------
+	mouseUpListener: function(e) {
+		this.bMouseDown = false;
+		
+		//Get Position of Event
+		var position = Pixel.getRelativeMouseCoords(e, this.canvas);
+			
+		if(this.bIsMobileApp) {
+			this.dispatch("touchend", {id:0, x:position.x, y: position.y});
+		} else {
+			this.dispatch("mouseup", position);
+		}
+	},
+	
+	
+	//-------------------------------------------------------
+	mouseDraggedListener: function(e) {
+		
+	}
+});

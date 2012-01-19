@@ -54,7 +54,6 @@ files.append(src + "App/Pixel.App.js")
 def compressFile(file):
 	with open(file, 'r' ) as f:
 		content = f.read()
-		
 		# Define the parameters for the POST request and encode them in
 		# a URL-safe format.
 		params = urllib.parse.urlencode([
@@ -76,6 +75,7 @@ def compressFile(file):
 
 #------------------------------------------------------------
 def addFile(inputFile, combinedFile):
+	print("Adding " + inputFile + " ....")
 	with open(inputFile,'r') as file:
 		inputContent	= file.read()
 		combinedFile.write(inputContent)
@@ -90,7 +90,9 @@ with open("Pixel.js", 'w') as combinedFile:
 #Compress
 if bCompress:
 	compressFile("Pixel.js")
-
+	print("Compress lib built!")
+else:
+	print("Uncompressed lib built!")
 
 
 
