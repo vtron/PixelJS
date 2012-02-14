@@ -1,8 +1,8 @@
 //-------------------------------------------------------
 //Pixel.App.js
 Pixel.App = Pixel.Canvas.extend({
-	init:function() {
-		this._super();
+	init:function(renderer) {
+		this._super(renderer);
 		
 		this.bSetup = false;
 		this.bRunning = true;

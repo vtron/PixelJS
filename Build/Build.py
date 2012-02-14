@@ -36,6 +36,7 @@ files.append(src + "Utils/Pixel.EventDispatcher.js")
 
 #Renderers
 files.append(src + "Graphics/Rendering/Pixel.Renderer2D.js")
+files.append(src + "Graphics/Rendering/WebGL/Pixel.RendererWebGL.js")
 
 #Graphics
 files.append(src + "Graphics/Pixel.Color.js")

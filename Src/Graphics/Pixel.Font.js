@@ -14,6 +14,7 @@ Pixel.Font = Class.extend({
 		
 		//Create canvas for getting sizes, if not defined yet
 		if(Pixel.FontSizeCvs == null) {
+			Pixel.log("Creating 2D Canvas for fonts");
 			Pixel.FontSizeCvs = new Pixel.Canvas(Pixel.RENDER_MODE_2D);
 		}
 	},

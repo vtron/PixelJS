@@ -20,6 +20,7 @@ Pixel.Renderer2D = Class.extend({
 	
 	
 	//-------------------------------------------------------
+	//Specific to 2D Canvas, sets color in correct format
 	getColorAsString: function(r,g,b,a) {
 		r = Math.round(r);
 		g = Math.round(g);

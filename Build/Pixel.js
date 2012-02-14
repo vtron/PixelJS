@@ -863,6 +863,68 @@ Pixel.Renderer2D = Class.extend({
 		this.drawText(tf.text, tf.pos.x, tf.pos.y);
 	}
 });//-------------------------------------------------------
+//Pixel.RendererWebGL.js
+//WebGL Rendering
+
+Pixel.RendererWebGL = Class.extend({
+	init: function(canvas) {
+		//Get GL Ref
+		this.getGlRef(canvas);
+        
+        
+	},
+	
+	
+	//-------------------------------------------------------
+	getGlRef: function(canvas) {
+		//See if we can get a WebGL ref
+		try {
+            this.gl = canvas.getContext("experimental-webgl");
+            this.gl.viewportWidth = canvas.width;
+            this.gl.viewportHeight = canvas.height;
+        } catch (e) {
+        	this.gl = null;
+        	Pixel.log("Could not initialise WebGL");
+        }
+	},
+	
+	
+	//-------------------------------------------------------
+	createShader: function(id) {
+        var shaderScript = document.getElementById(id);
+        if (!shaderScript) {
+            return null;
+        }
+
+        var str = "";
+        var k = shaderScript.firstChild;
+        while (k) {
+            if (k.nodeType == 3) {
+                str += k.textContent;
+            }
+            k = k.nextSibling;
+        }
+
+        var shader;
+        if (shaderScript.type == "x-shader/x-fragment") {
+            shader = this.gl.createShader(gl.FRAGMENT_SHADER);
+        } else if (shaderScript.type == "x-shader/x-vertex") {
+            shader = this.gl.createShader(gl.VERTEX_SHADER);
+        } else {
+            return null;
+        }
+
+        this.gl.shaderSource(shader, str);
+        this.gl.compileShader(shader);
+
+        if (!gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+            alert(this.gl.getShaderInfoLog(shader));
+            return null;
+        }
+
+        return shader;
+    }
+});//-------------------------------------------------------
 //Pixel.Color.js
 
 //Color class
@@ -1043,9 +1105,7 @@ Pixel.hsvToRgb = function(h, s, v){
 //+ generic vars shared between renderers (i.e. Cursor)
 
 Pixel.Canvas = Pixel.EventDispatcher.extend({
-	init: function() {
-		Pixel.EventDispatcher(this);
-		
+	init: function(renderer) {
 		//Create Canvas
 		this.canvas = document.createElement('canvas');
 		this.canvas.innerHTML = "Your browser does not support HTML5 Canvas."
@@ -1072,9 +1132,7 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 		this.setSize(50,400);
 		
 		//Set Renderer (default is 2D)
-		this.setRenderer(this.canvas, Pixel.RENDER_MODE_2D);
-		
-		this._super();
+		this.setRenderer(this.canvas, renderer);
 	},
 
 
@@ -1082,17 +1140,12 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 	//Size Info
 	
 	//-------------------------------------------------------
-	setSize: function(width,height, renderer) {
+	setSize: function(width,height) {
 		this.width = width;
 		this.height = height;
 		
 		this.canvas.setAttribute('width',	this.width);
 		this.canvas.setAttribute('height',	this.height);
-		
-		
-		if(renderer != undefined) {
-			this.setRenderer(renderer);
-		}
 	},
 
 
@@ -1121,16 +1174,29 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 	//Drawing
 	//-------------------------------------------------------
 	setRenderer: function(canvasElement, rendererType) {
-		switch(rendererType) {
-			case Pixel.RENDER_MODE_2D:
-				this.renderer = new Pixel.Renderer2D(canvasElement);
-				break;
-			case Pixel.RENDER_MODE_WEBGL:
-				Pixel.log("WebGL Renderer not yet implemented!");
-				break;
-			default:
-				//Pixel.log("Renderer Type does not exist");
-				break;
+		if(!this.renderer) {
+			switch(rendererType) {
+				case Pixel.RENDER_MODE_2D:
+					Pixel.log("Starting 2D Renderer");
+					this.renderer = new Pixel.Renderer2D(canvasElement);
+					return;
+					
+				case Pixel.RENDER_MODE_WEBGL:
+					this.renderer = new Pixel.RendererWebGL(canvasElement);
+					if(this.renderer.gl) {
+						Pixel.log("WebGL renderer initialized");
+						return;
+					} else {
+						delete this.renderer;	
+					}
+					break;
+				default:
+					Pixel.log("Renderer Type does not exist");
+					this.setRenderer(canvasElement, Pixel.RENDER_MODE_2D);
+					break;
+			}
+			
+			if(!this.renderer) this.setRenderer(canvasElement, Pixel.RENDER_MODE_2D);
 		}
 	},
 
@@ -1349,16 +1415,16 @@ Pixel.Object = Pixel.EventDispatcher.extend({
 		this.width = 0;
 		this.height = 0;
 		
+		this.pos = {
+			x:0,
+			y:0
+		};
+		
 		this.radius = 0;
 		
 		this.shapeMode = Pixel.OBJECT_SHAPE_RECT;
 		
 		this.rect = new Pixel.Rectangle();
-		
-		this.pos = {
-			x:0,
-			y:0
-		};
 		
 		this._super();
 	},
@@ -1616,6 +1682,7 @@ Pixel.Font = Class.extend({
 		
 		//Create canvas for getting sizes, if not defined yet
 		if(Pixel.FontSizeCvs == null) {
+			Pixel.log("Creating 2D Canvas for fonts");
 			Pixel.FontSizeCvs = new Pixel.Canvas(Pixel.RENDER_MODE_2D);
 		}
 	},
@@ -1766,8 +1833,8 @@ Pixel.Textfield = Pixel.Object.extend({
 });//-------------------------------------------------------
 //Pixel.App.js
 Pixel.App = Pixel.Canvas.extend({
-	init:function() {
-		this._super();
+	init:function(renderer) {
+		this._super(renderer);
 		
 		this.bSetup = false;
 		this.bRunning = true;

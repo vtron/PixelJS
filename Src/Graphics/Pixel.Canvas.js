@@ -4,9 +4,7 @@
 //+ generic vars shared between renderers (i.e. Cursor)
 
 Pixel.Canvas = Pixel.EventDispatcher.extend({
-	init: function() {
-		Pixel.EventDispatcher(this);
-		
+	init: function(renderer) {
 		//Create Canvas
 		this.canvas = document.createElement('canvas');
 		this.canvas.innerHTML = "Your browser does not support HTML5 Canvas."
@@ -33,9 +31,7 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 		this.setSize(50,400);
 		
 		//Set Renderer (default is 2D)
-		this.setRenderer(this.canvas, Pixel.RENDER_MODE_2D);
-		
-		this._super();
+		this.setRenderer(this.canvas, renderer);
 	},
 
 
@@ -43,17 +39,12 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 	//Size Info
 	
 	//-------------------------------------------------------
-	setSize: function(width,height, renderer) {
+	setSize: function(width,height) {
 		this.width = width;
 		this.height = height;
 		
 		this.canvas.setAttribute('width',	this.width);
 		this.canvas.setAttribute('height',	this.height);
-		
-		
-		if(renderer != undefined) {
-			this.setRenderer(renderer);
-		}
 	},
 
 
@@ -82,16 +73,29 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 	//Drawing
 	//-------------------------------------------------------
 	setRenderer: function(canvasElement, rendererType) {
-		switch(rendererType) {
-			case Pixel.RENDER_MODE_2D:
-				this.renderer = new Pixel.Renderer2D(canvasElement);
-				break;
-			case Pixel.RENDER_MODE_WEBGL:
-				Pixel.log("WebGL Renderer not yet implemented!");
-				break;
-			default:
-				//Pixel.log("Renderer Type does not exist");
-				break;
+		if(!this.renderer) {
+			switch(rendererType) {
+				case Pixel.RENDER_MODE_2D:
+					Pixel.log("Starting 2D Renderer");
+					this.renderer = new Pixel.Renderer2D(canvasElement);
+					return;
+					
+				case Pixel.RENDER_MODE_WEBGL:
+					this.renderer = new Pixel.RendererWebGL(canvasElement);
+					if(this.renderer.gl) {
+						Pixel.log("WebGL renderer initialized");
+						return;
+					} else {
+						delete this.renderer;	
+					}
+					break;
+				default:
+					Pixel.log("Renderer Type does not exist");
+					this.setRenderer(canvasElement, Pixel.RENDER_MODE_2D);
+					break;
+			}
+			
+			if(!this.renderer) this.setRenderer(canvasElement, Pixel.RENDER_MODE_2D);
 		}
 	},
 
