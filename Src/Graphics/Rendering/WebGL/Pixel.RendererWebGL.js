@@ -5,50 +5,84 @@
 Pixel.RendererWebGL = Class.extend({
 	init: function(canvas) {
 		//Get GL Ref
-		this.getGlRef(canvas);
+		this.gl = this.initGL(canvas);
         
         //Compile default shader
-        this.shader = new Pixel.Shader("pixeljs-default-shader");
+        this.shaderProgram = Pixel.getShaderProgram(this.gl, "pixelDefault-shader");
+        console.log(this.shaderProgram);
         
         //Create Matrices
         this.mvMatrix	= mat4.create();
     	this.pMatrix	= mat4.create();
+    	
+    	this.gl.clearColor(0.0, 1.0, 0.0, 1.0);
+        this.gl.enable(this.gl.DEPTH_TEST);
+        
+        
+        //Create Buffers
+		this.triangleVertexPositionBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.triangleVertexPositionBuffer);
+        var vertices = [
+             0.0,  1.0,  0.0,
+            -1.0, -1.0,  0.0,
+             1.0, -1.0,  0.0
+        ];
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
+        this.triangleVertexPositionBuffer.itemSize = 3;
+        this.triangleVertexPositionBuffer.numItems = 3;
+        
+		this.squareVertexPositionBuffer;
+		
+		this.squareVertexPositionBuffer = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.squareVertexPositionBuffer);
+		
+		var vertices = [
+             1.0,  1.0,  0.0,
+            -1.0,  1.0,  0.0,
+             1.0, -1.0,  0.0,
+            -1.0, -1.0,  0.0
+        ];
+        
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
+        this.squareVertexPositionBuffer.itemSize = 3;
+        this.squareVertexPositionBuffer.numItems = 4;
 	},
 
 	
 	//-------------------------------------------------------
-	getGlRef: function(canvas) {
+	initGL: function(canvas) {
 		//See if we can get a WebGL ref
 		try {
-            this.gl = canvas.getContext("experimental-webgl");
-            this.gl.viewportWidth = canvas.width;
-            this.gl.viewportHeight = canvas.height;
+            var gl = canvas.getContext("experimental-webgl");
+        	return gl;
         } catch (e) {
-        	this.gl = null;
         	Pixel.log("Could not initialise WebGL");
+        	return null;
         }
 	},
 	
 	//-------------------------------------------------------
 	setMatrixUniforms: function() {
-        gl.uniformMatrix4fv(shaderProgram.pMatrixUniform, false, pMatrix);
-        gl.uniformMatrix4fv(shaderProgram.mvMatrixUniform, false, mvMatrix);
+        this.gl.uniformMatrix4fv(this.shaderProgram.pMatrixUniform,		false, this.pMatrix);
+        this.gl.uniformMatrix4fv(this.shaderProgram.mvMatrixUniform,	false, this.mvMatrix);
     },
     
     //-------------------------------------------------------
     //Takes numbers from pixel space to 
     getNormalizedCoordinates: function() {
-    }
+    },
+    
+    //-------------------------------------------------------
+    setSize: function(width, height) {
+    	this.gl.viewportWidth	= width;
+        this.gl.viewportHeight	= height;
+    },
     
 	
 	//-------------------------------------------------------
 	clear: function(x,y,width,height) {
-        gl.viewport(0, 0, gl.viewportWidth, gl.viewportHeight);
-        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-        mat4.perspective(45, gl.viewportWidth / gl.viewportHeight, 0.1, 100.0, pMatrix);
-        mat4.identity(mvMatrix);
-
+        this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 	},
 	
 	
@@ -145,14 +179,22 @@ Pixel.RendererWebGL = Class.extend({
 	
 	//-------------------------------------------------------
 	drawSquare: function(x,y,size) {
-		squareVertexPositionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, squareVertexPositionBuffer);
-        vertices = [
-             1.0,  1.0,  0.0,
-            -1.0,  1.0,  0.0,
-             1.0, -1.0,  0.0,
-            -1.0, -1.0,  0.0
-        ];
+		//Draw
+        mat4.perspective(45, this.gl.viewportWidth / this.gl.viewportHeight, 0.1, 100.0, this.pMatrix);
+		mat4.identity(this.mvMatrix);
+		
+		mat4.translate(this.mvMatrix, [-1.5, 0.0, -7.0]);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.triangleVertexPositionBuffer);
+        this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, this.triangleVertexPositionBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+        this.setMatrixUniforms();
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, this.triangleVertexPositionBuffer.numItems);
+
+
+        mat4.translate(this.mvMatrix, [3.0, 0.0,0.0]);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.squareVertexPositionBuffer);
+        this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, this.squareVertexPositionBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+        this.setMatrixUniforms();
+        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.squareVertexPositionBuffer.numItems);
 	},
 	
 	
@@ -235,5 +277,4 @@ Pixel.RendererWebGL = Class.extend({
 	//-------------------------------------------------------
 	drawTextfield: function(tf) {
 	}
-});
 });

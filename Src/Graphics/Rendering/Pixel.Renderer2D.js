@@ -19,6 +19,10 @@ Pixel.Renderer2D = Class.extend({
 	},
 	
 	
+	setSize: function(width, height) {
+	},
+	
+	
 	//-------------------------------------------------------
 	//Specific to 2D Canvas, sets color in correct format
 	getColorAsString: function(r,g,b,a) {
@@ -240,6 +244,12 @@ Pixel.Renderer2D = Class.extend({
 	
 	
 	//-------------------------------------------------------
+	drawSquare: function(x,y,size) {
+		this.drawRect(x,y,size,size);
+	},
+	
+	
+	//-------------------------------------------------------
 	drawRoundedRect: function(x,y,width,height, radius) {
 		if(typeof(radius) === 'number') {
 			radius = {
@@ -272,12 +282,6 @@ Pixel.Renderer2D = Class.extend({
 		
 		if(this.bFill)	this.ctx.fill();
 		if(this.bStroke) this.ctx.stroke();
-	},
-	
-	
-	//-------------------------------------------------------
-	drawSquare: function(x,y,size) {
-		this.rectangle(x,y,size,size);
 	},
 	
 	

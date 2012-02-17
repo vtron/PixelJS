@@ -26,12 +26,12 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 		//Pixel doubling for iOS 
 		this.bPixelDoubling = window.devicePixelRatio >= 2;
 		
-		//Init Vars
-		//this.setPos(0,0);
-		this.setSize(50,400);
-		
 		//Set Renderer (default is 2D)
 		this.setRenderer(this.canvas, renderer);
+		
+		//Init Vars
+		//this.setPos(0,0);
+		this.setSize(400,400);
 	},
 
 
@@ -45,6 +45,8 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 		
 		this.canvas.setAttribute('width',	this.width);
 		this.canvas.setAttribute('height',	this.height);
+		
+		this.renderer.setSize(width, height);
 	},
 
 

@@ -472,7 +472,12 @@ Pixel.Renderer2D = Class.extend({
 	},
 	
 	
+	setSize: function(width, height) {
+	},
+	
+	
 	//-------------------------------------------------------
+	//Specific to 2D Canvas, sets color in correct format
 	getColorAsString: function(r,g,b,a) {
 		r = Math.round(r);
 		g = Math.round(g);
@@ -692,6 +697,12 @@ Pixel.Renderer2D = Class.extend({
 	
 	
 	//-------------------------------------------------------
+	drawSquare: function(x,y,size) {
+		this.drawRect(x,y,size,size);
+	},
+	
+	
+	//-------------------------------------------------------
 	drawRoundedRect: function(x,y,width,height, radius) {
 		if(typeof(radius) === 'number') {
 			radius = {
@@ -724,12 +735,6 @@ Pixel.Renderer2D = Class.extend({
 		
 		if(this.bFill)	this.ctx.fill();
 		if(this.bStroke) this.ctx.stroke();
-	},
-	
-	
-	//-------------------------------------------------------
-	drawSquare: function(x,y,size) {
-		this.rectangle(x,y,size,size);
 	},
 	
 	
@@ -869,62 +874,355 @@ Pixel.Renderer2D = Class.extend({
 Pixel.RendererWebGL = Class.extend({
 	init: function(canvas) {
 		//Get GL Ref
-		this.getGlRef(canvas);
+		this.gl = this.initGL(canvas);
+        
+        //Compile default shader
+        this.shaderProgram = Pixel.getShaderProgram(this.gl, "pixelDefault-shader");
+        console.log(this.shaderProgram);
+        
+        //Create Matrices
+        this.mvMatrix	= mat4.create();
+    	this.pMatrix	= mat4.create();
+    	
+    	this.gl.clearColor(0.0, 1.0, 0.0, 1.0);
+        this.gl.enable(this.gl.DEPTH_TEST);
         
         
+        //Create Buffers
+		this.triangleVertexPositionBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.triangleVertexPositionBuffer);
+        var vertices = [
+             0.0,  1.0,  0.0,
+            -1.0, -1.0,  0.0,
+             1.0, -1.0,  0.0
+        ];
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
+        this.triangleVertexPositionBuffer.itemSize = 3;
+        this.triangleVertexPositionBuffer.numItems = 3;
+        
+		this.squareVertexPositionBuffer;
+		
+		this.squareVertexPositionBuffer = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.squareVertexPositionBuffer);
+		
+		var vertices = [
+             1.0,  1.0,  0.0,
+            -1.0,  1.0,  0.0,
+             1.0, -1.0,  0.0,
+            -1.0, -1.0,  0.0
+        ];
+        
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
+        this.squareVertexPositionBuffer.itemSize = 3;
+        this.squareVertexPositionBuffer.numItems = 4;
 	},
-	
+
 	
 	//-------------------------------------------------------
-	getGlRef: function(canvas) {
+	initGL: function(canvas) {
 		//See if we can get a WebGL ref
 		try {
-            this.gl = canvas.getContext("experimental-webgl");
-            this.gl.viewportWidth = canvas.width;
-            this.gl.viewportHeight = canvas.height;
+            var gl = canvas.getContext("experimental-webgl");
+        	return gl;
         } catch (e) {
-        	this.gl = null;
         	Pixel.log("Could not initialise WebGL");
+        	return null;
         }
+	},
+	
+	//-------------------------------------------------------
+	setMatrixUniforms: function() {
+        this.gl.uniformMatrix4fv(this.shaderProgram.pMatrixUniform,		false, this.pMatrix);
+        this.gl.uniformMatrix4fv(this.shaderProgram.mvMatrixUniform,	false, this.mvMatrix);
+    },
+    
+    //-------------------------------------------------------
+    //Takes numbers from pixel space to 
+    getNormalizedCoordinates: function() {
+    },
+    
+    //-------------------------------------------------------
+    setSize: function(width, height) {
+    	this.gl.viewportWidth	= width;
+        this.gl.viewportHeight	= height;
+    },
+    
+	
+	//-------------------------------------------------------
+	clear: function(x,y,width,height) {
+        this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
+        this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
 	},
 	
 	
 	//-------------------------------------------------------
-	createShader: function(id) {
-        var shaderScript = document.getElementById(id);
-        if (!shaderScript) {
-            return null;
-        }
+	setFillColor: function(r,g,b,a) {
+	},
+	
+	//-------------------------------------------------------
+	noFill: function() {
+	},
+	
+	
+	//-------------------------------------------------------
+	setStrokeColor: function(r,g,b,a) {
+	},
+	
+	
+	//-------------------------------------------------------
+	noStroke: function() {
+	},
+	
 
-        var str = "";
-        var k = shaderScript.firstChild;
-        while (k) {
-            if (k.nodeType == 3) {
-                str += k.textContent;
-            }
-            k = k.nextSibling;
-        }
+	//-------------------------------------------------------
+	setStrokeSize: function(size) {
+	},
+	
+	//-------------------------------------------------------
+	setLineCap: function(style) {
+	},
+		
+	//-------------------------------------------------------
+	shadow: function(size, xOffset, yOffset) {
+	},
+	
+	
+	//-------------------------------------------------------
+	setShadowColor: function(r,g,b,a) {
+	},
+	
+	
+	//-------------------------------------------------------
+	noShadow: function() {
+	},
+	
+	
+	//-------------------------------------------------------
+	//IMAGE DRAWING
+	drawImage: function(pxImage, x, y, w, h) {
+	},
+	
+	
+	//-------------------------------------------------------
+	//SHAPE DRAWING
+	
+	//-------------------------------------------------------
+	beginShape: function(x,y) {
+	},
+	
+	
+	//-------------------------------------------------------
+	addVertex: function(x,y, bEnd) {
+	},
+	
+	
+	//-------------------------------------------------------
+	curveVertex: function(x, y) {
+	},
+	
+	
+	//-------------------------------------------------------
+	endShape: function(x,y) {
+	},
+	
+	
+	//-------------------------------------------------------
+	drawLine: function(x1,y1,x2,y2) {
+	},
+	
+	
+	//-------------------------------------------------------
+	dashedLine: function (fromX, fromY, toX, toY, pattern) {
+	},
+	
+	
+	//-------------------------------------------------------
+	drawRect: function(x,y,width,height) {
+	},
+	
+	
+	//-------------------------------------------------------
+	drawRoundedRect: function(x,y,width,height, radius) {
+	},
+	
+	
+	//-------------------------------------------------------
+	drawSquare: function(x,y,size) {
+		//Draw
+        mat4.perspective(45, this.gl.viewportWidth / this.gl.viewportHeight, 0.1, 100.0, this.pMatrix);
+		mat4.identity(this.mvMatrix);
+		
+		mat4.translate(this.mvMatrix, [-1.5, 0.0, -7.0]);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.triangleVertexPositionBuffer);
+        this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, this.triangleVertexPositionBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+        this.setMatrixUniforms();
+        this.gl.drawArrays(this.gl.TRIANGLES, 0, this.triangleVertexPositionBuffer.numItems);
 
-        var shader;
-        if (shaderScript.type == "x-shader/x-fragment") {
-            shader = this.gl.createShader(gl.FRAGMENT_SHADER);
-        } else if (shaderScript.type == "x-shader/x-vertex") {
-            shader = this.gl.createShader(gl.VERTEX_SHADER);
-        } else {
-            return null;
-        }
 
-        this.gl.shaderSource(shader, str);
-        this.gl.compileShader(shader);
-
-        if (!gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-            alert(this.gl.getShaderInfoLog(shader));
-            return null;
-        }
-
-        return shader;
-    }
+        mat4.translate(this.mvMatrix, [3.0, 0.0,0.0]);
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.squareVertexPositionBuffer);
+        this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, this.squareVertexPositionBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
+        this.setMatrixUniforms();
+        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.squareVertexPositionBuffer.numItems);
+	},
+	
+	
+	//-------------------------------------------------------
+	drawEllipse: function(x,y,width,height) {
+	},
+	
+	
+	//-------------------------------------------------------
+	drawCircle: function(x,y,radius) {
+	},
+	
+	
+	//-------------------------------------------------------
+	//TRANSFORMATIONS
+	//-------------------------------------------------------
+	pushMatrix: function() {
+	},
+	
+	
+	//-------------------------------------------------------
+	popMatrix: function() {
+	},
+	
+	
+	//-------------------------------------------------------
+	translate: function(x,y) {
+	},
+	
+	
+	//-------------------------------------------------------
+	scale: function(x,y) {
+	},
+	
+	
+	//-------------------------------------------------------
+	rotate: function(angle) {
+	},
+	
+	
+	//-------------------------------------------------------
+	transform: function(m11, m12, m21, m22, dx, dy) {
+	},
+	
+	
+	//-------------------------------------------------------
+	setTransform: function(m11, m12, m21, m22, dx, dy) {
+	},
+	
+	
+	//-------------------------------------------------------
+	//FONTS/TEXT
+	//-------------------------------------------------------
+	
+	//-------------------------------------------------------
+	setFont: function(font, size) {
+	},
+	
+	
+	//-------------------------------------------------------
+	setTextAlignment: function(alignment) {
+	},
+	
+	
+	//-------------------------------------------------------
+	setTextBaseline: function(baseline) {
+	},
+	
+	
+	//-------------------------------------------------------
+	getTextWidth: function(string) {
+	},
+	
+	
+	//-------------------------------------------------------
+	drawText: function(string, x, y) {
+	},
+	
+	
+	//-------------------------------------------------------
+	drawTextfield: function(tf) {
+	}
 });//-------------------------------------------------------
+//Pixel.Shader.js
+//Loads and Compiles a gl shader
+//Based on Learning WebGL Code (http://www.learningwebgl.com)
+Pixel
+
+Pixel.getShaderProgram = function(gl, id) {
+	var fragment	= Pixel.compileShader(gl, id + "-fs");
+	var vertex		= Pixel.compileShader(gl, id + "-vs");
+	
+	return Pixel.createShaderProgram(gl, fragment, vertex);
+};
+
+
+//-------------------------------------------------------
+Pixel.compileShader = function(gl, id) {
+	var shaderScript = document.getElementById(id);
+    if (!shaderScript) {
+        return null;
+    }
+
+    var str = "";
+    var k = shaderScript.firstChild;
+    while (k) {
+        if (k.nodeType == 3) {
+            str += k.textContent;
+        }
+        k = k.nextSibling;
+    }
+
+    var shader;
+    if (shaderScript.type == "x-shader/x-fragment") {
+        shader = gl.createShader(gl.FRAGMENT_SHADER);
+    } else if (shaderScript.type == "x-shader/x-vertex") {
+        shader = gl.createShader(gl.VERTEX_SHADER);
+    } else {
+        return null;
+    }
+
+    gl.shaderSource(shader, str);
+    gl.compileShader(shader);
+
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        alert(gl.getShaderInfoLog(shader));
+        return null;
+    }
+
+    return shader;
+};
+
+
+//-------------------------------------------------------
+Pixel.createShaderProgram = function(gl, fragmentShader, vertexShader) {
+	if(fragmentShader && vertexShader) {
+        program = gl.createProgram();
+        gl.attachShader(program, fragmentShader);
+        gl.attachShader(program, vertexShader);
+        gl.linkProgram(program);
+
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+            alert("Could not initialise shaders");
+        }
+
+        gl.useProgram(program);
+
+        program.vertexPositionAttribute = gl.getAttribLocation(program, "aVertexPosition");
+        gl.enableVertexAttribArray(program.vertexPositionAttribute);
+
+        program.pMatrixUniform	= gl.getUniformLocation(program,	"uPMatrix");
+        program.mvMatrixUniform	= gl.getUniformLocation(program,	"uMVMatrix");
+        
+        console.log(program);
+        return program;
+    } else {
+    	Pixel.log("Failed to compile shader program.");
+    }
+};//-------------------------------------------------------
 //Pixel.Color.js
 
 //Color class
@@ -1127,12 +1425,12 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 		//Pixel doubling for iOS 
 		this.bPixelDoubling = window.devicePixelRatio >= 2;
 		
-		//Init Vars
-		//this.setPos(0,0);
-		this.setSize(50,400);
-		
 		//Set Renderer (default is 2D)
 		this.setRenderer(this.canvas, renderer);
+		
+		//Init Vars
+		//this.setPos(0,0);
+		this.setSize(400,400);
 	},
 
 
@@ -1146,6 +1444,8 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 		
 		this.canvas.setAttribute('width',	this.width);
 		this.canvas.setAttribute('height',	this.height);
+		
+		this.renderer.setSize(width, height);
 	},
 
 

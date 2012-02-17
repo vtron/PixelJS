@@ -1,5 +1,5 @@
 #!/usr/bin/python3.0
-import os, glob
+import shutil, os, glob
 import http.client ,urllib.request, urllib.parse, urllib.error
 from urllib.parse import urlencode
 import sys
@@ -37,7 +37,7 @@ files.append(src + "Utils/Pixel.EventDispatcher.js")
 #Renderers
 files.append(src + "Graphics/Rendering/Pixel.Renderer2D.js")
 files.append(src + "Graphics/Rendering/WebGL/Pixel.RendererWebGL.js")
-
+files.append(src + "Graphics/Rendering/WebGL/Shaders/Pixel.Shader.js")
 #Graphics
 files.append(src + "Graphics/Pixel.Color.js")
 files.append(src + "Graphics/Pixel.Canvas.js")
@@ -95,7 +95,8 @@ if bCompress:
 else:
 	print("Uncompressed lib built!")
 
-
+#Copy libs
+shutil.copyfile(libs + "gl-matrix/gl-matrix-min.js", "libs/gl-matrix-min.js");
 
 
 

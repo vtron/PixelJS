@@ -3,8 +3,12 @@ window.onload = function() {
 	var wrapper = document.getElementById("wrapper");
 
 	//Create App
-	var Main = Pixel.App.extend({
+	var App = new (Pixel.App.extend({
 		setup: function() {
+			App.setSize(500,500);
+			
+			App.clear();
+			App.drawSquare(50,50, 50);
 		},
 		
 		//-------------------------------------------------------	
@@ -14,7 +18,6 @@ window.onload = function() {
 		
 		//-------------------------------------------------------	
 		draw: function() {
-			
 		},
 		
 		//-------------------------------------------------------
@@ -28,11 +31,12 @@ window.onload = function() {
 		//-------------------------------------------------------
 		mouseUpListener: function(e) {
 		},
-	});	
+	}))(Pixel.RENDER_MODE_WEBGL);	
 	
 	//-------------------------------------------------------
 	//Run App
-	App = new Main(Pixel.RENDER_MODE_WEBGL);
 	App.run();
+	
+	wrapper.appendChild(App.canvas);
 }
 
