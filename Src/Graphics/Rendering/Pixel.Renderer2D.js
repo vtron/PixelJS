@@ -13,14 +13,12 @@ Pixel.Renderer2D = Class.extend({
 	
 	
 	//-------------------------------------------------------
-	clear: function(x,y,width,height) {
+	clear: function(x,y,width,height, color) {
 		this.ctx.clearRect(x,y,width,height);
-		//console.log(width);
 	},
 	
-	
-	setSize: function(width, height) {
-	},
+	//-------------------------------------------------------
+	setSize: function(width, height) {},
 	
 	
 	//-------------------------------------------------------
@@ -347,7 +345,7 @@ Pixel.Renderer2D = Class.extend({
 	
 	//-------------------------------------------------------
 	rotate: function(angle) {
-		this.ctx.rotate(angle);
+		this.ctx.rotate(Pixel.Math.degreesToRadians(angle));
 	},
 	
 	

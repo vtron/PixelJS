@@ -28,6 +28,9 @@ Pixel.App = Pixel.Canvas.extend({
 		//FPS Font
 		this.fpsFont = new Pixel.Font("Verdana", 10, Pixel.TEXT_ALIGN_LEFT);
 		
+		//BG Stuff
+		this.bClearBackground	= true;
+		
 		//Event Listeners
 		var self = this;
 		
@@ -77,7 +80,10 @@ Pixel.App = Pixel.Canvas.extend({
 				this.bSetup = true;
 			}
 		
+			
 			this.update();
+			
+			if(this.bClearBackground) this.clear(0,0, this.getWidth(), this.getHeight());
 			this.draw();
 			
 			if(this.bShowFPS) {

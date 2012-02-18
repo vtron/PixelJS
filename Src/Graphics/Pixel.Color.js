@@ -4,17 +4,17 @@
 //Color class
 Pixel.Color = Class.extend({
 	init: function(r,g,b,a) {
-		this.r = 0;
-		this.g = 0;
-		this.b = 0;
+		this.r = r || 0.0;
+		this.g = g || 0.0;
+		this.b = b || 0.0;
+		this.a = a || 1.0;
 		
-		this.h = 0;
-		this.s = 0;
-		this.l = 0;
-		this.v = 0;
+		this.h = 0.0;
+		this.s = 0.0;
+		this.l = 0.0;
+		this.v = 0.0;
 	},
-
-
+	
 	//-------------------------------------------------------
 	set: function(r,g,b,a) {
 		if(r != undefined) this.r = r;
@@ -22,6 +22,14 @@ Pixel.Color = Class.extend({
 		if(b != undefined) this.b = b;
 		
 		this.a = a != undefined ? a : 1;
+	},
+	
+	
+	//-------------------------------------------------------
+	normalizeRGB: function() {
+		this.r = Pixel.Math.map(0.0, 255.0, this.r, 0.0, 1.0);
+		this.g = Pixel.Math.map(0.0, 255.0, this.g, 0.0, 1.0);
+		this.b = Pixel.Math.map(0.0, 255.0, this.b, 0.0, 1.0);
 	},
 	
 	
@@ -174,3 +182,13 @@ Pixel.hsvToRgb = function(h, s, v){
 
     return {"r": r * 255, "g": g * 255, "b": b * 255};
 };
+
+//-------------------------------------------------------
+//Convert to RGB 0.0 to 1.0 
+Pixel.normalizeRGB = function(color) {
+	var r = Pixel.Math.map(0.0, 255.0, color.r, 0.0, 1.0);
+	var g = Pixel.Math.map(0.0, 255.0, color.g, 0.0, 1.0);
+	var b = Pixel.Math.map(0.0, 255.0, color.b, 0.0, 1.0);
+	
+	return new Pixel.Color(r,g,b, color.a);
+}

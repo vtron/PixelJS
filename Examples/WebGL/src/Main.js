@@ -6,18 +6,24 @@ window.onload = function() {
 	var App = new (Pixel.App.extend({
 		setup: function() {
 			App.setSize(500,500);
-			
-			App.clear();
-			App.drawSquare(50,50, 50);
+			this.rotation = 0.0;
 		},
 		
 		//-------------------------------------------------------	
 		update: function() {
+			this.rotation += 0.5;
 		},
 		
 		
 		//-------------------------------------------------------	
 		draw: function() {
+			App.pushMatrix();
+			App.translate(App.getWidth()/2, App.getHeight()/2);
+			App.scale(2.0,1.0);
+			//App.rotate(this.rotation);
+			App.setFillColor(255,0,255, 1);
+			App.drawSquare(0, 0, 50);
+			App.popMatrix();
 		},
 		
 		//-------------------------------------------------------

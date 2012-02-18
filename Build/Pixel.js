@@ -317,17 +317,17 @@ Pixel.Rectangle = Class.extend({
 });
 
 
-
+Pixel.Math = new Object;
 
 
 //-------------------------------------------------------
 //Radians & Degrees
 //-------------------------------------------------------
-Pixel.radToDeg = function(rad) {
+Pixel.Math.radiansToDegrees = function(rad) {
 	return rad * (180/Math.PI);
 };
 
-Pixel.degToRad = function(deg) {
+Pixel.Math.degreesToRadians = function(deg) {
 	return deg * (Math.PI/180);
 };
 
@@ -337,13 +337,13 @@ Pixel.degToRad = function(deg) {
 //-------------------------------------------------------
 //Mapping/Distance
 //-----------------------------------------------------
-Pixel.map = function(iStart, iStop, value, oStart, oStop, bClamp) {
+Pixel.Math.map = function(iStart, iStop, value, oStart, oStop, bClamp) {
 	value = oStart + (oStop - oStart) * ((value - iStart) / (iStop - iStart));
 	return bClamp ? Pixel.clamp(value) : value;
 }
 
 //-----------------------------------------------------
-Pixel.clamp = function(value, lowVal,highVal) {
+Pixel.Math.clamp = function(value, lowVal,highVal) {
 	value = Math.max(value,lowVal);
 	value = Math.min(value,highVal);
 	return value;
@@ -351,7 +351,7 @@ Pixel.clamp = function(value, lowVal,highVal) {
 
 
 //-----------------------------------------------------
-Pixel.dist = function(x1,y1,x2,y2, bSigned) {
+Pixel.Math.dist = function(x1,y1,x2,y2, bSigned) {
 	var dist = Math.sqrt(Math.pow((x2-x1),2) + Math.pow(y2-y1,2));
 	
 	return bSigned ? dist : Math.abs(dist);
@@ -359,7 +359,7 @@ Pixel.dist = function(x1,y1,x2,y2, bSigned) {
 
 
 //-----------------------------------------------------
-Pixel.getAngle = function(x1, y1, x2, y2) {
+Pixel.Math.getAngle = function(x1, y1, x2, y2) {
 	return Math.atan2(y2 - y1, x2 - x1);
 }
 //-------------------------------------------------------
@@ -466,14 +466,12 @@ Pixel.Renderer2D = Class.extend({
 	
 	
 	//-------------------------------------------------------
-	clear: function(x,y,width,height) {
+	clear: function(x,y,width,height, color) {
 		this.ctx.clearRect(x,y,width,height);
-		//console.log(width);
 	},
 	
-	
-	setSize: function(width, height) {
-	},
+	//-------------------------------------------------------
+	setSize: function(width, height) {},
 	
 	
 	//-------------------------------------------------------
@@ -800,7 +798,7 @@ Pixel.Renderer2D = Class.extend({
 	
 	//-------------------------------------------------------
 	rotate: function(angle) {
-		this.ctx.rotate(angle);
+		this.ctx.rotate(Pixel.Math.degreesToRadians(angle));
 	},
 	
 	
@@ -870,51 +868,27 @@ Pixel.Renderer2D = Class.extend({
 });//-------------------------------------------------------
 //Pixel.RendererWebGL.js
 //WebGL Rendering
+//Most code based on learningwebgl.com
+
+//Matrix math uses the gl-matrix lib by Toji https://github.com/toji/gl-matrix/
 
 Pixel.RendererWebGL = Class.extend({
 	init: function(canvas) {
+		this.fillColor		= new Pixel.Color();
+		this.strokeColor	= new Pixel.Color();
+	
 		//Get GL Ref
 		this.gl = this.initGL(canvas);
         
         //Compile default shader
         this.shaderProgram = Pixel.getShaderProgram(this.gl, "pixelDefault-shader");
-        console.log(this.shaderProgram);
         
         //Create Matrices
-        this.mvMatrix	= mat4.create();
-    	this.pMatrix	= mat4.create();
+    	this.pMatrix		= mat4.create();
+        this.mvMatrixStack	= [];
+        this.mvMatrix		= mat4.create();
     	
-    	this.gl.clearColor(0.0, 1.0, 0.0, 1.0);
         this.gl.enable(this.gl.DEPTH_TEST);
-        
-        
-        //Create Buffers
-		this.triangleVertexPositionBuffer = this.gl.createBuffer();
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.triangleVertexPositionBuffer);
-        var vertices = [
-             0.0,  1.0,  0.0,
-            -1.0, -1.0,  0.0,
-             1.0, -1.0,  0.0
-        ];
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
-        this.triangleVertexPositionBuffer.itemSize = 3;
-        this.triangleVertexPositionBuffer.numItems = 3;
-        
-		this.squareVertexPositionBuffer;
-		
-		this.squareVertexPositionBuffer = this.gl.createBuffer();
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.squareVertexPositionBuffer);
-		
-		var vertices = [
-             1.0,  1.0,  0.0,
-            -1.0,  1.0,  0.0,
-             1.0, -1.0,  0.0,
-            -1.0, -1.0,  0.0
-        ];
-        
-        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
-        this.squareVertexPositionBuffer.itemSize = 3;
-        this.squareVertexPositionBuffer.numItems = 4;
 	},
 
 	
@@ -938,7 +912,11 @@ Pixel.RendererWebGL = Class.extend({
     
     //-------------------------------------------------------
     //Takes numbers from pixel space to 
-    getNormalizedCoordinates: function() {
+    getNormalizedCoordinates: function(x, y) {
+    	var newX = Pixel.Math.map(0.0, this.gl.viewportWidth, x, 0.0, 2.0);
+    	var newY = Pixel.Math.map(0.0, this.gl.viewportHeight, y, 0.0, -2.0);
+    
+    	return {x:newX, y:newY};
     },
     
     //-------------------------------------------------------
@@ -949,14 +927,25 @@ Pixel.RendererWebGL = Class.extend({
     
 	
 	//-------------------------------------------------------
-	clear: function(x,y,width,height) {
-        this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
+	clear: function(x,y,width,height, color) {
+		this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
+        
+        var bgColor = Pixel.normalizeRGB(color);
+        this.gl.clearColor(bgColor.r, bgColor.g, bgColor.b, color.a);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
+        
+        mat4.ortho(-1, 1, -1, 1, -1, 1, this.pMatrix);
+        
+        mat4.identity(this.mvMatrix);
+        mat4.translate(this.mvMatrix, [-1, 1, 0]);
+		
 	},
 	
 	
 	//-------------------------------------------------------
 	setFillColor: function(r,g,b,a) {
+		this.fillColor.set(r,g,b,a);
+		this.fillColor.normalizeRGB();
 	},
 	
 	//-------------------------------------------------------
@@ -1038,6 +1027,50 @@ Pixel.RendererWebGL = Class.extend({
 	
 	//-------------------------------------------------------
 	drawRect: function(x,y,width,height) {
+		var topLeft = this.getNormalizedCoordinates(x,y);
+		var bottomRight = this.getNormalizedCoordinates(x+width,y+height);
+		
+		var x1 = topLeft.x;
+		var x2 = bottomRight.x;
+		
+		var y1 = topLeft.y;
+		var y2 = bottomRight.y;
+		
+		//Vertex Buffer
+		var vertices = [
+			x1,		y1,		0.0,
+            x1,		y2,		0.0,
+            x2,		y1,		0.0,
+           	x2,		y2,		0.0
+        ];
+        
+        
+		var vertexBuffer = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
+		
+		//Color Buffer
+		var colors = [];
+		for(var i=0; i<4; i++) {
+			colors.push(this.fillColor.r);
+			colors.push(this.fillColor.g);
+			colors.push(this.fillColor.b);
+			colors.push(this.fillColor.a);
+		}
+		
+		var colorBuffer = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(colors), this.gl.STATIC_DRAW);
+		
+		//Draw
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
+        this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, 3, this.gl.FLOAT, false, 0, 0);
+        
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
+    	this.gl.vertexAttribPointer(this.shaderProgram.vertexColorAttribute, 4, this.gl.FLOAT, false, 0, 0);
+        
+        this.setMatrixUniforms();
+        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
 	},
 	
 	
@@ -1048,32 +1081,59 @@ Pixel.RendererWebGL = Class.extend({
 	
 	//-------------------------------------------------------
 	drawSquare: function(x,y,size) {
-		//Draw
-        mat4.perspective(45, this.gl.viewportWidth / this.gl.viewportHeight, 0.1, 100.0, this.pMatrix);
-		mat4.identity(this.mvMatrix);
-		
-		mat4.translate(this.mvMatrix, [-1.5, 0.0, -7.0]);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.triangleVertexPositionBuffer);
-        this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, this.triangleVertexPositionBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
-        this.setMatrixUniforms();
-        this.gl.drawArrays(this.gl.TRIANGLES, 0, this.triangleVertexPositionBuffer.numItems);
-
-
-        mat4.translate(this.mvMatrix, [3.0, 0.0,0.0]);
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.squareVertexPositionBuffer);
-        this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, this.squareVertexPositionBuffer.itemSize, this.gl.FLOAT, false, 0, 0);
-        this.setMatrixUniforms();
-        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, this.squareVertexPositionBuffer.numItems);
+		this.drawRect(x,y, size, size);
 	},
 	
 	
 	//-------------------------------------------------------
 	drawEllipse: function(x,y,width,height) {
+		var topLeft = this.getNormalizedCoordinates(x,y);
+		var bottomRight = this.getNormalizedCoordinates(x+width,y+height);
+		
+		var x1 = topLeft.x;
+		var x2 = bottomRight.x;
+		
+		var y1 = topLeft.y;
+		var y2 = bottomRight.y;
+		
+		//Create Buffers
+		var vertices = [];
+		var colors = [];
+		
+		for(var i=0; i<(360*3); i+=3) {
+			vertices.push(x1 + Math.cos(Pixel.Math.degreesToRadians(i)) * (x2 - x1));
+			vertices.push(y1 + Math.sin(Pixel.Math.degreesToRadians(i)) * (y2 - y1));
+			vertices.push(0.0);
+			
+			colors.push(this.fillColor.r);
+			colors.push(this.fillColor.g);
+			colors.push(this.fillColor.b);
+			colors.push(this.fillColor.a);
+		}
+		
+		var vertexBuffer = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
+		
+		var colorBuffer = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(colors), this.gl.STATIC_DRAW);
+		
+		//Draw Points
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
+		this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, 3, this.gl.FLOAT, false, 0, 0);
+		
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
+    	this.gl.vertexAttribPointer(this.shaderProgram.vertexColorAttribute, 4, this.gl.FLOAT, false, 0, 0);
+    	
+		this.setMatrixUniforms();
+        this.gl.drawArrays(this.gl.TRIANGLE_FAN, 0, 360);
 	},
 	
 	
 	//-------------------------------------------------------
 	drawCircle: function(x,y,radius) {
+		this.drawEllipse(x,y, radius, radius);
 	},
 	
 	
@@ -1081,26 +1141,38 @@ Pixel.RendererWebGL = Class.extend({
 	//TRANSFORMATIONS
 	//-------------------------------------------------------
 	pushMatrix: function() {
+		var copy = mat4.create();
+    	mat4.set(this.mvMatrix, copy);
+    	this.mvMatrixStack.push(copy);
 	},
 	
 	
 	//-------------------------------------------------------
 	popMatrix: function() {
+		if (this.mvMatrixStack.length == 0) {
+      		throw "Invalid popMatrix!";
+    	}
+    	
+    	this.mvMatrix = this.mvMatrixStack.pop();
 	},
 	
 	
 	//-------------------------------------------------------
 	translate: function(x,y) {
+		var pos = this.getNormalizedCoordinates(x,y);
+		mat4.translate(this.mvMatrix, [pos.x, pos.y, 0]);
 	},
 	
 	
 	//-------------------------------------------------------
 	scale: function(x,y) {
+		mat4.scale(this.mvMatrix, [x,y,0.0]);
 	},
 	
 	
 	//-------------------------------------------------------
 	rotate: function(angle) {
+		mat4.rotate(this.mvMatrix, Pixel.Math.degreesToRadians(angle), [0, 0, 1]);
 	},
 	
 	
@@ -1213,11 +1285,13 @@ Pixel.createShaderProgram = function(gl, fragmentShader, vertexShader) {
 
         program.vertexPositionAttribute = gl.getAttribLocation(program, "aVertexPosition");
         gl.enableVertexAttribArray(program.vertexPositionAttribute);
+        
+        program.vertexColorAttribute = gl.getAttribLocation(program, "aVertexColor");
+    	gl.enableVertexAttribArray(program.vertexColorAttribute);
 
         program.pMatrixUniform	= gl.getUniformLocation(program,	"uPMatrix");
         program.mvMatrixUniform	= gl.getUniformLocation(program,	"uMVMatrix");
         
-        console.log(program);
         return program;
     } else {
     	Pixel.log("Failed to compile shader program.");
@@ -1228,17 +1302,17 @@ Pixel.createShaderProgram = function(gl, fragmentShader, vertexShader) {
 //Color class
 Pixel.Color = Class.extend({
 	init: function(r,g,b,a) {
-		this.r = 0;
-		this.g = 0;
-		this.b = 0;
+		this.r = r || 0.0;
+		this.g = g || 0.0;
+		this.b = b || 0.0;
+		this.a = a || 1.0;
 		
-		this.h = 0;
-		this.s = 0;
-		this.l = 0;
-		this.v = 0;
+		this.h = 0.0;
+		this.s = 0.0;
+		this.l = 0.0;
+		this.v = 0.0;
 	},
-
-
+	
 	//-------------------------------------------------------
 	set: function(r,g,b,a) {
 		if(r != undefined) this.r = r;
@@ -1246,6 +1320,14 @@ Pixel.Color = Class.extend({
 		if(b != undefined) this.b = b;
 		
 		this.a = a != undefined ? a : 1;
+	},
+	
+	
+	//-------------------------------------------------------
+	normalizeRGB: function() {
+		this.r = Pixel.Math.map(0.0, 255.0, this.r, 0.0, 1.0);
+		this.g = Pixel.Math.map(0.0, 255.0, this.g, 0.0, 1.0);
+		this.b = Pixel.Math.map(0.0, 255.0, this.b, 0.0, 1.0);
 	},
 	
 	
@@ -1397,7 +1479,17 @@ Pixel.hsvToRgb = function(h, s, v){
     }
 
     return {"r": r * 255, "g": g * 255, "b": b * 255};
-};//-------------------------------------------------------
+};
+
+//-------------------------------------------------------
+//Convert to RGB 0.0 to 1.0 
+Pixel.normalizeRGB = function(color) {
+	var r = Pixel.Math.map(0.0, 255.0, color.r, 0.0, 1.0);
+	var g = Pixel.Math.map(0.0, 255.0, color.g, 0.0, 1.0);
+	var b = Pixel.Math.map(0.0, 255.0, color.b, 0.0, 1.0);
+	
+	return new Pixel.Color(r,g,b, color.a);
+}//-------------------------------------------------------
 //Pixel.Canvas.js
 //Canvas Wrapper, implements Renderer functions and adds DOM specific stuff 
 //+ generic vars shared between renderers (i.e. Cursor)
@@ -1417,6 +1509,9 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 		
 		this.width = 0;
 		this.height = 0;
+		
+		//BG Color
+		this.backgroundColor = new Pixel.Color(255, 255, 255, 1.0);
 		
 		//Cursor, useful for text layout
 		cursorX = 0;
@@ -1500,10 +1595,14 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 		}
 	},
 
+	//-------------------------------------------------------
+	setBackgroundColor: function(r,g,b,a) {
+		this.backgroundColor.set(r,g,b,a);
+	},
 
 	//-------------------------------------------------------
 	clear: function(x,y,width,height) { 
-		this.renderer.clear(x,y,width,height); 
+		this.renderer.clear(x,y,width,height, this.backgroundColor); 
 	},
 
 
@@ -2160,6 +2259,9 @@ Pixel.App = Pixel.Canvas.extend({
 		//FPS Font
 		this.fpsFont = new Pixel.Font("Verdana", 10, Pixel.TEXT_ALIGN_LEFT);
 		
+		//BG Stuff
+		this.bClearBackground	= true;
+		
 		//Event Listeners
 		var self = this;
 		
@@ -2209,7 +2311,10 @@ Pixel.App = Pixel.Canvas.extend({
 				this.bSetup = true;
 			}
 		
+			
 			this.update();
+			
+			if(this.bClearBackground) this.clear(0,0, this.getWidth(), this.getHeight());
 			this.draw();
 			
 			if(this.bShowFPS) {

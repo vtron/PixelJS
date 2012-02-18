@@ -19,6 +19,9 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 		this.width = 0;
 		this.height = 0;
 		
+		//BG Color
+		this.backgroundColor = new Pixel.Color(255, 255, 255, 1.0);
+		
 		//Cursor, useful for text layout
 		cursorX = 0;
 		cursorY = 0;
@@ -101,10 +104,14 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 		}
 	},
 
+	//-------------------------------------------------------
+	setBackgroundColor: function(r,g,b,a) {
+		this.backgroundColor.set(r,g,b,a);
+	},
 
 	//-------------------------------------------------------
 	clear: function(x,y,width,height) { 
-		this.renderer.clear(x,y,width,height); 
+		this.renderer.clear(x,y,width,height, this.backgroundColor); 
 	},
 
 

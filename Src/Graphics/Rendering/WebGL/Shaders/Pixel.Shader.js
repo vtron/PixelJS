@@ -65,11 +65,13 @@ Pixel.createShaderProgram = function(gl, fragmentShader, vertexShader) {
 
         program.vertexPositionAttribute = gl.getAttribLocation(program, "aVertexPosition");
         gl.enableVertexAttribArray(program.vertexPositionAttribute);
+        
+        program.vertexColorAttribute = gl.getAttribLocation(program, "aVertexColor");
+    	gl.enableVertexAttribArray(program.vertexColorAttribute);
 
         program.pMatrixUniform	= gl.getUniformLocation(program,	"uPMatrix");
         program.mvMatrixUniform	= gl.getUniformLocation(program,	"uMVMatrix");
         
-        console.log(program);
         return program;
     } else {
     	Pixel.log("Failed to compile shader program.");
