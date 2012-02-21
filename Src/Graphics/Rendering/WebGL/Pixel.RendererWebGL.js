@@ -280,6 +280,7 @@ Pixel.RendererWebGL = Class.extend({
 	        this.gl.vertexAttribPointer(this.shaderProgram.aVertexPosition, 3, this.gl.FLOAT, false, 0, 0);
 			
 			//Tex Coord Buffer
+			//tl, bl, tr, br
 			var texCoords = [
 	      		0.0, 1.0,
 	      		0.0, 0.0,
