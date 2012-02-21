@@ -11,7 +11,7 @@ window.onload = function() {
 			this.setBackgroundColor(50.0, 10, 1.5);
 			this.rotation = 0.0;
 			
-			this.testImage = new Pixel.Image("images/nutKick.jpg");
+			this.testImage = new Pixel.Image("images/cat1.png");
 		},
 		
 		//-------------------------------------------------------	
