@@ -13,10 +13,8 @@ Pixel.App = Pixel.Canvas.extend({
 		this.fps			= 60;
 		this.curFPS			= 0;
 		this.bShowFPS		= false;
-		this.nFPSSamples	= 50;
-		this.fpsSamples		= [];
-		this.curFpsSample	= -1;
 		this.curFps			= 0;
+		this.nFPSSamples	= 50;
 		this.fpsFont		= new Pixel.Font("Verdana", 10, Pixel.TEXT_ALIGN_LEFT);
 		
 		this.startTime	= 0;
@@ -48,6 +46,7 @@ Pixel.App = Pixel.Canvas.extend({
 	//-------------------------------------------------------
 	start: function() {
 		this.bRunning = true;
+		this.run();
 	},
 	
 	//-------------------------------------------------------
@@ -112,11 +111,7 @@ Pixel.App = Pixel.Canvas.extend({
 	
 	//-------------------------------------------------------
 	showFPS: function() {
-		//Clear samples
-		for(var i=0;i<this.fpsSamples.length; i++) {
-			this.fpsSamples[i] = 0;
-		}
-		
+		this.curFPS = 0.0;
 		this.bShowFPS = true;
 	},
 	
@@ -129,23 +124,10 @@ Pixel.App = Pixel.Canvas.extend({
 	
 	//-------------------------------------------------------
 	updateFPS: function() {
-		this.curFpsSample++;
-		if(this.curFpsSample >= this.nFPSSamples) {
-			this.curFpsSample = 0;
-		}
-		
 		var curTime = this.getElapsedTime();
-		this.fpsSamples[this.curFpsSample] = 1000.0/(curTime - this.prevTime);
+		var thisSample = 1000.0/(curTime - this.prevTime);
 		
-		var avgFps = 0;
-		for(var i=0;i<this.fpsSamples.length; i++) {
-			avgFps += this.fpsSamples[i];
-		}
-		
-		avgFps /= this.fpsSamples.length;
-		
-		this.curFps = Math.floor(avgFps);
-		
+		this.curFPS = ((this.curFPS * (this.nFPSSamples-1)) + thisSample)/this.nFPSSamples;
 		this.prevTime = curTime;
 	},
 	
@@ -155,9 +137,9 @@ Pixel.App = Pixel.Canvas.extend({
 		this.setFont(this.fpsFont);
 		
 		this.setFillColor(0,0,0);
-		this.drawText("FPS: " + this.curFps.toFixed(2), 20, 20);
-		this.setFillColor(255,255,2550);
-		this.drawText("FPS: " + this.curFps.toFixed(2), 22, 22);
+		this.drawText("FPS: " + this.curFPS.toFixed(2), 20, 20);
+		this.setFillColor(255,255,255);
+		this.drawText("FPS: " + this.curFPS.toFixed(2), 22, 22);
 	},
 	
 	

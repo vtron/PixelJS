@@ -362,6 +362,11 @@ Pixel.Math.dist = function(x1,y1,x2,y2, bSigned) {
 Pixel.Math.getAngle = function(x1, y1, x2, y2) {
 	return Math.atan2(y2 - y1, x2 - x1);
 }
+
+//-----------------------------------------------------
+Pixel.Math.isPowerOfTwo = function(value) {
+	return ((value & (value - 1)) == 0);
+}
 //-------------------------------------------------------
 //Pixel.EventDispatcher.js
 //Allows everything to dispense events like DOM elements and others to listen for them
@@ -460,14 +465,29 @@ Pixel.Renderer2D = Class.extend({
 		this.ctx		= canvas.getContext('2d');
 		this.bFill		= true;
 		this.bStroke	= false;
+		this.bgColor	= new Pixel.Color();
 		
 		this.shapePos = {x:0,y:0};
 	},
 	
+	//-------------------------------------------------------
+	setBackgroundColor: function(r,g,b,a) {
+		this.bgColor.set(r,g,b,a);
+	},
 	
 	//-------------------------------------------------------
-	clear: function(x,y,width,height, color) {
-		this.ctx.clearRect(x,y,width,height);
+	clear: function(x,y,width,height) {
+		//Store cur fill
+		var curFill		= this.ctx.fillStyle;
+		
+		//Draw rect over BG for 2D Canvas
+		this.ctx.fillStyle =  this.getColorAsString(this.bgColor.r, this.bgColor.g, this.bgColor.b, this.bgColor.a);
+		this.ctx.fillRect(x,y,width,height);
+		
+		//Reset cur fill
+		this.ctx.fillStyle = curFill;
+		
+		//this.ctx.clearRect(x,y,width,height);
 	},
 	
 	//-------------------------------------------------------
@@ -874,21 +894,29 @@ Pixel.Renderer2D = Class.extend({
 
 Pixel.RendererWebGL = Class.extend({
 	init: function(canvas) {
+		this.bgColor		= new Pixel.Color();
 		this.fillColor		= new Pixel.Color();
 		this.strokeColor	= new Pixel.Color();
+		
+		this.ellipseResolution = 360;
 	
 		//Get GL Ref
 		this.gl = this.initGL(canvas);
+		
+		//Create buffers
+		this.initBuffers();
         
         //Compile default shader
-        this.shaderProgram = Pixel.getShaderProgram(this.gl, "pixelDefault-shader");
+        this.basicShader	= Pixel.getShaderProgram(this.gl, "pixelBasic-shader", {attributes:["aVertexPosition","aVertexColor"]});
+       	this.textureShader	= Pixel.getShaderProgram(this.gl, "pixelTexture-shader", {attributes:["aVertexPosition","aTextureCoord"], uniforms:["uSampler"]});
+        this.shaderProgram  = null;
         
         //Create Matrices
     	this.pMatrix		= mat4.create();
         this.mvMatrixStack	= [];
         this.mvMatrix		= mat4.create();
     	
-        this.gl.enable(this.gl.DEPTH_TEST);
+        //this.gl.enable(this.gl.DEPTH_TEST);
 	},
 
 	
@@ -903,6 +931,112 @@ Pixel.RendererWebGL = Class.extend({
         	return null;
         }
 	},
+	
+	
+	//-------------------------------------------------------
+	//Buffers
+	
+	//-------------------------------------------------------
+	initBuffers: function() {
+		//Buffers for primitive types
+		this.createEllipseBuffers(this.ellipseResolution);
+		this.createRectBuffers();
+		this.createTextureBuffers();
+	},
+	
+	//-------------------------------------------------------
+	createRectBuffers: function() {
+		var vertices = [
+			0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0
+        ];
+        
+		this.rectBuffer = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.rectBuffer);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.DYNAMIC_DRAW);
+		
+		
+		var colorVertices = [];
+		for(var i=0;i<16; i++) colorVertices.push(1.0);
+		
+		this.rectColorBuffer = this.gl.createBuffer(); 
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.rectColorBuffer);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(colorVertices), this.gl.DYNAMIC_DRAW);
+	},
+	
+	
+	//-------------------------------------------------------
+	createEllipseBuffers: function(resolution) {
+		//Check for previous buffer and clear if necessary
+		if(this.ellipseBuffer) this.gl.deleteBuffer(this.ellipseBuffer);
+		
+		var vertices = [];
+		for(var i=0; i<resolution * 3; i++) vertices.push(0.0);
+		
+		this.ellipseBuffer = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.ellipseBuffer);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.DYNAMIC_DRAW);
+		
+		var colorVertices = [];
+		for(var i=0; i<resolution * 4; i++) colorVertices.push(0.0);
+		
+		this.ellipseColorBuffer = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.ellipseColorBuffer);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(colorVertices), this.gl.DYNAMIC_DRAW);
+	},
+	
+	//-------------------------------------------------------
+	createTextureBuffers: function() {
+		var texCoords = [];
+		for(var i=0; i<2*4; i++) texCoords.push(0.0);
+		
+		//Create VBO for texCoords
+		this.texCoordBuffer = this.gl.createBuffer();
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
+		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(texCoords), this.gl.DYNAMIC_DRAW);
+	},
+	
+	
+	//-------------------------------------------------------
+	//Textures
+	//Non-pow2 stuff from http://webglfactory.blogspot.com/2011/05/adding-textures.html
+	loadTexture: function(img) {
+		//Create texture
+		var tex = this.gl.createTexture();
+		
+		//Load pixels from img
+		this.gl.bindTexture(this.gl.TEXTURE_2D, tex);
+    	this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
+    	this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, img);
+    	
+    	if(Pixel.Math.isPowerOfTwo(img.width) && Pixel.Math.isPowerOfTwo(img.height)) {
+    		 this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
+             this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+    	} else {
+    		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+    	}
+    	
+    	//Clean up
+    	this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+		return tex;
+	},
+	
+	
+	//-------------------------------------------------------
+	//Shaders
+	setShader: function(program) {
+		if(this.shaderProgram != program) {
+			this.shaderProgram = program;
+			this.gl.useProgram(program);
+		}
+	},
+	
+	//-------------------------------------------------------
+	//GL Utils
 	
 	//-------------------------------------------------------
 	setMatrixUniforms: function() {
@@ -919,26 +1053,33 @@ Pixel.RendererWebGL = Class.extend({
     	return {x:newX, y:newY};
     },
     
+    
+    //-------------------------------------------------------
+	//Rendering functions
+    
     //-------------------------------------------------------
     setSize: function(width, height) {
     	this.gl.viewportWidth	= width;
         this.gl.viewportHeight	= height;
     },
     
+    //-------------------------------------------------------
+    setBackgroundColor: function(r,g,b,a) {
+    	this.bgColor.set(r,g,b,a);
+    	this.bgColor.normalizeRGB();
+   	},
 	
 	//-------------------------------------------------------
 	clear: function(x,y,width,height, color) {
 		this.gl.viewport(0, 0, this.gl.viewportWidth, this.gl.viewportHeight);
         
-        var bgColor = Pixel.normalizeRGB(color);
-        this.gl.clearColor(bgColor.r, bgColor.g, bgColor.b, color.a);
+        this.gl.clearColor(this.bgColor.r, this.bgColor.g, this.bgColor.b, this.bgColor.a);
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
         
         mat4.ortho(-1, 1, -1, 1, -1, 1, this.pMatrix);
         
         mat4.identity(this.mvMatrix);
         mat4.translate(this.mvMatrix, [-1, 1, 0]);
-		
 	},
 	
 	
@@ -988,7 +1129,64 @@ Pixel.RendererWebGL = Class.extend({
 	
 	//-------------------------------------------------------
 	//IMAGE DRAWING
-	drawImage: function(pxImage, x, y, w, h) {
+	drawImage: function(pxImage, x, y, width, height) {
+		if(pxImage.isLoaded()) {
+			//Set Shader
+			this.setShader(this.textureShader);
+			
+			//Create texture if necessary
+			if(!pxImage.texture) {
+				//Create texture
+				pxImage.texture = this.loadTexture(pxImage.image);
+			} 
+			
+			//Get width & height
+			width	= width	 || pxImage.image.width;
+			height	= height || pxImage.image.height;
+			
+			//Define vertices
+			var topLeft		= this.getNormalizedCoordinates(x,y);
+			var bottomRight = this.getNormalizedCoordinates(x+width,y+height);
+			
+			var x1 = topLeft.x;
+			var x2 = bottomRight.x;
+			
+			var y1 = topLeft.y;
+			var y2 = bottomRight.y;
+			
+			var vertices = [
+				x1,		y1,		0.0,
+	            x1,		y2,		0.0,
+	            x2,		y1,		0.0,
+	           	x2,		y2,		0.0
+	        ];
+	        
+	        //Vertex Buffer
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.rectBuffer);
+	        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, new Float32Array(vertices));
+	        this.gl.vertexAttribPointer(this.shaderProgram.aVertexPosition, 3, this.gl.FLOAT, false, 0, 0);
+			
+			//Tex Coord Buffer
+			var texCoords = [
+	      		0.0, 1.0,
+	      		0.0, 0.0,
+	      		1.0, 1.0,
+				1.0, 0.0,
+			];
+			
+			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
+	        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, new Float32Array(texCoords));
+        	this.gl.vertexAttribPointer(this.shaderProgram.aTextureCoord, 2, this.gl.FLOAT, false, 0, 0);
+        	
+        	
+        	//Draw
+        	this.gl.activeTexture(this.gl.TEXTURE0);
+    		this.gl.bindTexture(this.gl.TEXTURE_2D, pxImage.texture);
+    		this.gl.uniform1i(this.shaderProgram.uSampler, 0);
+    		
+    		this.setMatrixUniforms();
+			this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+        }
 	},
 	
 	
@@ -1027,7 +1225,10 @@ Pixel.RendererWebGL = Class.extend({
 	
 	//-------------------------------------------------------
 	drawRect: function(x,y,width,height) {
-		var topLeft = this.getNormalizedCoordinates(x,y);
+		this.setShader(this.basicShader);
+		
+		//Define vertices
+		var topLeft		= this.getNormalizedCoordinates(x,y);
 		var bottomRight = this.getNormalizedCoordinates(x+width,y+height);
 		
 		var x1 = topLeft.x;
@@ -1036,7 +1237,7 @@ Pixel.RendererWebGL = Class.extend({
 		var y1 = topLeft.y;
 		var y2 = bottomRight.y;
 		
-		//Vertex Buffer
+		
 		var vertices = [
 			x1,		y1,		0.0,
             x1,		y2,		0.0,
@@ -1044,10 +1245,10 @@ Pixel.RendererWebGL = Class.extend({
            	x2,		y2,		0.0
         ];
         
-        
-		var vertexBuffer = this.gl.createBuffer();
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
-		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
+        //Vertex Buffer
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.rectBuffer);
+        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, new Float32Array(vertices));
+        this.gl.vertexAttribPointer(this.shaderProgram.aVertexPosition, 3, this.gl.FLOAT, false, 0, 0);
 		
 		//Color Buffer
 		var colors = [];
@@ -1058,17 +1259,11 @@ Pixel.RendererWebGL = Class.extend({
 			colors.push(this.fillColor.a);
 		}
 		
-		var colorBuffer = this.gl.createBuffer();
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
-		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(colors), this.gl.STATIC_DRAW);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.rectColorBuffer);
+        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, new Float32Array(colors));
+    	this.gl.vertexAttribPointer(this.shaderProgram.aVertexColor, 4, this.gl.FLOAT, false, 0, 0);
 		
-		//Draw
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
-        this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, 3, this.gl.FLOAT, false, 0, 0);
-        
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
-    	this.gl.vertexAttribPointer(this.shaderProgram.vertexColorAttribute, 4, this.gl.FLOAT, false, 0, 0);
-        
+		//Draw        
         this.setMatrixUniforms();
         this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
 	},
@@ -1087,6 +1282,8 @@ Pixel.RendererWebGL = Class.extend({
 	
 	//-------------------------------------------------------
 	drawEllipse: function(x,y,width,height) {
+		this.setShader(this.basicShader);
+		
 		var topLeft = this.getNormalizedCoordinates(x,y);
 		var bottomRight = this.getNormalizedCoordinates(x+width,y+height);
 		
@@ -1111,21 +1308,15 @@ Pixel.RendererWebGL = Class.extend({
 			colors.push(this.fillColor.a);
 		}
 		
-		var vertexBuffer = this.gl.createBuffer();
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
-		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(vertices), this.gl.STATIC_DRAW);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.ellipseBuffer);
+		this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, new Float32Array(vertices));
+		this.gl.vertexAttribPointer(this.shaderProgram.aVertexPosition, 3, this.gl.FLOAT, false, 0, 0);
 		
-		var colorBuffer = this.gl.createBuffer();
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
-		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(colors), this.gl.STATIC_DRAW);
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.ellipseColorBuffer);
+		this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, new Float32Array(colors));
+    	this.gl.vertexAttribPointer(this.shaderProgram.aVertexColor, 4, this.gl.FLOAT, false, 0, 0);
 		
 		//Draw Points
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, vertexBuffer);
-		this.gl.vertexAttribPointer(this.shaderProgram.vertexPositionAttribute, 3, this.gl.FLOAT, false, 0, 0);
-		
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, colorBuffer);
-    	this.gl.vertexAttribPointer(this.shaderProgram.vertexColorAttribute, 4, this.gl.FLOAT, false, 0, 0);
-    	
 		this.setMatrixUniforms();
         this.gl.drawArrays(this.gl.TRIANGLE_FAN, 0, 360);
 	},
@@ -1172,6 +1363,8 @@ Pixel.RendererWebGL = Class.extend({
 	
 	//-------------------------------------------------------
 	rotate: function(angle) {
+		//Multiply angle by -1 to reverse, lines up with Canvas2D rotation
+		angle *= -1;
 		mat4.rotate(this.mvMatrix, Pixel.Math.degreesToRadians(angle), [0, 0, 1]);
 	},
 	
@@ -1222,13 +1415,11 @@ Pixel.RendererWebGL = Class.extend({
 //Pixel.Shader.js
 //Loads and Compiles a gl shader
 //Based on Learning WebGL Code (http://www.learningwebgl.com)
-Pixel
-
-Pixel.getShaderProgram = function(gl, id) {
+Pixel.getShaderProgram = function(gl, id, vars) {
 	var fragment	= Pixel.compileShader(gl, id + "-fs");
 	var vertex		= Pixel.compileShader(gl, id + "-vs");
 	
-	return Pixel.createShaderProgram(gl, fragment, vertex);
+	return Pixel.createShaderProgram(gl, fragment, vertex, vars);
 };
 
 
@@ -1270,7 +1461,7 @@ Pixel.compileShader = function(gl, id) {
 
 
 //-------------------------------------------------------
-Pixel.createShaderProgram = function(gl, fragmentShader, vertexShader) {
+Pixel.createShaderProgram = function(gl, fragmentShader, vertexShader, vars) {
 	if(fragmentShader && vertexShader) {
         program = gl.createProgram();
         gl.attachShader(program, fragmentShader);
@@ -1283,16 +1474,27 @@ Pixel.createShaderProgram = function(gl, fragmentShader, vertexShader) {
 
         gl.useProgram(program);
 
-        program.vertexPositionAttribute = gl.getAttribLocation(program, "aVertexPosition");
-        gl.enableVertexAttribArray(program.vertexPositionAttribute);
-        
-        program.vertexColorAttribute = gl.getAttribLocation(program, "aVertexColor");
-    	gl.enableVertexAttribArray(program.vertexColorAttribute);
+		//Set Uniforms
+		program.pMatrixUniform	= gl.getUniformLocation(program, "uPMatrix");
+        program.mvMatrixUniform	= gl.getUniformLocation(program, "uMVMatrix");
+		
+		var uniforms = vars["uniforms"];
+			if(uniforms) {
+			for(var i=0; i<uniforms.length; i++) {
+				program[uniforms[i]] = gl.getUniformLocation(program, uniforms[i]);
+			}
+		}
+		
+		//Set Attributes
+		var attributes = vars["attributes"];
+		if(attributes) {
+			for(var i=0; i<attributes.length; i++) {
+				program[attributes[i]] = gl.getAttribLocation(program, attributes[i]);
+				gl.enableVertexAttribArray(program[attributes[i]]);
+			}
+		}
 
-        program.pMatrixUniform	= gl.getUniformLocation(program,	"uPMatrix");
-        program.mvMatrixUniform	= gl.getUniformLocation(program,	"uMVMatrix");
-        
-        return program;
+		return program;
     } else {
     	Pixel.log("Failed to compile shader program.");
     }
@@ -1511,7 +1713,7 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 		this.height = 0;
 		
 		//BG Color
-		this.backgroundColor = new Pixel.Color(255, 255, 255, 1.0);
+		this.backgroundColor = null;
 		
 		//Cursor, useful for text layout
 		cursorX = 0;
@@ -1569,40 +1771,30 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 	//Drawing
 	//-------------------------------------------------------
 	setRenderer: function(canvasElement, rendererType) {
-		if(!this.renderer) {
-			switch(rendererType) {
-				case Pixel.RENDER_MODE_2D:
-					Pixel.log("Starting 2D Renderer");
-					this.renderer = new Pixel.Renderer2D(canvasElement);
-					return;
-					
-				case Pixel.RENDER_MODE_WEBGL:
-					this.renderer = new Pixel.RendererWebGL(canvasElement);
-					if(this.renderer.gl) {
-						Pixel.log("WebGL renderer initialized");
-						return;
-					} else {
-						delete this.renderer;	
-					}
-					break;
-				default:
-					Pixel.log("Renderer Type does not exist");
-					this.setRenderer(canvasElement, Pixel.RENDER_MODE_2D);
-					break;
+		if(rendererType == Pixel.RENDER_MODE_WEBGL) {
+			this.renderer = new Pixel.RendererWebGL(canvasElement);
+			if(this.renderer.gl) {
+				Pixel.log("WebGL renderer initialized");
+				return;
+			} else {
+				delete this.renderer;
+				Pixel.log("Failed to create WebGL Renderer");	
 			}
-			
-			if(!this.renderer) this.setRenderer(canvasElement, Pixel.RENDER_MODE_2D);
 		}
+		
+		//Default is 2D
+		if(rendererType != Pixel.RENDER_MODE_2D) Pixel.log("Renderer Type does not exist");
+		this.renderer = new Pixel.Renderer2D(canvasElement);
 	},
 
 	//-------------------------------------------------------
 	setBackgroundColor: function(r,g,b,a) {
-		this.backgroundColor.set(r,g,b,a);
+		this.renderer.setBackgroundColor(r,g,b,a);
 	},
 
 	//-------------------------------------------------------
 	clear: function(x,y,width,height) { 
-		this.renderer.clear(x,y,width,height, this.backgroundColor); 
+		this.renderer.clear(x,y,width,height); 
 	},
 
 
@@ -1647,7 +1839,12 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 	//IMAGE DRAWING
 	//-------------------------------------------------------
 	drawImage: function(pxImage, x, y, width, height) {
-		this.renderer.drawImage(pxImage, x, y);
+		this.renderer.pushMatrix();
+		this.renderer.translate(x,y);
+		if(width  != pxImage.image.width)	this.renderer.scale(width/pxImage.width, 1.0);
+		if(height != pxImage.image.height)	this.renderer.scale(1.0, height/pxImage.height);
+		this.renderer.drawImage(pxImage, 0,0);
+		this.renderer.popMatrix();
 	},
 
 
@@ -1953,14 +2150,22 @@ Pixel.Object = Pixel.EventDispatcher.extend({
 //For loading, storing, manipulating, etc
 
 Pixel.Image = Pixel.Object.extend({
-	init: function() {
-		this._super;
-		
-		if(url != undefined) this.load(url);
+	init: function(url) {
+		this._super();
 	
 		this.bAllocated = false;
-		this.canvas = null;
-		this.imageData = null;
+		this.canvas		= null;
+		
+		this.image		= null;
+		this.imageData	= null;
+		this.bLoaded	= false;
+		
+		//Texture is only set from webgl renderer
+		//And is loaded 
+		this.texture		= null;
+		
+		//Load image if URL is set
+		if(url != undefined) this.load(url);
 	},
 	
 	
@@ -2005,7 +2210,7 @@ Pixel.Image = Pixel.Object.extend({
 	
 	//-------------------------------------------------------
 	setSize: function(width, height) {
-		Pixel.Object.prototype.setSize.call(this, width,height);
+		this._super(width, height);
 		
 		if(this.bAllocated == false) {			
 			//Get Canvas Ref
@@ -2244,10 +2449,8 @@ Pixel.App = Pixel.Canvas.extend({
 		this.fps			= 60;
 		this.curFPS			= 0;
 		this.bShowFPS		= false;
-		this.nFPSSamples	= 50;
-		this.fpsSamples		= [];
-		this.curFpsSample	= -1;
 		this.curFps			= 0;
+		this.nFPSSamples	= 50;
 		this.fpsFont		= new Pixel.Font("Verdana", 10, Pixel.TEXT_ALIGN_LEFT);
 		
 		this.startTime	= 0;
@@ -2279,6 +2482,7 @@ Pixel.App = Pixel.Canvas.extend({
 	//-------------------------------------------------------
 	start: function() {
 		this.bRunning = true;
+		this.run();
 	},
 	
 	//-------------------------------------------------------
@@ -2343,11 +2547,7 @@ Pixel.App = Pixel.Canvas.extend({
 	
 	//-------------------------------------------------------
 	showFPS: function() {
-		//Clear samples
-		for(var i=0;i<this.fpsSamples.length; i++) {
-			this.fpsSamples[i] = 0;
-		}
-		
+		this.curFPS = 0.0;
 		this.bShowFPS = true;
 	},
 	
@@ -2360,23 +2560,10 @@ Pixel.App = Pixel.Canvas.extend({
 	
 	//-------------------------------------------------------
 	updateFPS: function() {
-		this.curFpsSample++;
-		if(this.curFpsSample >= this.nFPSSamples) {
-			this.curFpsSample = 0;
-		}
-		
 		var curTime = this.getElapsedTime();
-		this.fpsSamples[this.curFpsSample] = 1000.0/(curTime - this.prevTime);
+		var thisSample = 1000.0/(curTime - this.prevTime);
 		
-		var avgFps = 0;
-		for(var i=0;i<this.fpsSamples.length; i++) {
-			avgFps += this.fpsSamples[i];
-		}
-		
-		avgFps /= this.fpsSamples.length;
-		
-		this.curFps = Math.floor(avgFps);
-		
+		this.curFPS = ((this.curFPS * (this.nFPSSamples-1)) + thisSample)/this.nFPSSamples;
 		this.prevTime = curTime;
 	},
 	
@@ -2386,9 +2573,9 @@ Pixel.App = Pixel.Canvas.extend({
 		this.setFont(this.fpsFont);
 		
 		this.setFillColor(0,0,0);
-		this.drawText("FPS: " + this.curFps.toFixed(2), 20, 20);
-		this.setFillColor(255,255,2550);
-		this.drawText("FPS: " + this.curFps.toFixed(2), 22, 22);
+		this.drawText("FPS: " + this.curFPS.toFixed(2), 20, 20);
+		this.setFillColor(255,255,255);
+		this.drawText("FPS: " + this.curFPS.toFixed(2), 22, 22);
 	},
 	
 	

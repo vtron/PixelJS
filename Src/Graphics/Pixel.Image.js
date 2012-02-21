@@ -3,14 +3,22 @@
 //For loading, storing, manipulating, etc
 
 Pixel.Image = Pixel.Object.extend({
-	init: function() {
-		this._super;
-		
-		if(url != undefined) this.load(url);
+	init: function(url) {
+		this._super();
 	
 		this.bAllocated = false;
-		this.canvas = null;
-		this.imageData = null;
+		this.canvas		= null;
+		
+		this.image		= null;
+		this.imageData	= null;
+		this.bLoaded	= false;
+		
+		//Texture is only set from webgl renderer
+		//And is loaded 
+		this.texture		= null;
+		
+		//Load image if URL is set
+		if(url != undefined) this.load(url);
 	},
 	
 	
@@ -55,7 +63,7 @@ Pixel.Image = Pixel.Object.extend({
 	
 	//-------------------------------------------------------
 	setSize: function(width, height) {
-		Pixel.Object.prototype.setSize.call(this, width,height);
+		this._super(width, height);
 		
 		if(this.bAllocated == false) {			
 			//Get Canvas Ref

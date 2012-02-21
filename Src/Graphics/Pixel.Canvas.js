@@ -20,7 +20,7 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 		this.height = 0;
 		
 		//BG Color
-		this.backgroundColor = new Pixel.Color(255, 255, 255, 1.0);
+		this.backgroundColor = null;
 		
 		//Cursor, useful for text layout
 		cursorX = 0;
@@ -78,40 +78,30 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 	//Drawing
 	//-------------------------------------------------------
 	setRenderer: function(canvasElement, rendererType) {
-		if(!this.renderer) {
-			switch(rendererType) {
-				case Pixel.RENDER_MODE_2D:
-					Pixel.log("Starting 2D Renderer");
-					this.renderer = new Pixel.Renderer2D(canvasElement);
-					return;
-					
-				case Pixel.RENDER_MODE_WEBGL:
-					this.renderer = new Pixel.RendererWebGL(canvasElement);
-					if(this.renderer.gl) {
-						Pixel.log("WebGL renderer initialized");
-						return;
-					} else {
-						delete this.renderer;	
-					}
-					break;
-				default:
-					Pixel.log("Renderer Type does not exist");
-					this.setRenderer(canvasElement, Pixel.RENDER_MODE_2D);
-					break;
+		if(rendererType == Pixel.RENDER_MODE_WEBGL) {
+			this.renderer = new Pixel.RendererWebGL(canvasElement);
+			if(this.renderer.gl) {
+				Pixel.log("WebGL renderer initialized");
+				return;
+			} else {
+				delete this.renderer;
+				Pixel.log("Failed to create WebGL Renderer");	
 			}
-			
-			if(!this.renderer) this.setRenderer(canvasElement, Pixel.RENDER_MODE_2D);
 		}
+		
+		//Default is 2D
+		if(rendererType != Pixel.RENDER_MODE_2D) Pixel.log("Renderer Type does not exist");
+		this.renderer = new Pixel.Renderer2D(canvasElement);
 	},
 
 	//-------------------------------------------------------
 	setBackgroundColor: function(r,g,b,a) {
-		this.backgroundColor.set(r,g,b,a);
+		this.renderer.setBackgroundColor(r,g,b,a);
 	},
 
 	//-------------------------------------------------------
 	clear: function(x,y,width,height) { 
-		this.renderer.clear(x,y,width,height, this.backgroundColor); 
+		this.renderer.clear(x,y,width,height); 
 	},
 
 
@@ -156,7 +146,12 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 	//IMAGE DRAWING
 	//-------------------------------------------------------
 	drawImage: function(pxImage, x, y, width, height) {
-		this.renderer.drawImage(pxImage, x, y);
+		this.renderer.pushMatrix();
+		this.renderer.translate(x,y);
+		if(width  != pxImage.image.width)	this.renderer.scale(width/pxImage.width, 1.0);
+		if(height != pxImage.image.height)	this.renderer.scale(1.0, height/pxImage.height);
+		this.renderer.drawImage(pxImage, 0,0);
+		this.renderer.popMatrix();
 	},
 
 

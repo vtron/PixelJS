@@ -7,14 +7,29 @@ Pixel.Renderer2D = Class.extend({
 		this.ctx		= canvas.getContext('2d');
 		this.bFill		= true;
 		this.bStroke	= false;
+		this.bgColor	= new Pixel.Color();
 		
 		this.shapePos = {x:0,y:0};
 	},
 	
+	//-------------------------------------------------------
+	setBackgroundColor: function(r,g,b,a) {
+		this.bgColor.set(r,g,b,a);
+	},
 	
 	//-------------------------------------------------------
-	clear: function(x,y,width,height, color) {
-		this.ctx.clearRect(x,y,width,height);
+	clear: function(x,y,width,height) {
+		//Store cur fill
+		var curFill		= this.ctx.fillStyle;
+		
+		//Draw rect over BG for 2D Canvas
+		this.ctx.fillStyle =  this.getColorAsString(this.bgColor.r, this.bgColor.g, this.bgColor.b, this.bgColor.a);
+		this.ctx.fillRect(x,y,width,height);
+		
+		//Reset cur fill
+		this.ctx.fillStyle = curFill;
+		
+		//this.ctx.clearRect(x,y,width,height);
 	},
 	
 	//-------------------------------------------------------

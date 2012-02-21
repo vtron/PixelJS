@@ -95,11 +95,11 @@ var Main = Pixel.App.extend({
 		App.pushMatrix();
 		
 		//Rotate back to 12
-		App.rotate(-Math.PI/2);
+		App.rotate(-90);
 		
 		//Set Second hand
 		App.pushMatrix();
-		rotation = Pixel.map(0,59,date.getSeconds(), 0.0, Math.PI*2) 
+		rotation = Pixel.Math.map(0,59,date.getSeconds(), 0.0, 360) 
 		App.rotate(rotation);
 		App.setStrokeSize(1);
 		App.drawLine(-5,0, this.radius - 25, 0);
@@ -107,7 +107,7 @@ var Main = Pixel.App.extend({
 		
 		//Set Minute hand
 		App.pushMatrix();
-		rotation = Pixel.map(0, 59, date.getMinutes(), 0.0, Math.PI*2); 
+		rotation = Pixel.Math.map(0, 59, date.getMinutes(), 0.0, 360); 
 		App.rotate(rotation);
 		App.setStrokeSize(3);
 		App.drawLine(-5,0, this.radius/2, 0);
@@ -117,7 +117,7 @@ var Main = Pixel.App.extend({
 		App.pushMatrix();
 		var hours = date.getHours();
 		if(hours>11) hours -= 12;
-		rotation = Pixel.map(0, 12, hours, 0.0, Math.PI*2); 
+		rotation = Pixel.Math.map(0, 12, hours, 0.0, 360); 
 		App.rotate(rotation);
 		App.setStrokeSize(5);
 		App.drawLine(-5,0, this.radius/3, 0);

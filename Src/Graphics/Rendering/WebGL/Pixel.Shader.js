@@ -2,13 +2,11 @@
 //Pixel.Shader.js
 //Loads and Compiles a gl shader
 //Based on Learning WebGL Code (http://www.learningwebgl.com)
-Pixel
-
-Pixel.getShaderProgram = function(gl, id) {
+Pixel.getShaderProgram = function(gl, id, vars) {
 	var fragment	= Pixel.compileShader(gl, id + "-fs");
 	var vertex		= Pixel.compileShader(gl, id + "-vs");
 	
-	return Pixel.createShaderProgram(gl, fragment, vertex);
+	return Pixel.createShaderProgram(gl, fragment, vertex, vars);
 };
 
 
@@ -50,7 +48,7 @@ Pixel.compileShader = function(gl, id) {
 
 
 //-------------------------------------------------------
-Pixel.createShaderProgram = function(gl, fragmentShader, vertexShader) {
+Pixel.createShaderProgram = function(gl, fragmentShader, vertexShader, vars) {
 	if(fragmentShader && vertexShader) {
         program = gl.createProgram();
         gl.attachShader(program, fragmentShader);
@@ -63,16 +61,27 @@ Pixel.createShaderProgram = function(gl, fragmentShader, vertexShader) {
 
         gl.useProgram(program);
 
-        program.vertexPositionAttribute = gl.getAttribLocation(program, "aVertexPosition");
-        gl.enableVertexAttribArray(program.vertexPositionAttribute);
-        
-        program.vertexColorAttribute = gl.getAttribLocation(program, "aVertexColor");
-    	gl.enableVertexAttribArray(program.vertexColorAttribute);
+		//Set Uniforms
+		program.pMatrixUniform	= gl.getUniformLocation(program, "uPMatrix");
+        program.mvMatrixUniform	= gl.getUniformLocation(program, "uMVMatrix");
+		
+		var uniforms = vars["uniforms"];
+			if(uniforms) {
+			for(var i=0; i<uniforms.length; i++) {
+				program[uniforms[i]] = gl.getUniformLocation(program, uniforms[i]);
+			}
+		}
+		
+		//Set Attributes
+		var attributes = vars["attributes"];
+		if(attributes) {
+			for(var i=0; i<attributes.length; i++) {
+				program[attributes[i]] = gl.getAttribLocation(program, attributes[i]);
+				gl.enableVertexAttribArray(program[attributes[i]]);
+			}
+		}
 
-        program.pMatrixUniform	= gl.getUniformLocation(program,	"uPMatrix");
-        program.mvMatrixUniform	= gl.getUniformLocation(program,	"uMVMatrix");
-        
-        return program;
+		return program;
     } else {
     	Pixel.log("Failed to compile shader program.");
     }

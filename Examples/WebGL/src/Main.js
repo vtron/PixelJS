@@ -1,29 +1,58 @@
-var App;
+var App1, App2;
 window.onload = function() {
 	var wrapper = document.getElementById("wrapper");
 
+	
 	//Create App
-	var App = new (Pixel.App.extend({
+	var App = Pixel.App.extend({
 		setup: function() {
-			App.setSize(500,500);
+			this.showFPS();
+			this.setSize(500,500);
+			this.setBackgroundColor(50.0, 10, 1.5);
 			this.rotation = 0.0;
+			
+			this.testImage = new Pixel.Image("images/nutKick.jpg");
 		},
 		
 		//-------------------------------------------------------	
 		update: function() {
 			this.rotation += 0.5;
+			if(this.rotation > 360.0) this.rotation = 0.0;
 		},
 		
 		
 		//-------------------------------------------------------	
 		draw: function() {
-			App.pushMatrix();
-			App.translate(App.getWidth()/2, App.getHeight()/2);
-			App.scale(2.0,1.0);
-			//App.rotate(this.rotation);
-			App.setFillColor(255,0,255, 1);
-			App.drawSquare(0, 0, 50);
-			App.popMatrix();
+			var nShapes = 180;
+			for(var i=0; i<nShapes; i++) {
+				this.pushMatrix();
+				this.translate(this.getWidth()/2, this.getHeight()/2);
+				//this.rotate((this.rotation*i) * 0.05);
+				this.rotate(i*360.0/nShapes);
+				this.scale(3.0-((i/nShapes)*3.0), 3.0 - ((i/nShapes)*3.0));
+				
+				this.pushMatrix();
+				this.rotate(this.rotation);
+				this.setFillColor(150,255, 255, 1.05);
+				this.drawSquare(-25, -25, 50);
+				this.popMatrix();
+				
+				this.pushMatrix();
+				this.rotate(-this.rotation);
+				this.setFillColor(255,255, 255, 1.0);
+				this.drawSquare(-25, -25, 50);
+				this.popMatrix();
+				
+				this.popMatrix();
+			}
+			
+			this.pushMatrix();
+			this.translate(this.getWidth()/2, this.getHeight()/2);
+			this.setFillColor(50.0, 10, 1.5, 1.0);
+			this.drawCircle(0,0, 15);
+			this.popMatrix();
+			
+			this.drawImage(this.testImage, 50, 50, 125, 125);
 		},
 		
 		//-------------------------------------------------------
@@ -37,12 +66,19 @@ window.onload = function() {
 		//-------------------------------------------------------
 		mouseUpListener: function(e) {
 		},
-	}))(Pixel.RENDER_MODE_WEBGL);	
+	});
+
+	
+	App1 = new App(Pixel.RENDER_MODE_2D);
+	App2 = new App(Pixel.RENDER_MODE_WEBGL);
+		
 	
 	//-------------------------------------------------------
 	//Run App
-	App.run();
-	
-	wrapper.appendChild(App.canvas);
+	App1.run();
+	App2.run();
+
+	wrapper.appendChild(App1.canvas);
+	wrapper.appendChild(App2.canvas);
 }
 

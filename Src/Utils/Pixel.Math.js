@@ -110,3 +110,8 @@ Pixel.Math.dist = function(x1,y1,x2,y2, bSigned) {
 Pixel.Math.getAngle = function(x1, y1, x2, y2) {
 	return Math.atan2(y2 - y1, x2 - x1);
 }
+
+//-----------------------------------------------------
+Pixel.Math.isPowerOfTwo = function(value) {
+	return ((value & (value - 1)) == 0);
+}
