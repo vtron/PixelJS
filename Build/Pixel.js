@@ -928,7 +928,7 @@ Pixel.RendererWebGL = Class.extend({
 	initGL: function(canvas) {
 		//See if we can get a WebGL ref
 		try {
-            var gl = canvas.getContext("experimental-webgl");
+            var gl = canvas.getContext("experimental-webgl", {alpha:false});
         	return gl;
         } catch (e) {
         	Pixel.log("Could not initialise WebGL");
@@ -1013,22 +1013,23 @@ Pixel.RendererWebGL = Class.extend({
 		//Load pixels from img
 		this.gl.bindTexture(this.gl.TEXTURE_2D, tex);
     	this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
+    	this.gl.pixelStorei(this.gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
     	this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, img);
-    	
     	
     	if(Pixel.Math.isPowerOfTwo(img.width) && Pixel.Math.isPowerOfTwo(img.height)) {
     		 this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
              this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
     	} else {
-    		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_NEAREST);
+    		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
             this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
             this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
     	}
     	
-    	this.gl.generateMipmap(this.gl.TEXTURE_2D);
+    	//this.gl.generateMipmap(this.gl.TEXTURE_2D);
     	
     	//Clean up
     	this.gl.bindTexture(this.gl.TEXTURE_2D, null);
+    	
 		return tex;
 	},
 	

@@ -23,6 +23,8 @@ window.onload = function() {
 		
 		//-------------------------------------------------------	
 		draw: function() {
+			this.setFillColor(255,8,37);
+			//this.drawRect(0,0, this.getWidth(), this.getHeight());
 			var nShapes = 180;
 			for(var i=0; i<nShapes; i++) {
 				this.pushMatrix();
