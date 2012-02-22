@@ -119,9 +119,11 @@ Pixel.Renderer2D = Class.extend({
 	drawImage: function(pxImage, x, y, w, h) {
 		x = x || pxImage.getPos().x;
 		y = y || pxImage.getPos().y;
+		w = w || pxImage.image.getWidth();
+		h = h || pxImage.image.getHeight();
 		
 		if(pxImage.isLoaded()) {
-			this.ctx.drawImage(pxImage.image, x, y);
+			this.ctx.drawImage(pxImage.image, x, y, w, h);
 		} else {
 			Pixel.log("Image not yet loaded!");
 		}

@@ -52,7 +52,7 @@ window.onload = function() {
 			this.drawCircle(0,0, 15);
 			this.popMatrix();
 			
-			this.drawImage(this.testImage, 50, 50, 125, 125);
+			this.drawImage(this.testImage, 50, 50, 250, 250);
 		},
 		
 		//-------------------------------------------------------

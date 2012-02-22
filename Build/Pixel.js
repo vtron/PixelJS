@@ -577,9 +577,11 @@ Pixel.Renderer2D = Class.extend({
 	drawImage: function(pxImage, x, y, w, h) {
 		x = x || pxImage.getPos().x;
 		y = y || pxImage.getPos().y;
+		w = w || pxImage.image.getWidth();
+		h = h || pxImage.image.getHeight();
 		
 		if(pxImage.isLoaded()) {
-			this.ctx.drawImage(pxImage.image, x, y);
+			this.ctx.drawImage(pxImage.image, x, y, w, h);
 		} else {
 			Pixel.log("Image not yet loaded!");
 		}
@@ -915,8 +917,10 @@ Pixel.RendererWebGL = Class.extend({
     	this.pMatrix		= mat4.create();
         this.mvMatrixStack	= [];
         this.mvMatrix		= mat4.create();
-    	
-        //this.gl.enable(this.gl.DEPTH_TEST);
+        
+        this.gl.disable(this.gl.DEPTH_TEST);
+        this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
+		this.gl.enable(this.gl.BLEND);
 	},
 
 	
@@ -1011,14 +1015,17 @@ Pixel.RendererWebGL = Class.extend({
     	this.gl.pixelStorei(this.gl.UNPACK_FLIP_Y_WEBGL, true);
     	this.gl.texImage2D(this.gl.TEXTURE_2D, 0, this.gl.RGBA, this.gl.RGBA, this.gl.UNSIGNED_BYTE, img);
     	
+    	
     	if(Pixel.Math.isPowerOfTwo(img.width) && Pixel.Math.isPowerOfTwo(img.height)) {
     		 this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
-             this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
+             this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
     	} else {
-    		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+    		this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR_MIPMAP_NEAREST);
             this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
             this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
     	}
+    	
+    	this.gl.generateMipmap(this.gl.TEXTURE_2D);
     	
     	//Clean up
     	this.gl.bindTexture(this.gl.TEXTURE_2D, null);
@@ -1167,6 +1174,7 @@ Pixel.RendererWebGL = Class.extend({
 	        this.gl.vertexAttribPointer(this.shaderProgram.aVertexPosition, 3, this.gl.FLOAT, false, 0, 0);
 			
 			//Tex Coord Buffer
+			//tl, bl, tr, br
 			var texCoords = [
 	      		0.0, 1.0,
 	      		0.0, 0.0,
@@ -1839,12 +1847,12 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 	//IMAGE DRAWING
 	//-------------------------------------------------------
 	drawImage: function(pxImage, x, y, width, height) {
-		this.renderer.pushMatrix();
-		this.renderer.translate(x,y);
-		if(width  != pxImage.image.width)	this.renderer.scale(width/pxImage.width, 1.0);
-		if(height != pxImage.image.height)	this.renderer.scale(1.0, height/pxImage.height);
-		this.renderer.drawImage(pxImage, 0,0);
-		this.renderer.popMatrix();
+		//this.renderer.pushMatrix();
+		//this.renderer.translate(x,y);
+		//if(width && width	!= pxImage.image.width)		this.renderer.scale(width/pxImage.width, 1.0);
+		//if(height&& height	!= pxImage.image.height)	this.renderer.scale(1.0, height/pxImage.height);
+		this.renderer.drawImage(pxImage, 0,0, width, height);
+		//this.renderer.popMatrix();
 	},
 
 
