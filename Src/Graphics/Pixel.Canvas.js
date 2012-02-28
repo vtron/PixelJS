@@ -150,7 +150,7 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 		//this.renderer.translate(x,y);
 		//if(width && width	!= pxImage.image.width)		this.renderer.scale(width/pxImage.width, 1.0);
 		//if(height&& height	!= pxImage.image.height)	this.renderer.scale(1.0, height/pxImage.height);
-		this.renderer.drawImage(pxImage, 0,0, width, height);
+		this.renderer.drawImage(pxImage, x,y, width, height);
 		//this.renderer.popMatrix();
 	},
 

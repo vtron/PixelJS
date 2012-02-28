@@ -8,8 +8,12 @@
 Pixel.RendererWebGL = Class.extend({
 	init: function(canvas) {
 		this.bgColor		= new Pixel.Color();
+		
 		this.fillColor		= new Pixel.Color();
+		this.bFill			= true;
+		
 		this.strokeColor	= new Pixel.Color();
+		this.bStroke		= false;
 		
 		this.ellipseResolution = 360;
 	
@@ -30,6 +34,7 @@ Pixel.RendererWebGL = Class.extend({
         this.mvMatrix		= mat4.create();
         
         this.gl.disable(this.gl.DEPTH_TEST);
+        this.gl.depthFunc(this.gl.ALWAYS);
         this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 		this.gl.enable(this.gl.BLEND);
 	},
@@ -59,6 +64,7 @@ Pixel.RendererWebGL = Class.extend({
 		this.createTextureBuffers();
 	},
 	
+	//Rects
 	//-------------------------------------------------------
 	createRectBuffers: function() {
 		//Vertices
@@ -83,6 +89,54 @@ Pixel.RendererWebGL = Class.extend({
 	},
 	
 	
+	
+	//-------------------------------------------------------
+	setRectVertices: function(x, y, width, height) {
+		//Get width & height
+		width	= width	 || pxImage.image.width;
+		height	= height || pxImage.image.height;
+		
+		//Define vertices
+		var topLeft		= this.getNormalizedCoordinates(x,y);
+		var bottomRight = this.getNormalizedCoordinates(x+width,y+height);
+		
+		var x1 = topLeft.x;
+		var x2 = bottomRight.x;
+		
+		var y1 = topLeft.y;
+		var y2 = bottomRight.y;
+		
+		var vertices = [
+			x1,		y2,		0.0,
+            x1,		y1,		0.0,
+            x2,		y1,		0.0,
+           	x2,		y2,		0.0
+        ];
+        
+        //Vertex Buffer
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.rectBuffer);
+        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, new Float32Array(vertices));
+        this.gl.vertexAttribPointer(this.shaderProgram.aVertexPosition, 3, this.gl.FLOAT, false, 0, 0);
+	},
+	
+	
+	//-------------------------------------------------------
+	setRectColors: function(color) {
+		var colors = [];
+		for(var i=0; i<4; i++) {
+			colors.push(color.r);
+			colors.push(color.g);
+			colors.push(color.b);
+			colors.push(color.a);
+		}
+		
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.rectColorBuffer);
+        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, new Float32Array(colors));
+    	this.gl.vertexAttribPointer(this.shaderProgram.aVertexColor, 4, this.gl.FLOAT, false, 0, 0);
+	},
+	
+	
+	//Ellipses
 	//-------------------------------------------------------
 	createEllipseBuffers: function(resolution) {
 		//Check for previous buffer and clear if necessary
@@ -103,6 +157,10 @@ Pixel.RendererWebGL = Class.extend({
 		this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(colorVertices), this.gl.DYNAMIC_DRAW);
 	},
 	
+	
+	//-------------------------------------------------------
+	//Textures
+	
 	//-------------------------------------------------------
 	createTextureBuffers: function() {
 		var texCoords = [];
@@ -116,7 +174,6 @@ Pixel.RendererWebGL = Class.extend({
 	
 	
 	//-------------------------------------------------------
-	//Textures
 	//Non-pow2 stuff from http://webglfactory.blogspot.com/2011/05/adding-textures.html
 	loadTexture: function(img) {
 		//Create texture
@@ -147,6 +204,30 @@ Pixel.RendererWebGL = Class.extend({
 	
 	
 	//-------------------------------------------------------
+	setRectTextureVertices: function() {
+		//tl, bl, tr, br
+		var texCoords = [
+      		0.0, 0.0,
+      		0.0, 1.0,
+			1.0, 1.0,
+      		1.0, 0.0
+		];
+		
+		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
+        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, new Float32Array(texCoords));
+    	this.gl.vertexAttribPointer(this.shaderProgram.aTextureCoord, 2, this.gl.FLOAT, false, 0, 0);
+	},
+	
+	
+	//-------------------------------------------------------
+	setTexture: function(texture) {
+		//Tex Coord Buffer
+    	this.gl.activeTexture(this.gl.TEXTURE0);
+		this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+		this.gl.uniform1i(this.shaderProgram.uSampler, 0);
+	},
+	
+	//-------------------------------------------------------
 	//Shaders
 	setShader: function(program) {
 		if(this.shaderProgram != program) {
@@ -154,6 +235,7 @@ Pixel.RendererWebGL = Class.extend({
 			this.gl.useProgram(program);
 		}
 	},
+	
 	
 	//-------------------------------------------------------
 	//GL Utils
@@ -174,8 +256,12 @@ Pixel.RendererWebGL = Class.extend({
     },
     
     
+    
+    
+    
+    
     //-------------------------------------------------------
-	//Rendering functions
+	//Pixel Rendering functions 
     
     //-------------------------------------------------------
     setSize: function(width, height) {
@@ -207,25 +293,32 @@ Pixel.RendererWebGL = Class.extend({
 	setFillColor: function(r,g,b,a) {
 		this.fillColor.set(r,g,b,a);
 		this.fillColor.normalizeRGB();
+		this.bFill = true;
 	},
 	
 	//-------------------------------------------------------
 	noFill: function() {
+		this.bFill = false;
 	},
 	
 	
 	//-------------------------------------------------------
 	setStrokeColor: function(r,g,b,a) {
+		this.strokeColor.set(r,g,b,a);
+		this.strokeColor.normalizeRGB();
+		this.bStroke = true;
 	},
 	
 	
 	//-------------------------------------------------------
 	noStroke: function() {
+		this.bStroke = false;
 	},
 	
 
 	//-------------------------------------------------------
 	setStrokeSize: function(size) {
+		this.gl.lineWidth(size);
 	},
 	
 	//-------------------------------------------------------
@@ -260,53 +353,13 @@ Pixel.RendererWebGL = Class.extend({
 				pxImage.texture = this.loadTexture(pxImage.image);
 			} 
 			
-			//Get width & height
-			width	= width	 || pxImage.image.width;
-			height	= height || pxImage.image.height;
-			
-			//Define vertices
-			var topLeft		= this.getNormalizedCoordinates(x,y);
-			var bottomRight = this.getNormalizedCoordinates(x+width,y+height);
-			
-			var x1 = topLeft.x;
-			var x2 = bottomRight.x;
-			
-			var y1 = topLeft.y;
-			var y2 = bottomRight.y;
-			
-			var vertices = [
-				x1,		y1,		0.0,
-	            x1,		y2,		0.0,
-	            x2,		y1,		0.0,
-	           	x2,		y2,		0.0
-	        ];
-	        
-	        //Vertex Buffer
-			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.rectBuffer);
-	        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, new Float32Array(vertices));
-	        this.gl.vertexAttribPointer(this.shaderProgram.aVertexPosition, 3, this.gl.FLOAT, false, 0, 0);
-			
-			//Tex Coord Buffer
-			//tl, bl, tr, br
-			var texCoords = [
-	      		0.0, 1.0,
-	      		0.0, 0.0,
-	      		1.0, 1.0,
-				1.0, 0.0,
-			];
-			
-			this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.texCoordBuffer);
-	        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, new Float32Array(texCoords));
-        	this.gl.vertexAttribPointer(this.shaderProgram.aTextureCoord, 2, this.gl.FLOAT, false, 0, 0);
-        	
-        	
-        	//Draw
-        	this.gl.activeTexture(this.gl.TEXTURE0);
-    		this.gl.bindTexture(this.gl.TEXTURE_2D, pxImage.texture);
-    		this.gl.uniform1i(this.shaderProgram.uSampler, 0);
+			//Draw
+			this.setRectVertices(x, y, width, height);
+			this.setRectTextureVertices();
+			this.setTexture(pxImage.texture);
     		
     		this.setMatrixUniforms();
-			this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+			this.gl.drawArrays(this.gl.TRIANGLE_FAN, 0, 4);
         }
 	},
 	
@@ -348,75 +401,21 @@ Pixel.RendererWebGL = Class.extend({
 	drawRect: function(x,y,width,height) {
 		this.setShader(this.basicShader);
 		
-		//Define vertices
-		var topLeft		= this.getNormalizedCoordinates(x,y);
-		var bottomRight = this.getNormalizedCoordinates(x+width,y+height);
-		
-		var x1 = topLeft.x;
-		var x2 = bottomRight.x;
-		
-		var y1 = topLeft.y;
-		var y2 = bottomRight.y;
-		
-		
-		var vertices = [
-			x1,		y1,		0.0,
-            x1,		y2,		0.0,
-            x2,		y1,		0.0,
-           	x2,		y2,		0.0
-        ];
-        
-        //Fill Vertex Buffer
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.rectBuffer);
-        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, new Float32Array(vertices));
-        this.gl.vertexAttribPointer(this.shaderProgram.aVertexPosition, 3, this.gl.FLOAT, false, 0, 0);
+		this.setRectVertices(x,y,width,height);
 		
 		//Fill Color Buffer
-		var colors = [];
-		for(var i=0; i<4; i++) {
-			colors.push(this.fillColor.r);
-			colors.push(this.fillColor.g);
-			colors.push(this.fillColor.b);
-			colors.push(this.fillColor.a);
-		}
-		
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.rectColorBuffer);
-        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, new Float32Array(colors));
-    	this.gl.vertexAttribPointer(this.shaderProgram.aVertexColor, 4, this.gl.FLOAT, false, 0, 0);
-		
-		//Draw  Fill      
-        this.setMatrixUniforms();
-        this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
-        //this.gl.drawArrays(this.gl.LINE_LOOP, 0, 4);
-/*
-        //-----------
-        //Stroke
+		if(this.bFill) {
+			this.setRectColors(this.fillColor);
+	        this.setMatrixUniforms();
+	        this.gl.drawArrays(this.gl.TRIANGLE_FAN, 0, 4);
+        }
+        
         //Draw Stroke
-        vertices = [
-			x1,		y1,		0.0,
-            x1,		y2,		0.0,
-            x2,		y2,		0.0,
-           	x2,		y1,		0.0
-        ];
-        
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.rectBuffer);
-        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, new Float32Array(vertices));
-        this.gl.vertexAttribPointer(this.shaderProgram.aVertexPosition, 3, this.gl.FLOAT, false, 0, 0);
-        
-        colors = [];
-        for(var i=0; i<4; i++) {
-			colors.push(this.strokeColor.r);
-			colors.push(this.strokeColor.g);
-			colors.push(this.strokeColor.b);
-			colors.push(this.strokeColor.a);
+        if(this.bStroke) {
+	        this.setRectColors(this.strokeColor);
+	        this.setMatrixUniforms();
+			this.gl.drawArrays(this.gl.LINE_LOOP, 0, 4);
 		}
-		
-		this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.rectColorBuffer);
-        this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, new Float32Array(colors));
-    	this.gl.vertexAttribPointer(this.shaderProgram.aVertexColor, 4, this.gl.FLOAT, false, 0, 0);
-		
-		this.gl.drawArrays(this.gl.LINE_LOOP, 0, 4);
-*/
 	},
 	
 	

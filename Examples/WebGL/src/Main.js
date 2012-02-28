@@ -11,7 +11,10 @@ window.onload = function() {
 			this.setBackgroundColor(50.0, 10, 1.5);
 			this.rotation = 0.0;
 			
-			this.testImage = new Pixel.Image("images/cat1.png");
+			this.testImage1 = new Pixel.Image("images/cat1.png");
+			this.testImage2 = new Pixel.Image("images/nutKick.jpg");
+			
+			this.setStrokeSize(10);
 		},
 		
 		//-------------------------------------------------------	
@@ -25,7 +28,7 @@ window.onload = function() {
 		draw: function() {
 			this.setFillColor(255,8,37);
 			//this.drawRect(0,0, this.getWidth(), this.getHeight());
-			var nShapes = 180;
+			var nShapes = 2;
 			for(var i=0; i<nShapes; i++) {
 				this.pushMatrix();
 				this.translate(this.getWidth()/2, this.getHeight()/2);
@@ -36,12 +39,14 @@ window.onload = function() {
 				this.pushMatrix();
 				this.rotate(this.rotation);
 				this.setFillColor(150,255, 255, 1.05);
+				this.noStroke();
 				this.drawSquare(-25, -25, 50);
 				this.popMatrix();
 				
 				this.pushMatrix();
 				this.rotate(-this.rotation);
 				this.setFillColor(255,255, 255, 1.0);
+				this.setStrokeColor(0, 0, 0, 1.0);
 				this.drawSquare(-25, -25, 50);
 				this.popMatrix();
 				
@@ -54,7 +59,8 @@ window.onload = function() {
 			this.drawCircle(0,0, 15);
 			this.popMatrix();
 			
-			this.drawImage(this.testImage, 50, 50, 250, 250);
+			this.drawImage(this.testImage1, 50, 50, 250, 250);
+			this.drawImage(this.testImage2, 350, 350, 100, 100);
 		},
 		
 		//-------------------------------------------------------
