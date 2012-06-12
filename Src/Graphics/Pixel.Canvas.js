@@ -7,16 +7,13 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 	init: function(renderer) {
 		//Create Canvas
 		this.canvas = document.createElement('canvas');
-		this.canvas.innerHTML = "Your browser does not support HTML5 Canvas."
-		this.canvas.setAttribute('width', this.width);
-		this.canvas.setAttribute('height', this.height);
-		
+		this.canvas.innerHTML = "Your browser does not support HTML5 Canvas.";
 		this.pos = {
 			x:0,
 			y:0
 		}
 		
-		this.width = 0;
+		this.width	= 0;
 		this.height = 0;
 		
 		//BG Color
@@ -43,11 +40,15 @@ Pixel.Canvas = Pixel.EventDispatcher.extend({
 	
 	//-------------------------------------------------------
 	setSize: function(width,height) {
-		this.width = width;
+		
+		this.width	= width;
 		this.height = height;
 		
-		this.canvas.setAttribute('width',	this.width);
-		this.canvas.setAttribute('height',	this.height);
+		this.canvas.style.width		= width/window.devicePixelRatio;
+		this.canvas.style.height	= height/window.devicePixelRatio;
+		
+		this.canvas.setAttribute("width",	width);
+		this.canvas.setAttribute("height",	height);
 		
 		this.renderer.setSize(width, height);
 	},

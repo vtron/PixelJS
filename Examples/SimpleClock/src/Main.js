@@ -1,4 +1,5 @@
 var wrapper = document.getElementById("wrapper");
+document.addEventListener("touchstart", function(e){e.preventDefault()});
 
 //Create App
 var Main = Pixel.App.extend({
@@ -7,27 +8,31 @@ var Main = Pixel.App.extend({
 		y: 0
 	},
 	
-	radius:150,
+	radius:125 * Pixel.scale,
 	speed: 1,
 	date:null,
 	
+	scale:window.devicePixelScale,
+	
 	numbers:[],
-	
-	init:function() {
-		this._super();
-	},
-	
+
 	setup: function() {
 		//Set the size of the app
-		App.setSize(800,600);
+		App.setSize(960,640);
+		
+		this.pos.x = App.getWidth()/2;
+		this.pos.y = App.getHeight()/2  - 20;
 		
 		App.showFPS();
 		
+		this.setBackgroundColor(0,0,0);
+		
 		//Create numbers
 		var angleIncrement = (Math.PI*2)/12.0;
-		var numberPadding = 25;
+		var numberPadding = 25 * Pixel.scale;
 		for(var i=0; i<12; i++) {
-			this.numbers.push(new Pixel.Textfield(i+1, new Pixel.Font("Helvetica", 18)));
+			var textSize = (i+1) % 3 ? 14 : 24;
+			this.numbers.push(new Pixel.Textfield(i+1, new Pixel.Font("Helvetica", textSize * Pixel.scale)));
 			var xPos = Math.cos(i*angleIncrement - (Math.PI/2) + angleIncrement)	* (this.radius-numberPadding);
 			var yPos = Math.sin(i*angleIncrement - (Math.PI/2) + angleIncrement)	* (this.radius-numberPadding);
 			
@@ -44,19 +49,12 @@ var Main = Pixel.App.extend({
 		App.addEventListener("mouseup", function(e){
 		});
 		
-		//Add App to DOM
-		wrapper.appendChild(App.canvas);
-		wrapper.style.width		= App.getWidth() + "px";
-		wrapper.style.height	= App.getHeight() + "px";
-		
 		//App.drawRoundedRect(50,50,100,100, {tl:10, tr:20, br:5, bl:15});
 	},
 	
 	
 	//-------------------------------------------------------	
 	update: function() {
-		this.pos.x = App.getWidth()/2;
-		this.pos.y = App.getHeight()/2;
 		
 		date = new Date();
 	},
@@ -75,15 +73,15 @@ var Main = Pixel.App.extend({
 		App.translate(this.pos.x, this.pos.y);
 		
 		//Draw BG
-		App.setFillColor(0,0,0, 0.25);
-		App.setStrokeColor(0,0.0);
-		App.setStrokeSize(5);
+		App.setFillColor(50,50,50);
+		App.setStrokeColor(150, 150, 150);
+		App.setStrokeSize(10*window.devicePixelRatio);
 		App.drawCircle(0,0, this.radius);
+		
+		App.drawNumbers();
 		
 		App.setLineCap(Pixel.LINE_CAP_ROUND);
 		App.drawHands();
-		
-		App.drawNumbers();
 		
 		App.popMatrix();
 	},
@@ -97,30 +95,34 @@ var Main = Pixel.App.extend({
 		//Rotate back to 12
 		App.rotate(-90);
 		
-		//Set Second hand
+		//Set Hour hand
 		App.pushMatrix();
-		rotation = Pixel.Math.map(0,59,date.getSeconds(), 0.0, 360) 
+		var hours = date.getHours();
+		if(hours>11) hours -= 12;
+		rotation = Pixel.Math.map(0, 12, hours, 0.0, 360); 
+		rotation += Pixel.Math.map(0, 59, date.getMinutes(), 0.0, 360.0/12.0);	
 		App.rotate(rotation);
-		App.setStrokeSize(1);
-		App.drawLine(-5,0, this.radius - 25, 0);
+		App.setStrokeColor(200, 200, 200);
+		App.setStrokeSize(5 * Pixel.scale);
+		App.drawLine(-5,0, this.radius/3, 0);
 		App.popMatrix();
 		
 		//Set Minute hand
 		App.pushMatrix();
 		rotation = Pixel.Math.map(0, 59, date.getMinutes(), 0.0, 360); 
 		App.rotate(rotation);
-		App.setStrokeSize(3);
+		App.setStrokeColor(150, 150, 150);
+		App.setStrokeSize(3 * Pixel.scale);
 		App.drawLine(-5,0, this.radius/2, 0);
 		App.popMatrix();
 		
-		//Set Hour hand
+		//Set Second hand
 		App.pushMatrix();
-		var hours = date.getHours();
-		if(hours>11) hours -= 12;
-		rotation = Pixel.Math.map(0, 12, hours, 0.0, 360); 
+		rotation = Pixel.Math.map(0,59,date.getSeconds(), 0.0, 360) 
 		App.rotate(rotation);
-		App.setStrokeSize(5);
-		App.drawLine(-5,0, this.radius/3, 0);
+		App.setStrokeColor(255, 0, 0);
+		App.setStrokeSize(1 * Pixel.scale);
+		App.drawLine(-5,0, this.radius - 25, 0);
 		App.popMatrix();
 		
 		App.popMatrix();		
@@ -128,18 +130,18 @@ var Main = Pixel.App.extend({
 	
 	//-------------------------------------------------------
 	drawNumbers: function() {
-		
 		var angleIncrement = Math.PI*2/this.numbers.length;
 		for(var i=0; i<12; i++) {
-			App.setFillColor(0,0,0);
+			App.setFillColor(150, 150, 150);
 			App.drawTextfield(this.numbers[i]);
 		}
-		
-		App.popMatrix();
 	}
 });	
 
 //-------------------------------------------------------
 //Run App
-var App = new Main();
+var App = new Main(Pixel.RENDER_MODE_2D);
 App.run();
+		
+	//Add App to DOM
+	wrapper.appendChild(App.canvas);

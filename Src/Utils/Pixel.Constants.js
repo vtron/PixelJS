@@ -2,6 +2,7 @@
 //Pixel.Constants.js
 //Constant var names for various settings
 
+
 //Browser Type
 Pixel.BROWSER_TYPE_CHROME	= "chrome";
 Pixel.BROWSER_TYPE_SAFARI	= "safari"

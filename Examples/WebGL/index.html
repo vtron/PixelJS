@@ -1,5 +1,8 @@
 <html>
 	<head>
+		<meta name="viewport" content="user-scalable=no, width=device-width, initial-scale=0.5, maximum-scale=1.0"/>
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        
 		<!--Basic shader-->
 		<script id="pixelBasic-shader-vs" type="x-shader/x-vertex">
 		    attribute vec3 aVertexPosition;
@@ -60,9 +63,13 @@
 		<script type="text/javascript" src="../../Build/Pixel.js"></script>
 		<script type="text/javascript" src="src/Main.js"></script>
 		<style>
+			#body {
+			
+			}
 			#wrapper {
 				margin:50px auto;
 				border:1px solid #ccc;
+				-webkit-transform: translate3d(0px,0px,0px);
 			}
 		</style>
 	</head>

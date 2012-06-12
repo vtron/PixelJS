@@ -20,6 +20,8 @@ Pixel.isTouchDevice = function() {
 	return "ontouchstart" in window;
 }
 
+Pixel.scale = window.devicePixelRatio;
+
 //Hide menu bar
 Pixel.hideAddressBar = function() {
 	window.scrollTo(0,1);

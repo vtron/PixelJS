@@ -14,7 +14,8 @@ window.onload = function() {
 			this.testImage1 = new Pixel.Image("images/cat1.png");
 			this.testImage2 = new Pixel.Image("images/nutKick.jpg");
 			
-			this.setStrokeSize(10);
+			this.setStrokeSize(0);
+			this.noStroke();
 		},
 		
 		//-------------------------------------------------------	
@@ -28,7 +29,7 @@ window.onload = function() {
 		draw: function() {
 			this.setFillColor(255,8,37);
 			//this.drawRect(0,0, this.getWidth(), this.getHeight());
-			var nShapes = 2;
+			var nShapes = 20;
 			for(var i=0; i<nShapes; i++) {
 				this.pushMatrix();
 				this.translate(this.getWidth()/2, this.getHeight()/2);
@@ -38,7 +39,7 @@ window.onload = function() {
 				
 				this.pushMatrix();
 				this.rotate(this.rotation);
-				this.setFillColor(150,255, 255, 1.05);
+				this.setFillColor(150,255, 255, 1.0);
 				this.noStroke();
 				this.drawSquare(-25, -25, 50);
 				this.popMatrix();
@@ -46,7 +47,7 @@ window.onload = function() {
 				this.pushMatrix();
 				this.rotate(-this.rotation);
 				this.setFillColor(255,255, 255, 1.0);
-				this.setStrokeColor(0, 0, 0, 1.0);
+				//this.setStrokeColor(0, 0, 0, 1.0);
 				this.drawSquare(-25, -25, 50);
 				this.popMatrix();
 				
@@ -78,13 +79,13 @@ window.onload = function() {
 
 	
 	App1 = new App(Pixel.RENDER_MODE_2D);
-	App2 = new App(Pixel.RENDER_MODE_WEBGL);
+	//App2 = new App(Pixel.RENDER_MODE_WEBGL);
 		
 	
 	//-------------------------------------------------------
 	//Run App
 	App1.run();
-	App2.run();
+	//App2.run();
 
 	wrapper.appendChild(App1.canvas);
 	wrapper.appendChild(App2.canvas);
