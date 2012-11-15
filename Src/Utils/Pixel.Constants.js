@@ -10,8 +10,8 @@ Pixel.BROWSER_TYPE_FIREFOX	= "firefox"
 Pixel.BROWSER_TYPE_IPHONE	= "iphone"
 
 //Render Modes
-Pixel.RENDER_MODE_2D		= 0;
-Pixel.RENDER_MODE_WEBGL		= 1;
+Pixel.RENDERER_2D		= 0;
+Pixel.RENDERER_WEBGL	= 1;
 
 //Line Cap
 Pixel.LINE_CAP_NORMAL	= "butt";

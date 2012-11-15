@@ -7,6 +7,7 @@
 
 Pixel.RendererWebGL = Class.extend({
 	init: function(canvas) {
+		this.type 			= Pixel.RENDERER_WEBGL;
 		this.bgColor		= new Pixel.Color();
 		
 		this.fillColor		= new Pixel.Color();

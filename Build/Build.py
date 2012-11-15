@@ -19,35 +19,48 @@ src = "../src/";
 #Files to Add, in order
 files = []
 
-#Libs
-# files.append(libs + "MooTools/mootools-core-1.3.2.js")
-# files.append(libs + "MooTools/mootools-more-1.3.2.1.js")
-# files.append(libs + "Tween.js/Tween.js")
-
-#Src
 #Pixel
 files.append(src + "Pixel.js")
 
+#Src
 #Utils
 files.append(src + "Utils/Pixel.Constants.js")
 files.append(src + "Utils/Pixel.Utils.js")
 files.append(src + "Utils/Pixel.Math.js")
 files.append(src + "Utils/Pixel.EventDispatcher.js")
 
-#Renderers
-files.append(src + "Graphics/Rendering/Pixel.Renderer2D.js")
-files.append(src + "Graphics/Rendering/WebGL/Pixel.RendererWebGL.js")
-files.append(src + "Graphics/Rendering/WebGL/Pixel.Shader.js")
-#Graphics
-files.append(src + "Graphics/Pixel.Color.js")
-files.append(src + "Graphics/Pixel.Canvas.js")
-files.append(src + "Graphics/Pixel.Object.js")
-files.append(src + "Graphics/Pixel.Image.js")
-files.append(src + "Graphics/Pixel.Font.js")
-files.append(src + "Graphics/Pixel.Textfield.js")
+
+
+#Canvas
+files.append(src + "Canvas/Pixel.Canvas.js")
 
 #App
 files.append(src + "App/Pixel.App.js")
+
+#Objects
+files.append(src + "Objects/Pixel.Object.js")
+files.append(src + "Objects/Pixel.Textfield.js")
+
+
+
+
+
+# #Renderers
+files.append(src + "Rendering/2D/Pixel.Renderer2D.js")
+# files.append(src + "Rendering/WebGL/Pixel.RendererWebGL.js")
+# files.append(src + "Rendering/WebGL/Shaders/Pixel.Shader.js")
+
+#Assets
+files.append(src + "Assets/Pixel.Color.js")
+files.append(src + "Assets/Pixel.Image.js")
+files.append(src + "Assets/Pixel.Font.js")
+
+# 
+# #Graphics
+
+
+
+
 
 
 #------------------------------------------------------------

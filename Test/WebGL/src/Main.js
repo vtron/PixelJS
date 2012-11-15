@@ -84,8 +84,8 @@ window.onload = function() {
 	
 	//-------------------------------------------------------
 	//Run App
-	App1.run();
-	//App2.run();
+	//App1.run();
+	App2.run();
 
 	wrapper.appendChild(App1.canvas);
 	wrapper.appendChild(App2.canvas);

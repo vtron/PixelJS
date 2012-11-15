@@ -1,0 +1,96 @@
+<html>
+	<head>
+		<title>Good Morning</title>
+		<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+	
+		<!--Apple Specific Info-->
+		<meta name="viewport" content="user-scalable = no, width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<meta name="format-detection" content="telephone=no" />
+		
+		
+		<!--Basic shader-->
+		<script id="pixelBasic-shader-vs" type="x-shader/x-vertex">
+		    attribute vec3 aVertexPosition;
+			attribute vec4 aVertexColor;
+			
+			uniform mat4 uMVMatrix;
+			uniform mat4 uPMatrix;
+			
+			varying vec4 vColor;
+			
+			void main(void) {
+				gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+				vColor = aVertexColor;
+			}
+		</script>
+		
+		<script id="pixelBasic-shader-fs" type="x-shader/x-fragment">
+		    precision mediump float;
+		
+			varying vec4 vColor;
+			
+		    void main(void) {
+		        gl_FragColor = vColor;
+		    }
+		</script>
+		
+		
+		<!-- Texture Shader -->
+		<script id="pixelTexture-shader-vs" type="x-shader/x-vertex">
+		    attribute vec3 aVertexPosition;
+		    attribute vec2 aTextureCoord;
+		
+		    uniform mat4 uMVMatrix;
+		    uniform mat4 uPMatrix;
+		
+		    varying vec2 vTextureCoord;
+		
+		    void main(void) {
+		        gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+		        vTextureCoord = aTextureCoord;
+		    }
+		</script>
+		
+		<script id="pixelTexture-shader-fs" type="x-shader/x-fragment">
+		    precision mediump float;
+		
+		    varying vec2 vTextureCoord;
+		
+		    uniform sampler2D uSampler;
+		
+		    void main(void) {
+		    	vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+		        gl_FragColor = vec4(textureColor.rgb, textureColor.a);
+		    }
+		</script>
+
+		
+		<style>
+			body {
+				margin:0px;
+				padding:0px;
+				background-color:#000;
+				-webkit-transform:translate3d(0,0,0);
+			}
+			#wrapper {
+				position:absolute;
+				top:0px;
+				left:0px;
+				margin:20px 0px 0px 0px;
+				padding:0px;
+				-webkit-transform:translate3d(0,0,0);
+			}
+		</style>
+	</head>
+	
+	<body>
+		<div id="wrapper"></div>
+	</body>
+	
+		<script type="text/javascript" src="../../../Require.js/Require.js"></script>
+		<script type="text/javascript" src="../../Build/libs/gl-matrix-min.js"></script>
+		<script type="text/javascript" src="../../Build/Pixel.js"></script>
+		<script type="text/javascript" src="scripts/Main.js"></script>
+</html>

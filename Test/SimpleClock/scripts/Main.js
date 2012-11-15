@@ -1,7 +1,5 @@
-var wrapper = document.getElementById("wrapper");
-document.addEventListener("touchstart", function(e){e.preventDefault()});
+var App;
 
-//Create App
 var Main = Pixel.App.extend({
 	pos: {
 		x: 0,
@@ -47,15 +45,12 @@ var Main = Pixel.App.extend({
 		});
 		
 		App.addEventListener("mouseup", function(e){
-		});
-		
-		//App.drawRoundedRect(50,50,100,100, {tl:10, tr:20, br:5, bl:15});
+		});;
 	},
 	
 	
 	//-------------------------------------------------------	
 	update: function() {
-		
 		date = new Date();
 	},
 	
@@ -66,6 +61,7 @@ var Main = Pixel.App.extend({
 		
 		this.drawClock();
 	},
+	
 	
 	//-------------------------------------------------------
 	drawClock: function() {
@@ -85,6 +81,7 @@ var Main = Pixel.App.extend({
 		
 		App.popMatrix();
 	},
+	
 	
 	//-------------------------------------------------------
 	drawHands: function() {
@@ -128,6 +125,7 @@ var Main = Pixel.App.extend({
 		App.popMatrix();		
 	},
 	
+	
 	//-------------------------------------------------------
 	drawNumbers: function() {
 		var angleIncrement = Math.PI*2/this.numbers.length;
@@ -136,12 +134,18 @@ var Main = Pixel.App.extend({
 			App.drawTextfield(this.numbers[i]);
 		}
 	}
-});	
+});
 
-//-------------------------------------------------------
-//Run App
-var App = new Main(Pixel.RENDER_MODE_2D);
-App.run();
-		
-	//Add App to DOM
-	wrapper.appendChild(App.canvas);
+//Add App to DOM	
+App = new Main(Pixel.RENDERER_2D);
+wrapper.appendChild(App.canvas);
+
+App.start();
+
+addEventListener("keypress", function(event){
+	if(App.getRenderer() == Pixel.RENDERER_2D) {
+		App.setRenderer(Pixel.RENDER_MODE_WEBGL);
+	} else {
+		App.setRenderer(Pixel.RENDER_MODE_2D);
+	}
+  });
