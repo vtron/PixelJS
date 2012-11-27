@@ -1,6 +1,73 @@
 //-------------------------------------------------------
 //-------------------------------------------------------
 //Main Object
+//(function () {
+	Pixel.Object = function() {
+		this.canvas = null;
+		
+		this.width	= 0;
+		this.height = 0;
+		
+		this.pos = new Pixel.Point(0,0,0);
+		
+		this.visible = true;
+		
+		this.parent   = null;
+		this.children = [];
+	}
+	
+	//-------------------------------------------------------
+	Pixel.Object.prototype.update = function() {
+		for(var i=0; i<this.children.length; i++) {
+			this.children[i].update();
+		}
+	}
+	
+	//-------------------------------------------------------
+	Pixel.Object.prototype.draw = function() {
+		for(var i=0; i<this.children.length; i++) {
+			this.children[i].draw();
+		}
+		
+		this.canvas.popMatrix();
+	}
+	
+	//-------------------------------------------------------
+	Pixel.Object.prototype.addChild = function(childObject) {
+		if(childObject.parent != null) {
+			childObject.parent.removeChild(childObject);
+		}
+		
+		childObject.parent = this;
+		childObject.canvas = this.canvas;
+		
+		this.children.push(childObject);
+	}
+	
+	//-------------------------------------------------------
+	Pixel.Object.prototype.removeChild = function(childObject) {
+		var i = this.children.length;
+		while(i--) {
+			if(this.children[i] == childObject) {
+				childObject.parent = null;
+				childObject.canvas = null;
+				this.children.splice(i, 1);
+				return;
+			}
+		}
+	}
+	
+	//-------------------------------------------------------
+	Pixel.Object.prototype.eventHandler = function(event) {
+	}
+	
+	
+	//-------------------------------------------------------
+	Pixel.Object.prototype.messageHandler = function(msg) {
+	}
+//})();
+
+/*
 
 Pixel.Object = Pixel.EventDispatcher.extend({
 	init: function() {
@@ -144,3 +211,4 @@ Pixel.Object = Pixel.EventDispatcher.extend({
 		return this.bPressed;
 	}
 });
+*/

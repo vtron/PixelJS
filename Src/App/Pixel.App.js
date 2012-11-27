@@ -10,12 +10,14 @@ Pixel.App = function(renderer) {
 	this.bRunning	= true;
 	
 	//FPS
+/*
 	this.fps			= 60;
 	this.curFPS			= 0;
 	this.bShowFPS		= false;
 	this.curFps			= 0;
 	this.nFPSSamples	= 50;
 	this.fpsFont		= new Pixel.Font("Verdana", 10, Pixel.TEXT_ALIGN_LEFT);
+*/
 	
 	//Timer
 	this.startTime		= new Date().getTime();
@@ -59,19 +61,13 @@ Pixel.App.prototype.stop = function() {
 	this.bRunning = false;
 };
 
+//-------------------------------------------------------
+Pixel.App.prototype.isRunning = function() {
+	return this.bRunning;
+};
 
 //-------------------------------------------------------
 Pixel.App.prototype.setup = function() {
-};
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.update = function() {
-};
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.draw = function() {
 };
 
 
@@ -103,6 +99,7 @@ Pixel.App.prototype.run = function() {
 //-------------------------------------------------------
 //FPS
 //-------------------------------------------------------
+/*
 Pixel.App.prototype.setFPS = function(fps) {
 	this.fps = fps;
 };
@@ -146,6 +143,7 @@ Pixel.App.prototype.drawFPS = function() {
 	this.setFillColor(255,255,255);
 	this.drawText("FPS: " + this.curFPS.toFixed(2), 22, 22);
 };
+*/
 
 
 //-------------------------------------------------------

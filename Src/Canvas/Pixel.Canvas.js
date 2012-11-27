@@ -4,15 +4,19 @@
 //+ generic vars shared between renderers (i.e. Cursor)
 
 Pixel.Canvas = function(renderer) {
-	Pixel.EventDispatcher.call(this);
+	Pixel.Object.call(this);
 
-	//Create Canvas
-	this.canvas = document.createElement('canvas');
-	this.canvas.innerHTML = "Your browser does not support HTML5 Canvas.";
+	//Create Canvas Element
+	this.element = document.createElement('canvas');
+	this.element.innerHTML = "Your browser does not support HTML5 Canvas.";
 	this.pos = {
 		x:0,
 		y:0
 	}
+	
+	//This is the main drawing point, 
+	//so any children added will receive this as their canvas to draw to
+	this.canvas = this;
 	
 	this.width	= 0;
 	this.height = 0;
@@ -28,7 +32,7 @@ Pixel.Canvas = function(renderer) {
 	this.bPixelDoubling = window.devicePixelRatio >= 2;
 	
 	//Set Renderer
-	this.setRenderer(this.canvas, renderer);
+	this.setRenderer(this.element, renderer);
 	
 	//Init Vars
 	//this.setPos(0,0);
@@ -36,7 +40,7 @@ Pixel.Canvas = function(renderer) {
 };
 
 
-Pixel.Canvas.prototype = Object.create(Pixel.EventDispatcher);
+Pixel.Canvas.prototype = Object.create(Pixel.Object.prototype);
 
 //-------------------------------------------------------
 //Size Info
@@ -46,11 +50,11 @@ Pixel.Canvas.prototype.setSize = function(width,height) {
 	this.width	= width;
 	this.height = height;
 	
-	this.canvas.style.width		= width/window.devicePixelRatio;
-	this.canvas.style.height	= height/window.devicePixelRatio;
+	this.element.style.width		= width/window.devicePixelRatio;
+	this.element.style.height	= height/window.devicePixelRatio;
 	
-	this.canvas.setAttribute("width",	width);
-	this.canvas.setAttribute("height",	height);
+	this.element.setAttribute("width",	width);
+	this.element.setAttribute("height",	height);
 	
 	this.renderer.setSize(width, height);
 };
@@ -80,9 +84,9 @@ Pixel.Canvas.prototype.setCursor = function(x,y) {
 //-------------------------------------------------------
 //Drawing
 //-------------------------------------------------------
-Pixel.Canvas.prototype.setRenderer = function(canvasElement, rendererType) {
+Pixel.Canvas.prototype.setRenderer = function(element, rendererType) {
 	if(rendererType == Pixel.RENDERER_WEBGL) {
-		this.renderer = new Pixel.RendererWebGL(canvasElement);
+		this.renderer = new Pixel.RendererWebGL(element);
 		if(this.renderer.gl) {
 			Pixel.log("WebGL renderer initialized");
 			return;
@@ -93,7 +97,7 @@ Pixel.Canvas.prototype.setRenderer = function(canvasElement, rendererType) {
 	}
 	
 	//Default is 2D
-	this.renderer = new Pixel.Renderer2D(canvasElement);
+	this.renderer = new Pixel.Renderer2D(element);
 };
 
 //-------------------------------------------------------
@@ -116,7 +120,11 @@ Pixel.Canvas.prototype.clear =  function(x,y,width,height) {
 //COLOR	
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setFillColor = function(r,g,b,a) {
-	this.renderer.setFillColor(r,g,b,a);
+	if(g != undefined) {
+		this.renderer.setFillColor(r,g,b,a);
+	} else {
+		this.renderer.setFillColor(r.r, r.g, r.b, r.a);
+	}
 };
 
 

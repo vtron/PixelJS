@@ -2,71 +2,84 @@
 //Pixel.Color.js
 
 //Color class
-Pixel.Color = Class.extend({
-	init: function(r,g,b,a) {
-		this.r = r || 0.0;
-		this.g = g || 0.0;
-		this.b = b || 0.0;
-		this.a = a || 1.0;
+Pixel.Color = function() {
+	this.r = 0.0;
+	this.g = 0.0;
+	this.b = 0.0;
+	this.a = 1.0;
 		
-		this.h = 0.0;
-		this.s = 0.0;
-		this.l = 0.0;
-		this.v = 0.0;
-	},
+	this.h = 0.0;
+	this.s = 0.0;
+	this.l = 0.0;
+	this.v = 0.0;
+}
+
+
+//-------------------------------------------------------
+Pixel.Color.prototype.init = function(r,g,b,a) {
+	this.r = r || 0.0;
+	this.g = g || 0.0;
+	this.b = b || 0.0;
+	this.a = a || 1.0;
 	
-	//-------------------------------------------------------
-	set: function(r,g,b,a) {
-		if(r != undefined) this.r = r;
-		if(g != undefined) this.g = g;
-		if(b != undefined) this.b = b;
-		
-		this.a = a != undefined ? a : 1;
-	},
+	this.h = 0.0;
+	this.s = 0.0;
+	this.l = 0.0;
+	this.v = 0.0;
+};
 	
+
+//-------------------------------------------------------
+Pixel.Color.prototype.set = function(r,g,b,a) {
+	if(r != undefined) this.r = r;
+	if(g != undefined) this.g = g;
+	if(b != undefined) this.b = b;
 	
-	//-------------------------------------------------------
-	normalizeRGB: function() {
-		this.r = Pixel.Math.map(0.0, 255.0, this.r, 0.0, 1.0);
-		this.g = Pixel.Math.map(0.0, 255.0, this.g, 0.0, 1.0);
-		this.b = Pixel.Math.map(0.0, 255.0, this.b, 0.0, 1.0);
-	},
-	
-	
-	//-------------------------------------------------------
-	setHSL: function(h,s,l,a) {
-		if(h != undefined) this.h = h;
-		if(s != undefined) this.s = g;
-		if(l != undefined) this.l = b;
-		
-		this.a = a != undefined ? a : 1;
-	},
+	this.a = a != undefined ? a : 1;
+};
 	
 	
-	//-------------------------------------------------------
-	setHSV: function(h,s,v,a) {
-		if(h != undefined) this.h = h;
-		if(s != undefined) this.s = g;
-		if(v != undefined) this.l = b;
-		if(a != undefined) this.a = a;
-	},
+//-------------------------------------------------------
+Pixel.Color.prototype.normalizeRGB = function() {
+	this.r = Pixel.Math.map(0.0, 255.0, this.r, 0.0, 1.0);
+	this.g = Pixel.Math.map(0.0, 255.0, this.g, 0.0, 1.0);
+	this.b = Pixel.Math.map(0.0, 255.0, this.b, 0.0, 1.0);
+};
 	
 	
-	//-------------------------------------------------------
-	toHSL: function() {
-		var hsl = Pixel.rgbToHSL(this.r, this.g, this.b);
-		this.setHSL(hsl.h, hsl.s, hsl.l);
-		return hsl;
-	},
+//-------------------------------------------------------
+Pixel.Color.prototype.setHSL = function(h,s,l,a) {
+	if(h != undefined) this.h = h;
+	if(s != undefined) this.s = g;
+	if(l != undefined) this.l = b;
+	
+	this.a = a != undefined ? a : 1;
+};
 	
 	
-	//-------------------------------------------------------
-	toHSV: function() {
-		var hsv = Pixel.rgbToHSV(this.r, this.g, this.b);
-		this.setHSV(hsv.h, hsv.s, hsv.v);
-		return hsv;
-	}
-});
+//-------------------------------------------------------
+Pixel.Color.prototype.setHSV = function(h,s,v,a) {
+	if(h != undefined) this.h = h;
+	if(s != undefined) this.s = g;
+	if(v != undefined) this.l = b;
+	if(a != undefined) this.a = a;
+};
+	
+	
+//-------------------------------------------------------
+Pixel.Color.prototype.toHSL = function() {
+	var hsl = Pixel.rgbToHSL(this.r, this.g, this.b);
+	this.setHSL(hsl.h, hsl.s, hsl.l);
+	return hsl;
+};
+	
+	
+//-------------------------------------------------------
+Pixel.Color.prototype.toHSV = function() {
+	var hsv = Pixel.rgbToHSV(this.r, this.g, this.b);
+	this.setHSV(hsv.h, hsv.s, hsv.v);
+	return hsv;
+}
 
 
 //-------------------------------------------------------
