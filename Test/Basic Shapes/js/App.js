@@ -1,35 +1,61 @@
 $(document).ready(function() {
 	var App = new Pixel.App();
-	App.setBackgroundColor(255,0,0);
-	
-	var r = new Pixel.RectShape();
-	r.fillColor.set(255,0,255);
-	r.width		= 50;
-	r.height	= 50;
+	App.setSize(1000,400);
+	App.setBackgroundColor(0,0,0);
 	
 	
-	App.addChild(r);
-	console.log(App.canvas);
 	
-	var x = Math.random() * App.getWidth(),
-		xSpeed = 1,
-		y = Math.random() * App.getHeight(),
-		ySpeed = 1,
-		size = 50;
+/*
+	for(var i=0;i<1000; i++) {
+		var r = new Pixel.RectShape();
+		r.pos.set(Math.random()*900, Math.random()*300, 0);
+		r.width=100;
+		r.height=100;
+		r.fillColor.set(255,255,255,0.005);
+		App.addChild(r);
+	}
+*/
+	
+	var rect = new Pixel.RectShape();
+	var rectSpeed = new Pixel.Point();
+	rectSpeed.set(1, 1, 0);
+	rect.pos.set(Math.random() * App.getWidth(), Math.random() * App.getHeight(), 0);
+	rect.width	= 50;
+	rect.height	= 50;
+	rect.alignment = Pixel.ALIGNMENT_CENTER_CENTER;
+	rect.fillColor.set(0, 0, 100);
+	rect.strokeSize = 2;
+	rect.strokeColor.set(255,0,0);
+	
+	var circle = new Pixel.OvalShape();
+	var circleSpeed = new Pixel.Point();
+	circleSpeed.set(5, 5, 0);
+	circle.pos.set(Math.random() * App.getWidth(), Math.random() * App.getHeight(), 0);
+	circle.width	= 25;
+	circle.height	= 25;
+	circle.fillColor.set(0, 255, 255);
+	
+	App.addChild(rect);
+	App.addChild(circle);
+		
+	App.update = function() {
+		if(rect.pos.x > (App.getWidth()		- rect.width )	|| rect.pos.x < rect.width/2 ) rectSpeed.x *= -1;
+		if(rect.pos.y > (App.getHeight()	- rect.height ) || rect.pos.y < rect.height/2 ) rectSpeed.y *= -1;
+		
+		rect.pos.x		+= rectSpeed.x;
+		rect.pos.y		+= rectSpeed.y;
+		rect.rotation	+= rectSpeed.x;
 		
 		
-	
-	r.update = function() {
-		x += xSpeed;
-		y += ySpeed;
 		
-		if(x > App.getWidth()	- size || x<0) xSpeed *= -1;
-		if(y > App.getHeight()	- size || y<0) ySpeed *= -1;
+		if(circle.pos.x > (App.getWidth()	- circle.width ) || circle.pos.x  < circle.width/2) circleSpeed.x *= -1;
+		if(circle.pos.y > (App.getHeight()	- circle.height ) || circle.pos.y < circle.height/2) circleSpeed.y *= -1;
 		
-		r.pos.x = x;
-		r.pos.y = y;
+		circle.pos.x	+= circleSpeed.x;
+		circle.pos.y	+= circleSpeed.y;
 	}
 	
+/*
 	App.draw = function() {
 		App.setFillColor(255,0,255);
 		App.pushMatrix();
@@ -38,6 +64,7 @@ $(document).ready(function() {
 		App.drawSquare(-size/2,-size/2,size);
 		App.popMatrix();
 	}
+*/
 	
 	
 	$(document.body).append(App.element);
@@ -49,7 +76,5 @@ $(document).ready(function() {
 		} else {
 			App.start();
 		}
-	}); 
-	
-	var v = Vector.create([4,8,0]);
+	});
 });

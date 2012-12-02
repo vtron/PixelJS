@@ -2,12 +2,12 @@
 //Pixel.Color.js
 
 //Color class
-Pixel.Color = function() {
-	this.r = 0.0;
-	this.g = 0.0;
-	this.b = 0.0;
-	this.a = 1.0;
-		
+Pixel.Color = function(r,g,b,a) {
+	this.r = r || 0.0;
+	this.g = g || 0.0;
+	this.b = b || 0.0;
+	this.a = a || 1.0;
+	
 	this.h = 0.0;
 	this.s = 0.0;
 	this.l = 0.0;
@@ -21,11 +21,6 @@ Pixel.Color.prototype.init = function(r,g,b,a) {
 	this.g = g || 0.0;
 	this.b = b || 0.0;
 	this.a = a || 1.0;
-	
-	this.h = 0.0;
-	this.s = 0.0;
-	this.l = 0.0;
-	this.v = 0.0;
 };
 	
 

@@ -37,37 +37,37 @@ Pixel.RENDERER_2D		= 0;
 Pixel.RENDERER_WEBGL	= 1;
 
 //Line Cap
-Pixel.LINE_CAP_NORMAL	= "butt";
-Pixel.LINE_CAP_ROUND	= "round";
-Pixel.LINE_CAP_SQUARE	= "square";
+Pixel.LINE_CAP_NORMAL			= 0,
+Pixel.LINE_CAP_ROUND			= 1,
+Pixel.LINE_CAP_SQUARE			= 2;
 
 //Font Alignment
-Pixel.TEXT_ALIGN_LEFT	= "left";
-Pixel.TEXT_ALIGN_CENTER = "center";
-Pixel.TEXT_ALIGN_RIGHT	= "right";
+Pixel.TEXT_ALIGN_LEFT			= 0,
+Pixel.TEXT_ALIGN_CENTER			= 1,
+Pixel.TEXT_ALIGN_RIGHT			= 2;
 
 //Font Baseline
-Pixel.TEXT_BASELINE_TOP			= "top";
-Pixel.TEXT_BASELINE_HANGING		= "hanging";
-Pixel.TEXT_BASELINE_MIDDLE		= "middle";
-Pixel.TEXT_BASELINE_BOTTOM		= "bottom";
+Pixel.TEXT_BASELINE_TOP			= 0,
+Pixel.TEXT_BASELINE_HANGING		= 1,
+Pixel.TEXT_BASELINE_MIDDLE		= 2,
+Pixel.TEXT_BASELINE_BOTTOM		= 3;
 
 //Object SHape
-Pixel.OBJECT_SHAPE_RECT		= 0;
-Pixel.OBJECT_SHAPE_CIRCLE	= 1;
+Pixel.OBJECT_SHAPE_RECT			= 0,
+Pixel.OBJECT_SHAPE_CIRCLE		= 1;
 
 //Object Origins
-Pixel.ORIGIN_TOP_LEFT		= 0;
-Pixel.ORIGIN_CENTER_LEFT	= 1;
-Pixel.ORIGIN_BOTTOM_LEFT	= 2;
+Pixel.ALIGNMENT_TOP_LEFT		= 0,
+Pixel.ALIGNMENT_CENTER_LEFT		= 1,
+Pixel.ALIGNMENT_BOTTOM_LEFT		= 2;
 
-Pixel.ORIGIN_TOP_RIGHT		= 3;
-Pixel.ORIGIN_CENTER_RIGHT	= 4;
-Pixel.ORIGIN_BOTTOM_RIGHT	= 5;
+Pixel.ALIGNMENT_TOP_RIGHT		= 3,
+Pixel.ALIGNMENT_CENTER_RIGHT	= 4,
+Pixel.ALIGNMENT_BOTTOM_RIGHT	= 5,
 
-Pixel.ORIGIN_TOP_CENTER		= 6;
-Pixel.ORIGIN_BOTTOM_CENTER	= 7;
-Pixel.ORIGIN_CENTER			= 8;
+Pixel.ALIGNMENT_TOP_CENTER		= 6,
+Pixel.ALIGNMENT_BOTTOM_CENTER	= 7,
+Pixel.ALIGNMENT_CENTER			= 8;
 
 //Tween Types
 /*
@@ -165,82 +165,6 @@ Pixel.getRelativeMouseCoords = function(event, element){
     
     return {x:canvasX, y:canvasY}
 }//-------------------------------------------------------
-//Pixel.Math.js
-//Various classes and functions that make math easier
-
-Pixel.Rectangle = function() {
-	this.x = 0;
-	this.y = 0;
-	this.width = 0;
-	this.height = 0;
-		
-	this.set(x,y,width,height);
-}
-/*
-
-Pixel.Rectangle.prototype.init = function(x,y,width,height) {
-	this.x = 0;
-	this.y = 0;
-	this.width = 0;
-	this.height = 0;
-	
-	this.set(x,y,width,height);
-}
-
-
-//-------------------------------------------------------
-Pixel.Rectangle.prototype.initialize = function(x,y,width,height) { 
-	this.set(x,y,width,height);
-}
-
-
-//-------------------------------------------------------
-Pixel.Rectangle.prototype.set = function(x,y,width,height) {
-	this.setPos(x,y);
-	this.setSize(width,height);
-}
-
-
-//-------------------------------------------------------
-Pixel.Rectangle.prototype.setPos = function(x,y) {
-	if(Pixel.isSet(x)) this.x = x;
-	if(Pixel.isSet(y)) this.y = y;
-}
-
-
-//-------------------------------------------------------
-Pixel.Rectangle.prototype.setSize = function(width,height) {
-	this.width	= width;
-	this.height = height;
-}
-
-
-//-------------------------------------------------------
-Pixel.Rectangle.prototype.getPos = function() {
-	return {
-		x:this.x,
-		y:this.y
-	};
-}
-
-
-//-------------------------------------------------------
-Pixel.Rectangle.prototype.getSize = function() {
-	return {
-		width:this.width,
-		height:this.height
-	}
-}
-
-
-//-------------------------------------------------------
-Pixel.Rectangle.prototype.isInside = function(x,y) {
-	return (x > this.x) && (x < this.x + this.width) && (y > this.y) && (y < this.y + this.height);
-}
-*/
-
-
-//-------------------------------------------------------
 //Utils
 //Various classes and functions that make math easier
 Pixel.Math = new Object;
@@ -301,241 +225,321 @@ Pixel.Point = function(x,y,z) {
 	this.x = x || 0.0;
 	this.y = y || 0.0;
 	this.z = z || 0.0;
+}
+
+Pixel.Point.prototype.set = function(x,y,z) {
+	this.x = x || 0.0;
+	this.y = y || 0.0;
+	this.z = z || 0.0;
+}//-------------------------------------------------------
+//Pixel.Math.js
+//Various classes and functions that make math easier
+
+Pixel.Rect = function(x,y,width,height) {
+	this.x = 0;
+	this.y = 0;
+	this.width = 0;
+	this.height = 0;
+		
+	this.set(x,y,width,height);
+}
+
+
+//-------------------------------------------------------
+Pixel.Rect.prototype.set = function(x,y,width,height) {
+	this.setPos(x,y);
+	this.setSize(width,height);
+}
+
+
+//-------------------------------------------------------
+Pixel.Rect.prototype.setPos = function(x,y) {
+	if(Pixel.isSet(x)) this.x = x;
+	if(Pixel.isSet(y)) this.y = y;
+}
+
+
+//-------------------------------------------------------
+Pixel.Rect.prototype.setSize = function(width,height) {
+	this.width	= width;
+	this.height = height;
+}
+
+
+//-------------------------------------------------------
+Pixel.Rect.prototype.getPos = function() {
+	return {
+		x:this.x,
+		y:this.y
+	};
+}
+
+
+//-------------------------------------------------------
+Pixel.Rect.prototype.getSize = function() {
+	return {
+		width:this.width,
+		height:this.height
+	}
+}
+
+//-------------------------------------------------------
+//Takes poPoint or x,y coordinate
+Pixel.Rect.prototype.pointInside = function(x,y) {
+	if(y != undefined) {
+		return (x > this.x) && (x < this.x + this.width) && (y > this.y) && (y < this.y + this.height);
+	} else {
+		return (x.x > this.x) && (x.x < this.x + this.width) && (x.y > this.y) && (x.y < this.y + this.height);
+	}
+}
+
+//-------------------------------------------------------
+Pixel.Rect.prototype.include = function(rect) {
+	if(rect.x < this.x) this.x = rect.x;
+	if(rect.y < this.y) this.y = rect.y;
+	
+	if(rect.x + rect.width	> this.width)	this.width	= rect.x + rect.width;
+	if(rect.y + rect.height > this.height)	this.height = rect.y + rect.height;
 }//-------------------------------------------------------
 //-------------------------------------------------------
 //Main Object
-//(function () {
-	Pixel.Object = function() {
-		this.canvas = null;
-		
-		this.width	= 0;
-		this.height = 0;
-		
-		this.pos = new Pixel.Point(0,0,0);
-		
-		this.visible = true;
-		
-		this.parent   = null;
-		this.children = [];
-	}
+Pixel.Object = function() {
+	this.canvas = null;
 	
-	//-------------------------------------------------------
-	Pixel.Object.prototype.update = function() {
-		for(var i=0; i<this.children.length; i++) {
-			this.children[i].update();
-		}
-	}
+	this.name	= "";
 	
-	//-------------------------------------------------------
-	Pixel.Object.prototype.draw = function() {
-		for(var i=0; i<this.children.length; i++) {
-			this.children[i].draw();
-		}
-		
-		this.canvas.popMatrix();
-	}
+	this.pos		= new Pixel.Point(0,0,0);
+	this.offset		= new Pixel.Point(0,0,0);
 	
-	//-------------------------------------------------------
-	Pixel.Object.prototype.addChild = function(childObject) {
-		if(childObject.parent != null) {
-			childObject.parent.removeChild(childObject);
-		}
-		
-		childObject.parent = this;
-		childObject.canvas = this.canvas;
-		
-		this.children.push(childObject);
-	}
+	this.rotation	= 0;
+	//this.scale		= new Pixel.Point(1,1,0);
+	this.alignment	= Pixel.ALIGNMENT_TOP_LEFT;
 	
-	//-------------------------------------------------------
-	Pixel.Object.prototype.removeChild = function(childObject) {
-		var i = this.children.length;
-		while(i--) {
-			if(this.children[i] == childObject) {
-				childObject.parent = null;
-				childObject.canvas = null;
-				this.children.splice(i, 1);
-				return;
-			}
-		}
-	}
+	this.visible = true;
 	
-	//-------------------------------------------------------
-	Pixel.Object.prototype.eventHandler = function(event) {
-	}
-	
-	
-	//-------------------------------------------------------
-	Pixel.Object.prototype.messageHandler = function(msg) {
-	}
-//})();
+	this.parent   = null;
+	this.children = [];
+}
 
-/*
-
-Pixel.Object = Pixel.EventDispatcher.extend({
-	init: function() {
-		this.bInitPressed = false;
-		this.bPressed = false;
-		this.width = 0;
-		this.height = 0;
-		
-		this.pos = {
-			x:0,
-			y:0
-		};
-		
-		this.radius = 0;
-		
-		this.shapeMode = Pixel.OBJECT_SHAPE_RECT;
-		
-		this.rect = new Pixel.Rectangle();
-		
-		this._super();
-	},
-	
-	
-	//-------------------------------------------------------
-	show: function() {
-	
-	},
-	
-	
-	//-------------------------------------------------------
-	hide: function() {
-	},
-	
-	
-	//-------------------------------------------------------
-	setPos: function(x,y) {
-		if(Pixel.isSet(x)) this.pos.x = x;
-		if(Pixel.isSet(y)) this.pos.y = y;
-		
-		this.setRect();
-	},
-	
-	
-	//-------------------------------------------------------
-	getPos: function() {
-		return this.pos;
-	},
-	
-	
-	//-------------------------------------------------------
-	setSize: function(width, height) {
-		if(Pixel.isSet(width))	this.width	= width;
-		if(Pixel.isSet(height)) this.height = height;
-		
-		this.setRect();
-	},
-	
-	
-	//-------------------------------------------------------
-	//Set Rect, for touches, can be overridden for cases like textfields (alignment + baseline issues)
-	setRect: function() {
-		this.rect.set(this.pos.x, this.pos.y, this.width, this.height);
-	},
-	
-	
-	//-------------------------------------------------------
-	getRect: function() {
-		return this.rect;
-	},
-	
-	
-	//-------------------------------------------------------
-	getWidth: function() {
-		return this.width;
-	},
-	
-	
-	//-------------------------------------------------------
-	getHeight: function() {
-		return this.height
-	},
-	
-	
-	//-------------------------------------------------------
-	setShapeMode: function(shapeMode) {
-		this.shapeMode = shapeMode;
-	},
-	
-	//-------------------------------------------------------
-	//Event Listeners
-	
-	//-------------------------------------------------------
-	isPressed: function() {
-		return this.bPressed;
-	},
-	
-	
-	//-------------------------------------------------------
-	touchStart: function(touch) {
-		this.setRect(this.pos.x, this.pos.y, this.width, this.height);
-		
-		//Touch Detection
-		switch(this.shapeMode) {
-			case Pixel.OBJECT_SHAPE_RECT:
-				this.bInitPressed = (this.rect.isInside(touch.x,touch.y));
-				break;
-			case Pixel.OBJECT_SHAPE_CIRCLE:
-				this.bInitPressed = Pixel.dist(this.pos.x, this.pos.y, touch.x, touch.y) < this.radius * 2;
-				break;
-			default:
-				break;
-		}
-		
-		this.bPressed = this.bInitPressed;
-		return this.bPressed;
-	},
-	
-	
-	//-------------------------------------------------------
-	touchMoved: function(touch) {
-		if(this.bInitPressed) {
-			switch(this.shapeMode) {
-				case Pixel.OBJECT_SHAPE_RECT:
-					this.bPressed	= (this.rect.isInside(touch.x,touch.y));
-					break;
-				case Pixel.OBJECT_SHAPE_CIRCLE:
-					this.bPressed = Pixel.dist(this.pos.x, this.pos.y, touch.x, touch.y) < this.radius * 2;
-					break;
-				default:
-					break;
-			}
-		}
-		
-		return this.bPressed;
-	},
-	
-	
-	//-------------------------------------------------------
-	touchEnd: function(touch) {
-		this.bInitPressed = this.bPressed = false;
-		return this.bPressed;
+//-------------------------------------------------------
+Pixel.Object.prototype.update = function() {
+	for(var i=0; i<this.children.length; i++) {
+		this.children[i].update();
 	}
-});
-*///-------------------------------------------------------
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.draw = function() {
+	this.canvas.pushMatrix();
+	this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
+	//this.canvas.scale(this.scale.x, this.scale.y);
+	
+	
+	for(var i=0; i<this.children.length; i++) {
+		this.children[i].draw();
+	}
+	
+	this.canvas.popMatrix();
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.addChild = function(childObject) {
+	if(childObject.parent != null) {
+		childObject.parent.removeChild(childObject);
+	}
+	
+	childObject.parent = this;
+	childObject.canvas = this.canvas;
+	
+	this.children.push(childObject);
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.removeChild = function(childObject) {
+	var i = this.children.length;
+	while(i--) {
+		if(this.children[i] == childObject) {
+			childObject.parent = null;
+			childObject.canvas = null;
+			this.children.splice(i, 1);
+			return;
+		}
+	}
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.getWidth = function() {
+	return this.getBounds.width;
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.getHeight = function() {
+	return this.getBounds.height;
+}
+
+//-------------------------------------------------------
+//Needs to be implmented
+Pixel.Object.prototype.getBounds = function() {
+	return new Pixel.Rect();
+}
+
+//-------------------------------------------------------
+//Returns poPoint
+Pixel.Object.prototype.calculateOffset = function() {
+	switch(this.alignment) {
+		case Pixel.ALIGNMENT_TOP_LEFT:
+			this.offset.set(0, 0);
+			break;
+		
+		case Pixel.ALIGNMENT_CENTER_LEFT:
+			this.offset.set(0, -this.height/2);
+			break;
+		
+		case Pixel.ALIGNMENT_BOTTOM_LEFT:
+			this.offset.set(0, -this.height);
+			break;
+		
+		case Pixel.ALIGNMENT_TOP_RIGHT:
+			this.offset.set(-this.width, 0);
+			break;
+		
+		case Pixel.ALIGNMENT_CENTER_RIGHT:
+			this.offset.set(-this.width, -this.height/2);
+			break;
+		
+		case Pixel.ALIGNMENT_BOTTOM_RIGHT:
+			this.offset.set(-this.width, -this.height);
+			break;
+		
+		case Pixel.ALIGNMENT_TOP_CENTER:
+			this.offset.set(-this.width/2, 0);
+			break;
+		
+		case Pixel.ALIGNMENT_BOTTOM_CENTER:
+			this.offset.set(-this.width/2, -this.height);
+			break;
+		
+		case Pixel.ALIGNMENT_CENTER_CENTER:
+			this.offset.set(-this.width/2, -this.height/2);
+			break;
+	}
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.eventHandler = function(event) {
+}
+
+
+//-------------------------------------------------------
+Pixel.Object.prototype.messageHandler = function(msg) {
+}//-------------------------------------------------------
 //-------------------------------------------------------
 //Shape2D
 
 Pixel.Shape2D = function() {
 	Pixel.Object.call(this);
 	
-	this.fillColor		= new Pixel.Color();
-	this.fillColor.init(255,255,255);
-	console.log(this.fillColor);
-	this.bFill			= false;
+	this.width	= 0;
+	this.height = 0;
 	
-	this.strokeColor	= new Pixel.Color();
-	this.strokeSize		= 1;
-	this.bStroke		= false;
+	this.fillColor			= new Pixel.Color(255,255,255);
+	this._fillEnabled		= false;
+	
+	this.strokeColor		= new Pixel.Color();
+	this.strokeSize			= 1;
+	this._strokeEnabled		= false;
 }
 
 Pixel.Shape2D.prototype = Object.create(Pixel.Object.prototype);
 
+
+//-------------------------------------------------------
+//Fill
+
+//-------------------------------------------------------
+Pixel.Shape2D.prototype.enableFill = function() {
+	this._fillEnabled = true;
+}
+
+//-------------------------------------------------------
+Pixel.Shape2D.prototype.disableStroke = function() {
+	this._fillEnabled = false;
+}
+
+//-------------------------------------------------------
+//Stroke
+
+//-------------------------------------------------------
 Pixel.Shape2D.prototype.setStrokeSize = function(size) {
 	this.strokeSize = size;
 }
+
+//-------------------------------------------------------
+Pixel.Shape2D.prototype.enableStroke = function() {
+	this._strokeEnabled = true;
+}
+
+//-------------------------------------------------------
+Pixel.Shape2D.prototype.disableStroke = function() {
+	this._strokeEnabled = false;
+}
+
+//-------------------------------------------------------
+Pixel.Shape2D.prototype.setStrokeSize = function(size) {
+	this.strokeSize = size;
+}
+
+//-------------------------------------------------------
+//Width
+
+//-------------------------------------------------------
+Pixel.Shape2D.prototype.setWidth = function(width) {
+	this.width = width;
+	return this;
+}
+
+
+//-------------------------------------------------------
+Pixel.Shape2D.prototype.getWidth = function() {
+	return this.width;
+}
+
+//-------------------------------------------------------
+//Height
+
+
+//-------------------------------------------------------
+Pixel.Shape2D.prototype.setHeight = function() {
+	this.height = height;
+	return this;
+}
+
+
+//-------------------------------------------------------
+Pixel.Shape2D.prototype.getHeight = function() {
+	return this.height;
+}
+
+//-------------------------------------------------------
+//Size/Bounds
+
+//-------------------------------------------------------
+Pixel.Shape2D.prototype.getSize = function() {
+	var size = {
+		width:this.width,
+		heigiht:this.height
+	}
+	
+	return size;
+}
+
+//-------------------------------------------------------
+Pixel.Shape2D.prototype.getBounds = function() {
+	return new Pixel.Rect(this.pos.x, this.pos.y, this.width, this.height);
+}
+
+
+
 
 //-------------------------------------------------------
 //-------------------------------------------------------
@@ -547,10 +551,57 @@ Pixel.RectShape = function() {
 
 Pixel.RectShape.prototype = Object.create(Pixel.Shape2D.prototype);
 
+
+//-------------------------------------------------------
 Pixel.RectShape.prototype.draw = function() {
 	if(this.canvas) {
+		this.canvas.pushMatrix();
+		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
+		this.canvas.rotate(this.rotation);
+		
 		this.canvas.setFillColor(this.fillColor);
-		this.canvas.drawRect(this.pos.x, this.pos.y, this.width, this.height);
+		this.canvas.setStrokeSize(this.strokeSize);
+		this.canvas.setStrokeColor(this.strokeColor);
+		
+		this.calculateOffset();
+		this.canvas.drawRect(this.offset.x, this.offset.y, this.width, this.height);
+		
+		this.canvas.popMatrix();
+	}
+}
+
+
+//-------------------------------------------------------
+//-------------------------------------------------------
+//OvalShape
+
+Pixel.OvalShape = function() {
+	Pixel.Shape2D.call(this);
+}
+
+Pixel.OvalShape.prototype = Object.create(Pixel.Shape2D.prototype);
+
+
+//-------------------------------------------------------
+Pixel.OvalShape.prototype.draw = function() {
+	if(this.canvas) {		
+		this.canvas.setFillColor(this.fillColor);
+		this.canvas.setStrokeSize(this.strokeSize);
+		this.canvas.setStrokeColor(this.strokeColor);
+		
+		this.calculateOffset();
+		
+		this.canvas.pushMatrix();
+		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
+		this.canvas.rotate(this.rotation);
+		
+		if(this.width == this.height) {
+			this.canvas.drawCircle(this.offset.x, this.offset.y, this.width);
+		} else {	
+			this.canvas.drawEllipse(this.offset.x, this.offset.y, this.width, this.height);
+		}
+		
+		this.canvas.popMatrix();
 	}
 }//-------------------------------------------------------
 //Pixel.Canvas.js
@@ -689,8 +740,13 @@ Pixel.Canvas.prototype.noFill = function() {
 
 
 //-------------------------------------------------------
+//Accepts a Pixel.Color object or r,g,b,a
 Pixel.Canvas.prototype.setStrokeColor = function(r,g,b,a) {
-	this.renderer.setStrokeColor(r,g,b,a);
+	if(g != undefined) {
+		this.renderer.setStrokeColor(r,g,b,a);
+	} else {
+		this.renderer.setStrokeColor(r.r, r.g, r.b, r.a);
+	}
 };
 
 //-------------------------------------------------------
@@ -701,7 +757,11 @@ Pixel.Canvas.prototype.noStroke = function() {
 
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setStrokeSize = function(size) {
-	this.renderer.setStrokeSize(size);
+	if(size) {
+		this.renderer.setStrokeSize(size);
+	} else {
+		this.renderer.noStroke();
+	}
 };
 
 //-------------------------------------------------------
@@ -1500,8 +1560,8 @@ Pixel.Renderer2D.prototype.drawEllipse = function(x,y,width,height) {
   this.ctx.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
   this.ctx.closePath();
   
-  if(this.bStroke) this.ctx.stroke();
-  if(this.bFill) this.ctx.fill();
+  if(this.bStroke)	this.ctx.stroke();
+  if(this.bFill)	this.ctx.fill();
 };
 
 
@@ -1613,12 +1673,12 @@ Pixel.Renderer2D.prototype.drawTextfield = function(tf) {
 //Pixel.Color.js
 
 //Color class
-Pixel.Color = function() {
-	this.r = 0.0;
-	this.g = 0.0;
-	this.b = 0.0;
-	this.a = 1.0;
-		
+Pixel.Color = function(r,g,b,a) {
+	this.r = r || 0.0;
+	this.g = g || 0.0;
+	this.b = b || 0.0;
+	this.a = a || 1.0;
+	
 	this.h = 0.0;
 	this.s = 0.0;
 	this.l = 0.0;
@@ -1632,11 +1692,6 @@ Pixel.Color.prototype.init = function(r,g,b,a) {
 	this.g = g || 0.0;
 	this.b = b || 0.0;
 	this.a = a || 1.0;
-	
-	this.h = 0.0;
-	this.s = 0.0;
-	this.l = 0.0;
-	this.v = 0.0;
 };
 	
 

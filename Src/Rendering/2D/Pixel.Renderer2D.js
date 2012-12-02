@@ -318,8 +318,8 @@ Pixel.Renderer2D.prototype.drawEllipse = function(x,y,width,height) {
   this.ctx.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
   this.ctx.closePath();
   
-  if(this.bStroke) this.ctx.stroke();
-  if(this.bFill) this.ctx.fill();
+  if(this.bStroke)	this.ctx.stroke();
+  if(this.bFill)	this.ctx.fill();
 };
 
 

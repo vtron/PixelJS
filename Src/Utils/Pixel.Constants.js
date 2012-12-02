@@ -14,37 +14,37 @@ Pixel.RENDERER_2D		= 0;
 Pixel.RENDERER_WEBGL	= 1;
 
 //Line Cap
-Pixel.LINE_CAP_NORMAL	= "butt";
-Pixel.LINE_CAP_ROUND	= "round";
-Pixel.LINE_CAP_SQUARE	= "square";
+Pixel.LINE_CAP_NORMAL			= 0,
+Pixel.LINE_CAP_ROUND			= 1,
+Pixel.LINE_CAP_SQUARE			= 2;
 
 //Font Alignment
-Pixel.TEXT_ALIGN_LEFT	= "left";
-Pixel.TEXT_ALIGN_CENTER = "center";
-Pixel.TEXT_ALIGN_RIGHT	= "right";
+Pixel.TEXT_ALIGN_LEFT			= 0,
+Pixel.TEXT_ALIGN_CENTER			= 1,
+Pixel.TEXT_ALIGN_RIGHT			= 2;
 
 //Font Baseline
-Pixel.TEXT_BASELINE_TOP			= "top";
-Pixel.TEXT_BASELINE_HANGING		= "hanging";
-Pixel.TEXT_BASELINE_MIDDLE		= "middle";
-Pixel.TEXT_BASELINE_BOTTOM		= "bottom";
+Pixel.TEXT_BASELINE_TOP			= 0,
+Pixel.TEXT_BASELINE_HANGING		= 1,
+Pixel.TEXT_BASELINE_MIDDLE		= 2,
+Pixel.TEXT_BASELINE_BOTTOM		= 3;
 
 //Object SHape
-Pixel.OBJECT_SHAPE_RECT		= 0;
-Pixel.OBJECT_SHAPE_CIRCLE	= 1;
+Pixel.OBJECT_SHAPE_RECT			= 0,
+Pixel.OBJECT_SHAPE_CIRCLE		= 1;
 
 //Object Origins
-Pixel.ORIGIN_TOP_LEFT		= 0;
-Pixel.ORIGIN_CENTER_LEFT	= 1;
-Pixel.ORIGIN_BOTTOM_LEFT	= 2;
+Pixel.ALIGNMENT_TOP_LEFT		= 0,
+Pixel.ALIGNMENT_CENTER_LEFT		= 1,
+Pixel.ALIGNMENT_BOTTOM_LEFT		= 2;
 
-Pixel.ORIGIN_TOP_RIGHT		= 3;
-Pixel.ORIGIN_CENTER_RIGHT	= 4;
-Pixel.ORIGIN_BOTTOM_RIGHT	= 5;
+Pixel.ALIGNMENT_TOP_RIGHT		= 3,
+Pixel.ALIGNMENT_CENTER_RIGHT	= 4,
+Pixel.ALIGNMENT_BOTTOM_RIGHT	= 5,
 
-Pixel.ORIGIN_TOP_CENTER		= 6;
-Pixel.ORIGIN_BOTTOM_CENTER	= 7;
-Pixel.ORIGIN_CENTER			= 8;
+Pixel.ALIGNMENT_TOP_CENTER		= 6,
+Pixel.ALIGNMENT_BOTTOM_CENTER	= 7,
+Pixel.ALIGNMENT_CENTER			= 8;
 
 //Tween Types
 /*

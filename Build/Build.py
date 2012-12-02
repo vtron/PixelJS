@@ -28,11 +28,12 @@ files.append(src + "Utils/Pixel.Constants.js")
 files.append(src + "Utils/Pixel.Utils.js")
 files.append(src + "Utils/Pixel.Math.js")
 files.append(src + "Utils/Pixel.Point.js")
+files.append(src + "Utils/Pixel.Rect.js")
 #files.append(src + "Utils/Pixel.EventDispatcher.js")
 
 #Objects
 files.append(src + "Objects/Pixel.Object.js")
-files.append(src + "Objects/Pixel.Shape2D.js")
+files.append(src + "Objects/Pixel.Shapes2D.js")
 
 #Canvas
 files.append(src + "Canvas/Pixel.Canvas.js")

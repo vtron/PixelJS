@@ -135,8 +135,13 @@ Pixel.Canvas.prototype.noFill = function() {
 
 
 //-------------------------------------------------------
+//Accepts a Pixel.Color object or r,g,b,a
 Pixel.Canvas.prototype.setStrokeColor = function(r,g,b,a) {
-	this.renderer.setStrokeColor(r,g,b,a);
+	if(g != undefined) {
+		this.renderer.setStrokeColor(r,g,b,a);
+	} else {
+		this.renderer.setStrokeColor(r.r, r.g, r.b, r.a);
+	}
 };
 
 //-------------------------------------------------------
@@ -147,7 +152,11 @@ Pixel.Canvas.prototype.noStroke = function() {
 
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setStrokeSize = function(size) {
-	this.renderer.setStrokeSize(size);
+	if(size) {
+		this.renderer.setStrokeSize(size);
+	} else {
+		this.renderer.noStroke();
+	}
 };
 
 //-------------------------------------------------------
