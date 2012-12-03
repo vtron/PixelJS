@@ -46,8 +46,6 @@ $(document).ready(function() {
 		rect.pos.y		+= rectSpeed.y;
 		rect.rotation	+= rectSpeed.x;
 		
-		
-		
 		if(circle.pos.x > (App.getWidth()	- circle.width ) || circle.pos.x  < circle.width/2) circleSpeed.x *= -1;
 		if(circle.pos.y > (App.getHeight()	- circle.height ) || circle.pos.y < circle.height/2) circleSpeed.y *= -1;
 		
@@ -70,11 +68,23 @@ $(document).ready(function() {
 	$(document.body).append(App.element);
 	App.start();
 	
+	var b = false;
 	$(document).on("click", function() {
+		if(b) {
+			b = false;
+			App.moveChildForward(rect);
+			console.log("fart");
+		} else {
+			App.moveChildBackward(rect);
+			b = true;
+			console.log("No Fart");
+		}
+/*
 		if(App.isRunning()) {
 			App.stop();
 		} else {
 			App.start();
 		}
+*/
 	});
 });
