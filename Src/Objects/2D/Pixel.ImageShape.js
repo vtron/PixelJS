@@ -7,34 +7,64 @@ Pixel.ImageShape = function() {
 	this.image = null;
 }
 
-Pixel.ImageShape.prototype = Object.create(Pixel.ImageShape.prototype);
+Pixel.ImageShape.prototype = Object.create(Pixel.Shape2D.prototype);
 
 
 //-------------------------------------------------------
-Pixel.ImageShape.prototype.load(image) = function() {
-	if(image instanceOf Pixel.Canvas) {
+Pixel.ImageShape.prototype.load = function(image) {
+	if(image instanceof Pixel.Canvas) {
 		//Load from existing Pixel Canvas
 		this.image = image.element;
 	} 
 	
-	else if(image instanceOf Canvas || image instanceof Image) {
+	else if(image.tagName == "canvas" || image instanceof Image) {
 		//Just keep a reference if it is already loaded
 		this.image = image;
+		//this.width = this.image.width;
+		//this.height	= this.image.height;
 	}
 	
-	else if(image instanceof String) {
+	else if(typeof(image) ==  "string") {
 		//If its a string, we need to load the image with a callback
 		this.image = new Image();
+		
+		//Add load listener to set default widht/height of image
+		var self = this;
+		this.image.onload = function() {
+			//If the image width/height arent' set or are 0,
+			//Use the value from the image
+			if(self.width == 0 || this.height == 0) {			
+				self.width		= this.width;
+				self.height		= this.height;
+			}
+		}
+		
 		this.image.src = image;
 	}
 }
 
 //-------------------------------------------------------
-Pixel.ImageShape.prototype.draw() = function() {
-	if(this.
+Pixel.ImageShape.prototype.draw = function() {
+	if(this.canvas) {
+		//Make sure image isn't null
+		if(this.image == null) return;
+		
+		//If its a JS Image Obj, make sure it is loaded
+		if((typeof(this.image) == "image") && (this.image.complete == false)) return;
+		
+		//Otherwise, draw it
+		this.canvas.pushMatrix();
+		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
+		this.canvas.rotate(this.rotation);
+
+		this.calculateOffset();
+		this.canvas.drawImage(this.image, this.offset.x, this.offset.y, this.width, this.height);
+		
+		this.canvas.popMatrix();
+	}
 }
 
-
+/*
 Pixel.Image = Pixel.Object.extend({
 	init: function(url) {
 		this._super();
@@ -156,4 +186,4 @@ Pixel.Image = Pixel.Object.extend({
 		
 		this.image.src = this.canvas.toDataURL("image/png");
 	}
-});
+});*/

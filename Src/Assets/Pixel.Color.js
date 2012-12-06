@@ -76,9 +76,42 @@ Pixel.Color.prototype.toHSV = function() {
 	return hsv;
 }
 
+//-------------------------------------------------------
+//Returns color as rgba(r,g,b,a) string
+Pixel.Color.prototype.toRGBAString = function(r,g,b,a) {
+	r = Math.round(r);
+	g = Math.round(g);
+	b = Math.round(b);
+	
+	return Pixel.getColorAsRGBAString(r,g,b,a);
+};
+
 
 //-------------------------------------------------------
 //Color Utils
+
+//-------------------------------------------------------
+//Returns color as rgba(r,g,b,a) string
+Pixel.getColorAsRGBAString = function(r,g,b,a) {
+	r = Math.round(r);
+	g = Math.round(g);
+	b = Math.round(b);
+
+	//Set using color Object if only first var is combined (ghetto overloading?)
+	if(g==undefined) {
+		return "rgba(" + r.r + "," + r.g + "," + r.b + "," + r.a + ")";
+	} 
+		
+	//RGB
+	if(a==undefined) {
+		return "rgba(" + r + "," + g + "," + b + ",255)";
+	} 
+	
+	//RGBA
+	return "rgba(" + r + "," + g + "," + b + "," + a + ")";
+};
+
+
 
 //-------------------------------------------------------
 //From http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript

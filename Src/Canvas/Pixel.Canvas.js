@@ -43,7 +43,7 @@ Pixel.Canvas = function(renderer) {
 Pixel.Canvas.prototype = Object.create(Pixel.Object.prototype);
 
 //-------------------------------------------------------
-//Size Info
+// !Size Info
 
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setSize = function(width,height) {
@@ -73,7 +73,7 @@ Pixel.Canvas.prototype.getHeight = function() {
 
 
 //-------------------------------------------------------
-//Cursor
+// !Cursor
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setCursor = function(x,y) {
 	this.cursorX = x;
@@ -82,7 +82,7 @@ Pixel.Canvas.prototype.setCursor = function(x,y) {
 
 
 //-------------------------------------------------------
-//Drawing
+// !Drawing
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setRenderer = function(element, rendererType) {
 	if(rendererType == Pixel.RENDERER_WEBGL) {
@@ -117,7 +117,7 @@ Pixel.Canvas.prototype.clear =  function(x,y,width,height) {
 
 
 //-------------------------------------------------------
-//COLOR	
+//!COLOR	
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setFillColor = function(r,g,b,a) {
 	if(g != undefined) {
@@ -167,16 +167,16 @@ Pixel.Canvas.prototype.setLineCap = function(style) {
 
 
 //-------------------------------------------------------
-//IMAGE DRAWING
+// !IMAGES
 //-------------------------------------------------------
 Pixel.Canvas.prototype.drawImage = function(image, x, y, width, height) {
-	this.renderer.drawImage(pxImage, x,y, width, height);
+	this.renderer.drawImage(image, x,y, width, height);
 };
 
 
 
 //-------------------------------------------------------
-//SHAPE DRAWING
+// !SHAPES
 
 //-------------------------------------------------------
 Pixel.Canvas.prototype.beginShape = function(x,y) {

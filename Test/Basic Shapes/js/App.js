@@ -1,10 +1,25 @@
 $(document).ready(function() {
 	var App = new Pixel.App();
 	
-	console.log(App instanceof Pixel.App);
-	
 	App.setSize(1000,400);
 	App.setBackgroundColor(0,0,0);
+	
+	
+/*
+	var i = new Image();
+	i.onload = function() {
+		var img = new Pixel.ImageShape();
+		img.load(i);
+		App.addChild(img);
+	}
+	i.src = "images/test.jpg";
+*/
+
+	var img = new Pixel.ImageShape();
+	img.load("images/test.jpg");
+	img.pos.x = 200
+	img.alignment = Pixel.ALIGNMENT_CENTER_CENTER;
+	App.addChild(img);
 	
 	
 	
@@ -59,6 +74,9 @@ $(document).ready(function() {
 		
 		circle.pos.x	+= circleSpeed.x;
 		circle.pos.y	+= circleSpeed.y;
+		
+		
+		img.rotation += rectSpeed.x;
 	}
 	
 /*

@@ -695,6 +695,195 @@ Pixel.OvalShape.prototype.draw = function() {
 		this.canvas.popMatrix();
 	}
 }//-------------------------------------------------------
+//Pixel.Image.js
+//For loading, storing, manipulating, etc
+Pixel.ImageShape = function() {
+	Pixel.Shape2D.call(this);
+	
+	this.image = null;
+}
+
+Pixel.ImageShape.prototype = Object.create(Pixel.Shape2D.prototype);
+
+
+//-------------------------------------------------------
+Pixel.ImageShape.prototype.load = function(image) {
+	if(image instanceof Pixel.Canvas) {
+		//Load from existing Pixel Canvas
+		this.image = image.element;
+	} 
+	
+	else if(image.tagName == "canvas" || image instanceof Image) {
+		//Just keep a reference if it is already loaded
+		this.image = image;
+		//this.width = this.image.width;
+		//this.height	= this.image.height;
+	}
+	
+	else if(typeof(image) ==  "string") {
+		//If its a string, we need to load the image with a callback
+		this.image = new Image();
+		
+		//Add load listener to set default widht/height of image
+		var self = this;
+		this.image.onload = function() {
+			//If the image width/height arent' set or are 0,
+			//Use the value from the image
+			if(self.width == 0 || this.height == 0) {			
+				self.width		= this.width;
+				self.height		= this.height;
+			}
+		}
+		
+		this.image.src = image;
+	}
+}
+
+//-------------------------------------------------------
+Pixel.ImageShape.prototype.draw = function() {
+	if(this.canvas) {
+		//Make sure image isn't null
+		if(this.image == null) return;
+		
+		//If its a JS Image Obj, make sure it is loaded
+		if((typeof(this.image) == "image") && (this.image.complete == false)) return;
+		
+		//Otherwise, draw it
+		this.canvas.pushMatrix();
+		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
+		this.canvas.rotate(this.rotation);
+
+		this.calculateOffset();
+		this.canvas.drawImage(this.image, this.offset.x, this.offset.y, this.width, this.height);
+		
+		this.canvas.popMatrix();
+	}
+}
+
+/*
+Pixel.Image = Pixel.Object.extend({
+	init: function(url) {
+		this._super();
+	
+		this.bAllocated = false;
+		this.canvas		= null;
+		
+		this.image		= null;
+		this.imageData	= null;
+		this.bLoaded	= false;
+		
+		//Texture is only set from webgl renderer
+		//And is loaded 
+		this.texture		= null;
+		
+		//Load image if URL is set
+		if(url != undefined) this.load(url);
+	},
+	
+	
+	//-------------------------------------------------------
+	load: function(src) {
+		this.clear();
+		
+		this.image = new Image();
+		
+		this.image.addEventListener("load", function() { 
+			this.bLoaded = true;
+			this.dispatch("loaded", this);
+			
+			//Get Size of Image
+			this.setSize(this.image.width, this.image.height);
+		}.bind(this));
+		
+		
+		this.image.addEventListener("error", function() {
+			console.log("Could not load image from '" + url + "'");
+		});
+		
+		
+		this.image.src = src;
+	},
+	
+	
+	//-------------------------------------------------------
+	isLoaded: function() {
+		return this.bLoaded;
+	},
+	
+	
+	//-------------------------------------------------------
+	clear: function() {
+		this.bLoaded	= false;
+		this.pixels		= null;
+		this.imageData	= null;
+		this.image		= null;
+	},
+	
+	
+	//-------------------------------------------------------
+	setSize: function(width, height) {
+		this._super(width, height);
+		
+		if(this.bAllocated == false) {			
+			//Get Canvas Ref
+			this.canvas = document.createElement('canvas');
+			this.ctx = this.canvas.getContext('2d');
+			this.imageData = this.ctx.getImageData(0,0,this.getWidth(), this.getHeight());
+		}
+		
+		
+		this.canvas.setAttribute("width", this.width);
+		this.canvas.setAttribute("height", this.height);
+	},
+	
+	
+	//-------------------------------------------------------
+	getImageData: function() {
+		return this.imageData;
+	},
+	
+	
+	//-------------------------------------------------------
+	getPixels: function() {
+		if(this.bLoaded) {			
+			this.ctx.drawImage(this.image, 0,0);
+			this.imageData	= this.ctx.getImageData(0,0,this.size.width, this.size.height)
+			this.pixels		= this.imageData.data;
+			return this.pixels;
+		}
+		
+		return null;
+	},
+	
+	
+	//-------------------------------------------------------
+	setFromPixels: function(pixels, width, height){
+		this.clear();
+		
+		//Resize the Canvas, get the new image data obj
+		this.setSize(width, height);
+		this.imageData	= this.ctx.getImageData(0,0,this.size.width, this.size.height);
+		this.pixels		= this.imageData.data;
+		
+		//Copy pixels into image data
+		var i=pixels.length;
+		while(i--) this.pixels[i] = pixels[i];
+		
+		//Draw Data back into the canvas object
+		this.ctx.putImageData(this.imageData, 0,0);
+		
+		//Store info as an IMG, drawing using drawImage() is WAY faster than putImageData()
+		this.image = new Element("img");  
+		this.image.addEvent("load", function() {
+			this.image.removeEvent("load");
+			this.dispatch("loaded", this);
+			this.bLoaded = true;
+		}.bind(this));
+		
+		this.image.src = this.canvas.toDataURL("image/png");
+	}
+});*/
+//-------------------------------------------------------
 //Pixel.Canvas.js
 //Canvas Wrapper, implements Renderer functions and adds DOM specific stuff 
 //+ generic vars shared between renderers (i.e. Cursor)
@@ -739,7 +928,7 @@ Pixel.Canvas = function(renderer) {
 Pixel.Canvas.prototype = Object.create(Pixel.Object.prototype);
 
 //-------------------------------------------------------
-//Size Info
+// !Size Info
 
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setSize = function(width,height) {
@@ -769,7 +958,7 @@ Pixel.Canvas.prototype.getHeight = function() {
 
 
 //-------------------------------------------------------
-//Cursor
+// !Cursor
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setCursor = function(x,y) {
 	this.cursorX = x;
@@ -778,7 +967,7 @@ Pixel.Canvas.prototype.setCursor = function(x,y) {
 
 
 //-------------------------------------------------------
-//Drawing
+// !Drawing
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setRenderer = function(element, rendererType) {
 	if(rendererType == Pixel.RENDERER_WEBGL) {
@@ -813,7 +1002,7 @@ Pixel.Canvas.prototype.clear =  function(x,y,width,height) {
 
 
 //-------------------------------------------------------
-//COLOR	
+//!COLOR	
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setFillColor = function(r,g,b,a) {
 	if(g != undefined) {
@@ -863,21 +1052,16 @@ Pixel.Canvas.prototype.setLineCap = function(style) {
 
 
 //-------------------------------------------------------
-//IMAGE DRAWING
+// !IMAGES
 //-------------------------------------------------------
-Pixel.Canvas.prototype.drawImage = function(pxImage, x, y, width, height) {
-	//this.renderer.pushMatrix();
-	//this.renderer.translate(x,y);
-	//if(width && width	!= pxImage.image.width)		this.renderer.scale(width/pxImage.width, 1.0);
-	//if(height&& height	!= pxImage.image.height)	this.renderer.scale(1.0, height/pxImage.height);
-	this.renderer.drawImage(pxImage, x,y, width, height);
-	//this.renderer.popMatrix();
+Pixel.Canvas.prototype.drawImage = function(image, x, y, width, height) {
+	this.renderer.drawImage(image, x,y, width, height);
 };
 
 
 
 //-------------------------------------------------------
-//SHAPE DRAWING
+// !SHAPES
 
 //-------------------------------------------------------
 Pixel.Canvas.prototype.beginShape = function(x,y) {
@@ -1356,7 +1540,7 @@ Pixel.Renderer2D.prototype.clear = function(x,y,width,height) {
 	var curFill		= this.ctx.fillStyle;
 	
 	//Draw rect over BG for 2D Canvas
-	this.ctx.fillStyle =  this.getColorAsString(this.bgColor.r, this.bgColor.g, this.bgColor.b, this.bgColor.a);
+	this.ctx.fillStyle =  this.bgColor.toRGBAString();
 	this.ctx.fillRect(x,y,width,height);
 	
 	//Reset cur fill
@@ -1370,30 +1554,8 @@ Pixel.Renderer2D.prototype.setSize = function(width, height) {};
 
 
 //-------------------------------------------------------
-//Specific to 2D Canvas, sets color in correct format
-Pixel.Renderer2D.prototype.getColorAsString = function(r,g,b,a) {
-	r = Math.round(r);
-	g = Math.round(g);
-	b = Math.round(b);
-
-	//Set using color Object if only first var is combined (ghetto overloading?)
-	if(g==undefined) {
-		return "rgba(" + r.r + "," + r.g + "," + r.b + "," + r.a + ")";
-	} 
-		
-	//RGB
-	if(a==undefined) {
-		return "rgb(" + r + "," + g + "," + b + ")";
-	} 
-	
-	//RGBA
-	return "rgba(" + r + "," + g + "," + b + "," + a + ")";
-};
-
-
-//-------------------------------------------------------
 Pixel.Renderer2D.prototype.setFillColor = function(r,g,b,a) {
-	this.ctx.fillStyle = this.getColorAsString(r,g,b,a);
+	this.ctx.fillStyle = Pixel.getColorAsRGBAString(r,g,b,a);
 };
 
 //-------------------------------------------------------
@@ -1403,7 +1565,7 @@ Pixel.Renderer2D.prototype.noFill = function() {
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setStrokeColor = function(r,g,b,a) {
-	this.ctx.strokeStyle = this.getColorAsString(r,g,b,a);
+	this.ctx.strokeStyle = Pixel.getColorAsRGBAString(r,g,b,a);
 	this.bStroke = true;
 };
 
@@ -1434,7 +1596,7 @@ Pixel.Renderer2D.prototype.shadow = function(size, xOffset, yOffset) {
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setShadowColor = function(r,g,b,a) {
-	this.ctx.shadowColor	= this.getColorAsString(r,g,b,a)
+	this.ctx.shadowColor	= Pixel.getColorAsString(r,g,b,a)
 };
 
 
@@ -1448,17 +1610,8 @@ Pixel.Renderer2D.prototype.noShadow = function() {
 
 //-------------------------------------------------------
 //IMAGE DRAWING
-Pixel.Renderer2D.prototype.drawImage = function(pxImage, x, y, w, h) {
-	x = x || pxImage.getPos().x;
-	y = y || pxImage.getPos().y;
-	w = w || pxImage.image.getWidth();
-	h = h || pxImage.image.getHeight();
-	
-	if(pxImage.isLoaded()) {
-		this.ctx.drawImage(pxImage.image, x, y, w, h);
-	} else {
-		Pixel.log("Image not yet loaded!");
-	}
+Pixel.Renderer2D.prototype.drawImage = function(image, x, y, w, h) {
+	this.ctx.drawImage(image, x, y, w, h);
 };
 
 
@@ -1838,9 +1991,42 @@ Pixel.Color.prototype.toHSV = function() {
 	return hsv;
 }
 
+//-------------------------------------------------------
+//Returns color as rgba(r,g,b,a) string
+Pixel.Color.prototype.toRGBAString = function(r,g,b,a) {
+	r = Math.round(r);
+	g = Math.round(g);
+	b = Math.round(b);
+	
+	return Pixel.getColorAsRGBAString(r,g,b,a);
+};
+
 
 //-------------------------------------------------------
 //Color Utils
+
+//-------------------------------------------------------
+//Returns color as rgba(r,g,b,a) string
+Pixel.getColorAsRGBAString = function(r,g,b,a) {
+	r = Math.round(r);
+	g = Math.round(g);
+	b = Math.round(b);
+
+	//Set using color Object if only first var is combined (ghetto overloading?)
+	if(g==undefined) {
+		return "rgba(" + r.r + "," + r.g + "," + r.b + "," + r.a + ")";
+	} 
+		
+	//RGB
+	if(a==undefined) {
+		return "rgba(" + r + "," + g + "," + b + ",255)";
+	} 
+	
+	//RGBA
+	return "rgba(" + r + "," + g + "," + b + "," + a + ")";
+};
+
+
 
 //-------------------------------------------------------
 //From http://mjijackson.com/2008/02/rgb-to-hsl-and-rgb-to-hsv-color-model-conversion-algorithms-in-javascript

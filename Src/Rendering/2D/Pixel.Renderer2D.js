@@ -23,7 +23,7 @@ Pixel.Renderer2D.prototype.clear = function(x,y,width,height) {
 	var curFill		= this.ctx.fillStyle;
 	
 	//Draw rect over BG for 2D Canvas
-	this.ctx.fillStyle =  this.getColorAsString(this.bgColor.r, this.bgColor.g, this.bgColor.b, this.bgColor.a);
+	this.ctx.fillStyle =  this.bgColor.toRGBAString();
 	this.ctx.fillRect(x,y,width,height);
 	
 	//Reset cur fill
@@ -37,30 +37,8 @@ Pixel.Renderer2D.prototype.setSize = function(width, height) {};
 
 
 //-------------------------------------------------------
-//Specific to 2D Canvas, sets color in correct format
-Pixel.Renderer2D.prototype.getColorAsString = function(r,g,b,a) {
-	r = Math.round(r);
-	g = Math.round(g);
-	b = Math.round(b);
-
-	//Set using color Object if only first var is combined (ghetto overloading?)
-	if(g==undefined) {
-		return "rgba(" + r.r + "," + r.g + "," + r.b + "," + r.a + ")";
-	} 
-		
-	//RGB
-	if(a==undefined) {
-		return "rgb(" + r + "," + g + "," + b + ")";
-	} 
-	
-	//RGBA
-	return "rgba(" + r + "," + g + "," + b + "," + a + ")";
-};
-
-
-//-------------------------------------------------------
 Pixel.Renderer2D.prototype.setFillColor = function(r,g,b,a) {
-	this.ctx.fillStyle = this.getColorAsString(r,g,b,a);
+	this.ctx.fillStyle = Pixel.getColorAsRGBAString(r,g,b,a);
 };
 
 //-------------------------------------------------------
@@ -70,7 +48,7 @@ Pixel.Renderer2D.prototype.noFill = function() {
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setStrokeColor = function(r,g,b,a) {
-	this.ctx.strokeStyle = this.getColorAsString(r,g,b,a);
+	this.ctx.strokeStyle = Pixel.getColorAsRGBAString(r,g,b,a);
 	this.bStroke = true;
 };
 
@@ -101,7 +79,7 @@ Pixel.Renderer2D.prototype.shadow = function(size, xOffset, yOffset) {
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setShadowColor = function(r,g,b,a) {
-	this.ctx.shadowColor	= this.getColorAsString(r,g,b,a)
+	this.ctx.shadowColor	= Pixel.getColorAsString(r,g,b,a)
 };
 
 
@@ -115,17 +93,8 @@ Pixel.Renderer2D.prototype.noShadow = function() {
 
 //-------------------------------------------------------
 //IMAGE DRAWING
-Pixel.Renderer2D.prototype.drawImage = function(pxImage, x, y, w, h) {
-	x = x || pxImage.getPos().x;
-	y = y || pxImage.getPos().y;
-	w = w || pxImage.image.getWidth();
-	h = h || pxImage.image.getHeight();
-	
-	if(pxImage.isLoaded()) {
-		this.ctx.drawImage(pxImage.image, x, y, w, h);
-	} else {
-		Pixel.log("Image not yet loaded!");
-	}
+Pixel.Renderer2D.prototype.drawImage = function(image, x, y, w, h) {
+	this.ctx.drawImage(image, x, y, w, h);
 };
 
 

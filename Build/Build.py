@@ -36,6 +36,7 @@ files.append(src + "Objects/Pixel.Object.js")
 files.append(src + "Objects/2D/Pixel.Shape2D.js")
 files.append(src + "Objects/2D/Pixel.RectShape.js")
 files.append(src + "Objects/2D/Pixel.OvalShape.js")
+files.append(src + "Objects/2D/Pixel.ImageShape.js")
 
 #Canvas
 files.append(src + "Canvas/Pixel.Canvas.js")
