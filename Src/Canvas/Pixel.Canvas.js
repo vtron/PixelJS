@@ -169,13 +169,8 @@ Pixel.Canvas.prototype.setLineCap = function(style) {
 //-------------------------------------------------------
 //IMAGE DRAWING
 //-------------------------------------------------------
-Pixel.Canvas.prototype.drawImage = function(pxImage, x, y, width, height) {
-	//this.renderer.pushMatrix();
-	//this.renderer.translate(x,y);
-	//if(width && width	!= pxImage.image.width)		this.renderer.scale(width/pxImage.width, 1.0);
-	//if(height&& height	!= pxImage.image.height)	this.renderer.scale(1.0, height/pxImage.height);
+Pixel.Canvas.prototype.drawImage = function(image, x, y, width, height) {
 	this.renderer.drawImage(pxImage, x,y, width, height);
-	//this.renderer.popMatrix();
 };
 
 

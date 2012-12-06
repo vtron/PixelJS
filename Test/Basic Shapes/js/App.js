@@ -1,5 +1,8 @@
 $(document).ready(function() {
 	var App = new Pixel.App();
+	
+	console.log(App instanceof Pixel.App);
+	
 	App.setSize(1000,400);
 	App.setBackgroundColor(0,0,0);
 	
@@ -39,8 +42,13 @@ $(document).ready(function() {
 	App.addChild(circle);
 		
 	App.update = function() {
-		if(rect.pos.x > (App.getWidth()		- rect.width )	|| rect.pos.x < rect.width/2 ) rectSpeed.x *= -1;
-		if(rect.pos.y > (App.getHeight()	- rect.height ) || rect.pos.y < rect.height/2 ) rectSpeed.y *= -1;
+		if(rect.pos.x >= (App.getWidth()		- rect.width )	|| rect.pos.x <= rect.width/2 ) {
+			rectSpeed.x *= -1;
+		}
+		
+		if(rect.pos.y >= (App.getHeight()		- rect.height )		|| rect.pos.y <= rect.height/2 ) {
+			rectSpeed.y *= -1;
+		}
 		
 		rect.pos.x		+= rectSpeed.x;
 		rect.pos.y		+= rectSpeed.y;

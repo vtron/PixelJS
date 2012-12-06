@@ -1,6 +1,39 @@
 //-------------------------------------------------------
 //Pixel.Image.js
 //For loading, storing, manipulating, etc
+Pixel.ImageShape = function() {
+	Pixel.Shape2D.call(this);
+	
+	this.image = null;
+}
+
+Pixel.ImageShape.prototype = Object.create(Pixel.ImageShape.prototype);
+
+
+//-------------------------------------------------------
+Pixel.ImageShape.prototype.load(image) = function() {
+	if(image instanceOf Pixel.Canvas) {
+		//Load from existing Pixel Canvas
+		this.image = image.element;
+	} 
+	
+	else if(image instanceOf Canvas || image instanceof Image) {
+		//Just keep a reference if it is already loaded
+		this.image = image;
+	}
+	
+	else if(image instanceof String) {
+		//If its a string, we need to load the image with a callback
+		this.image = new Image();
+		this.image.src = image;
+	}
+}
+
+//-------------------------------------------------------
+Pixel.ImageShape.prototype.draw() = function() {
+	if(this.
+}
+
 
 Pixel.Image = Pixel.Object.extend({
 	init: function(url) {

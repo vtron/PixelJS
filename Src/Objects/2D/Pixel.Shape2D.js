@@ -1,6 +1,11 @@
 //-------------------------------------------------------
 //-------------------------------------------------------
-//Shape2D
+//Pixel.Shape2D.js
+//Contains a base shape for 2D shapes
+
+//-------------------------------------------------------
+//-------------------------------------------------------
+// !Shape2D
 
 Pixel.Shape2D = function() {
 	Pixel.Object.call(this);
@@ -102,71 +107,4 @@ Pixel.Shape2D.prototype.getSize = function() {
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.getBounds = function() {
 	return new Pixel.Rect(this.pos.x, this.pos.y, this.width, this.height);
-}
-
-
-
-
-//-------------------------------------------------------
-//-------------------------------------------------------
-//RectShape
-
-Pixel.RectShape = function() {
-	Pixel.Shape2D.call(this);
-}
-
-Pixel.RectShape.prototype = Object.create(Pixel.Shape2D.prototype);
-
-
-//-------------------------------------------------------
-Pixel.RectShape.prototype.draw = function() {
-	if(this.canvas) {
-		this.canvas.pushMatrix();
-		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
-		this.canvas.rotate(this.rotation);
-		
-		this.canvas.setFillColor(this.fillColor);
-		this.canvas.setStrokeSize(this.strokeSize);
-		this.canvas.setStrokeColor(this.strokeColor);
-		
-		this.calculateOffset();
-		this.canvas.drawRect(this.offset.x, this.offset.y, this.width, this.height);
-		
-		this.canvas.popMatrix();
-	}
-}
-
-
-//-------------------------------------------------------
-//-------------------------------------------------------
-//OvalShape
-
-Pixel.OvalShape = function() {
-	Pixel.Shape2D.call(this);
-}
-
-Pixel.OvalShape.prototype = Object.create(Pixel.Shape2D.prototype);
-
-
-//-------------------------------------------------------
-Pixel.OvalShape.prototype.draw = function() {
-	if(this.canvas) {		
-		this.canvas.setFillColor(this.fillColor);
-		this.canvas.setStrokeSize(this.strokeSize);
-		this.canvas.setStrokeColor(this.strokeColor);
-		
-		this.calculateOffset();
-		
-		this.canvas.pushMatrix();
-		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
-		this.canvas.rotate(this.rotation);
-		
-		if(this.width == this.height) {
-			this.canvas.drawCircle(this.offset.x, this.offset.y, this.width);
-		} else {	
-			this.canvas.drawEllipse(this.offset.x, this.offset.y, this.width, this.height);
-		}
-		
-		this.canvas.popMatrix();
-	}
 }

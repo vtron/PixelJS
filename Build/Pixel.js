@@ -528,7 +528,12 @@ Pixel.Object.prototype.eventHandler = function(event) {
 Pixel.Object.prototype.messageHandler = function(msg) {
 }//-------------------------------------------------------
 //-------------------------------------------------------
-//Shape2D
+//Pixel.Shape2D.js
+//Contains a base shape for 2D shapes
+
+//-------------------------------------------------------
+//-------------------------------------------------------
+// !Shape2D
 
 Pixel.Shape2D = function() {
 	Pixel.Object.call(this);
@@ -630,14 +635,9 @@ Pixel.Shape2D.prototype.getSize = function() {
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.getBounds = function() {
 	return new Pixel.Rect(this.pos.x, this.pos.y, this.width, this.height);
-}
-
-
-
-
+}//-------------------------------------------------------
 //-------------------------------------------------------
-//-------------------------------------------------------
-//RectShape
+// !RectShape
 
 Pixel.RectShape = function() {
 	Pixel.Shape2D.call(this);
@@ -662,12 +662,9 @@ Pixel.RectShape.prototype.draw = function() {
 		
 		this.canvas.popMatrix();
 	}
-}
-
-
+}//-------------------------------------------------------
 //-------------------------------------------------------
-//-------------------------------------------------------
-//OvalShape
+// !OvalShape
 
 Pixel.OvalShape = function() {
 	Pixel.Shape2D.call(this);
