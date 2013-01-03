@@ -5,7 +5,7 @@ Pixel.Math = new Object;
 
 
 //-------------------------------------------------------
-//Radians & Degrees
+//! Radians & Degrees
 //-------------------------------------------------------
 Pixel.Math.radiansToDegrees = function(rad) {
 	return rad * (180/Math.PI);
@@ -19,7 +19,7 @@ Pixel.Math.degreesToRadians = function(deg) {
 
 
 //-------------------------------------------------------
-//Mapping/Distance
+//! Mapping/Distance
 //-----------------------------------------------------
 Pixel.Math.map = function(iStart, iStop, value, oStart, oStop, bClamp) {
 	value = oStart + (oStop - oStart) * ((value - iStart) / (iStop - iStart));

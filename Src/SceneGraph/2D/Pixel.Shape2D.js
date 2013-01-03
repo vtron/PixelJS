@@ -14,94 +14,106 @@ Pixel.Shape2D = function() {
 	this.height = 0;
 	
 	this.fillColor			= new Pixel.Color(255,255,255);
-	this._fillEnabled		= false;
+	this.fillEnabled		= true;
 	
 	this.strokeColor		= new Pixel.Color();
 	this.strokeSize			= 1;
-	this._strokeEnabled		= false;
+	this.strokeEnabled		= false;
 }
 
 Pixel.Shape2D.prototype = Object.create(Pixel.Object.prototype);
 
+//-------------------------------------------------------
+//! Override addChid to throw error,
+//Shape objects can't have children
 
 //-------------------------------------------------------
-//Fill
+Pixel.Shape2D.prototype.addChild = function(child) {
+	Pixel.log("Error: Children cannot be added to a shape object");
+}
+
+//-------------------------------------------------------
+//! Fill
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.enableFill = function() {
-	this._fillEnabled = true;
+	this.fillEnabled = true;
+}
+
+
+//-------------------------------------------------------
+Pixel.Shape2D.prototype.disableFill = function() {
+	this.fillEnabled = false;
+}
+
+
+//-------------------------------------------------------
+Pixel.Shape2D.prototype.setFillColor = function(r,g,b,a) {
+	this.fillColor.set(r,g,b,a);
 }
 
 //-------------------------------------------------------
-Pixel.Shape2D.prototype.disableStroke = function() {
-	this._fillEnabled = false;
-}
-
-//-------------------------------------------------------
-//Stroke
-
-//-------------------------------------------------------
-Pixel.Shape2D.prototype.setStrokeSize = function(size) {
-	this.strokeSize = size;
-}
-
+//! Stroke
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.enableStroke = function() {
-	this._strokeEnabled = true;
+	this.strokeEnabled = true;
 }
+
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.disableStroke = function() {
-	this._strokeEnabled = false;
+	this.strokeEnabled = false;
 }
+
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.setStrokeSize = function(size) {
 	this.strokeSize = size;
+	this.strokeEnabled = true;
 }
 
+
 //-------------------------------------------------------
-//Width
+Pixel.Shape2D.prototype.setStrokeColor = function(r,g,b,a) {
+	this.strokeColor.set(r,g,b,a);
+}
+
+
+//-------------------------------------------------------
+//! Size
+//-------------------------------------------------------
+Pixel.Shape2D.prototype.getWidth = function() {
+	return this.getBounds().width;
+}
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.setWidth = function(width) {
 	this.width = width;
-	return this;
-}
-
-
-//-------------------------------------------------------
-Pixel.Shape2D.prototype.getWidth = function() {
-	return this.width;
-}
-
-//-------------------------------------------------------
-//Height
-
-
-//-------------------------------------------------------
-Pixel.Shape2D.prototype.setHeight = function() {
-	this.height = height;
-	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.getHeight = function() {
-	return this.height;
+	return this.getBounds().height;
 }
 
+
 //-------------------------------------------------------
-//Size/Bounds
+Pixel.Shape2D.prototype.setHeight = function(height) {
+	this.height = height;
+}
+
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.getSize = function() {
-	var size = {
-		width:this.width,
-		heigiht:this.height
-	}
-	
-	return size;
+	return { "width": this.width, "height": this.height };
+}
+
+
+//-------------------------------------------------------
+Pixel.Shape2D.prototype.setSize = function(width, height) {
+	this.setWidth(width);
+	this.setHeight(height);
 }
 
 //-------------------------------------------------------

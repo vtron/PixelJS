@@ -5,72 +5,36 @@
 //Empty canvas object for rendering
 Pixel.FontSizeCvs = null;
 
-Pixel.Font = Class.extend({
-	init: function(font, size, alignment, baseline) {
-		this.font		= font || "Arial";
-		this.size		= size || 12;
-		this.alignment	= alignment || Pixel.TEXT_BASELINE_LEFT;
-		this.baseline	= baseline || Pixel.TEXT_BASELINE_TOP;
-		
-		//Create canvas for getting sizes, if not defined yet
-		if(Pixel.FontSizeCvs == null) {
-			Pixel.log("Creating 2D Canvas for fonts");
-			Pixel.FontSizeCvs = new Pixel.Canvas(Pixel.RENDER_MODE_2D);
-		}
-	},
-
-
-	//-------------------------------------------------------
-	setSize: function(size) {
-		this.size = size;
-	},
+Pixel.Font = function(family) {
+	this.fontFamily	= family || "Arial";
+	this.alignment	= Pixel.TEXT_ALIGN_LEFT;
+	this.baseline	= Pixel.TEXT_BASELINE_TOP;
 	
-	
-	//-------------------------------------------------------
-	setFont: function(font) {
-		this.font = font;
-	},
-	
-	
-	//-------------------------------------------------------
-	setSize: function(size) {
-		this.size = size;
-	},
-	
-	
-	//-------------------------------------------------------
-	setFont: function(font) {
-		this.font = font;
-	},
-	
-	
-	//-------------------------------------------------------
-	setAlignment: function(alignment) {
-		this.alignment = alignment;
-	},
-	
-	
-	//-------------------------------------------------------
-	setBaseline: function(baseline) {
-		this.baseline = baseline;
-	},
-	
-	
-	//-------------------------------------------------------
-	getSize: function() {
-		return this.size;
-	},
-	
-	
-	//-------------------------------------------------------
-	getTextWidth: function(text) {
-		Pixel.FontSizeCvs.setFont(this);
-		return Pixel.FontSizeCvs.getTextWidth(text);
-	},
-	
-	
-	//-------------------------------------------------------
-	getTextHeight: function() {
-		return Math.round(this.size * 1.5);
+	//Create canvas for getting sizes, if not defined yet
+	if(Pixel.FontSizeCvs == null) {
+		Pixel.FontSizeCvs = new Pixel.Canvas(Pixel.RENDER_MODE_2D);
 	}
-});
+}
+
+//-------------------------------------------------------
+Pixel.Font.prototype.setFamily = function(family) {
+	this.fontFamily = fontName;
+}
+
+
+//-------------------------------------------------------
+Pixel.Font.prototype.setBaseline = function(baseline) {
+	this.baseline = baseline;
+}
+
+
+//-------------------------------------------------------
+Pixel.Font.prototype.getTextWidth = function(text, size) {
+	Pixel.FontSizeCvs.setFont(this.fontFamily, size);
+	return Pixel.FontSizeCvs.getTextWidth(text);
+}
+
+//-------------------------------------------------------
+Pixel.Font.prototype.getTextHeight = function(text, size) {
+	return size;
+}

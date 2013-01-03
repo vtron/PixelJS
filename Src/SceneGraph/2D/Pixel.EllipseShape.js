@@ -1,16 +1,16 @@
 //-------------------------------------------------------
 //-------------------------------------------------------
-// !OvalShape
+// !EllipseShape
 
-Pixel.OvalShape = function() {
+Pixel.EllipseShape = function() {
 	Pixel.Shape2D.call(this);
 }
 
-Pixel.OvalShape.prototype = Object.create(Pixel.Shape2D.prototype);
+Pixel.EllipseShape.prototype = Object.create(Pixel.Shape2D.prototype);
 
 
 //-------------------------------------------------------
-Pixel.OvalShape.prototype.draw = function() {
+Pixel.EllipseShape.prototype.draw = function() {
 	if(this.canvas) {		
 		this.canvas.setFillColor(this.fillColor);
 		this.canvas.setStrokeSize(this.strokeSize);

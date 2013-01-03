@@ -50,11 +50,11 @@ Pixel.Canvas.prototype.setSize = function(width,height) {
 	this.width	= width;
 	this.height = height;
 	
-	this.element.style.width		= width/window.devicePixelRatio;
-	this.element.style.height	= height/window.devicePixelRatio;
+	this.element.style.width	= width;
+	this.element.style.height	= height;
 	
-	this.element.setAttribute("width",	width);
-	this.element.setAttribute("height",	height);
+	this.element.setAttribute("width",	width	* window.devicePixelRatio);
+	this.element.setAttribute("height",	height	* window.devicePixelRatio);
 	
 	this.renderer.setSize(width, height);
 };
@@ -70,6 +70,11 @@ Pixel.Canvas.prototype.getWidth = function() {
 Pixel.Canvas.prototype.getHeight = function() {
 	return this.height;
 };
+
+//-------------------------------------------------------
+Pixel.Canvas.prototype.enableNativeResolution = function() {
+	this.renderer.scale(window.devicePixelRatio, window.devicePixelRatio);
+}
 
 
 //-------------------------------------------------------
@@ -229,7 +234,7 @@ Pixel.Canvas.prototype.drawSquare = function(x,y,size) {
 
 //-------------------------------------------------------
 Pixel.Canvas.prototype.drawEllipse = function(x,y,width,height) {
-	this.renderer.drawEllipse();
+	this.renderer.drawEllipse(x,y,width,height);
 };
 
 
@@ -241,7 +246,7 @@ Pixel.Canvas.prototype.drawCircle = function(x,y,radius) {
 
 
 //-------------------------------------------------------
-//TRANSFORMATIONS
+//!TRANSFORMATIONS
 //-------------------------------------------------------
 Pixel.Canvas.prototype.pushMatrix = function() {
 	this.renderer.pushMatrix();
@@ -286,7 +291,7 @@ Pixel.Canvas.prototype.setTransform = function(m11, m12, m21, m22, dx, dy) {
 
 
 //-------------------------------------------------------
-//TEXT
+//!TEXT
 
 //-------------------------------------------------------	
 Pixel.Canvas.prototype.setFont = function(font, size) {

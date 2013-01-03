@@ -78,12 +78,8 @@ Pixel.Color.prototype.toHSV = function() {
 
 //-------------------------------------------------------
 //Returns color as rgba(r,g,b,a) string
-Pixel.Color.prototype.toRGBAString = function(r,g,b,a) {
-	r = Math.round(r);
-	g = Math.round(g);
-	b = Math.round(b);
-	
-	return Pixel.getColorAsRGBAString(r,g,b,a);
+Pixel.Color.prototype.toRGBAString = function() {
+	return Pixel.getColorAsRGBAString(this.r,this.g, this.b, this.a);
 };
 
 
@@ -99,7 +95,7 @@ Pixel.getColorAsRGBAString = function(r,g,b,a) {
 
 	//Set using color Object if only first var is combined (ghetto overloading?)
 	if(g==undefined) {
-		return "rgba(" + r.r + "," + r.g + "," + r.b + "," + r.a + ")";
+		return "rgba(" + r + "," + g + "," + b + "," + a + ")";
 	} 
 		
 	//RGB

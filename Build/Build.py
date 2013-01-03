@@ -29,37 +29,36 @@ files.append(src + "Utils/Pixel.Utils.js")
 files.append(src + "Utils/Pixel.Math.js")
 files.append(src + "Utils/Pixel.Point.js")
 files.append(src + "Utils/Pixel.Rect.js")
-#files.append(src + "Utils/Pixel.EventDispatcher.js")
 
-#Objects
-files.append(src + "Objects/Pixel.Object.js")
-files.append(src + "Objects/2D/Pixel.Shape2D.js")
-files.append(src + "Objects/2D/Pixel.RectShape.js")
-files.append(src + "Objects/2D/Pixel.OvalShape.js")
-files.append(src + "Objects/2D/Pixel.ImageShape.js")
+#Assets
+files.append(src + "Assets/Pixel.Font.js")
+files.append(src + "Assets/Pixel.Color.js")
+
+#Scene Graph
+files.append(src + "SceneGraph/Pixel.Object.js")
+files.append(src + "SceneGraph/2D/Pixel.Shape2D.js")
+files.append(src + "SceneGraph/2D/Pixel.RectShape.js")
+files.append(src + "SceneGraph/2D/Pixel.EllipseShape.js")
+files.append(src + "SceneGraph/2D/Pixel.ImageShape.js") 
+
+files.append(src + "SceneGraph/Typography/Pixel.TextField.js")
+files.append(src + "SceneGraph/Typography/Pixel.TextLayout.js")
 
 #Canvas
 files.append(src + "Canvas/Pixel.Canvas.js")
 
-#App
-files.append(src + "App/Pixel.App.js")
+#2D Renderer
+files.append(src + "Canvas/Renderers/2D/Pixel.Renderer2D.js")
 
-# 
-# files.append(src + "Objects/Pixel.Textfield.js")
-
-
-
-
-
-# #Renderers
-files.append(src + "Rendering/2D/Pixel.Renderer2D.js")
+#3D Renderer
 # files.append(src + "Rendering/WebGL/Pixel.RendererWebGL.js")
 # files.append(src + "Rendering/WebGL/Shaders/Pixel.Shader.js")
 
-#Assets
-files.append(src + "Assets/Pixel.Color.js")
-#files.append(src + "Assets/Pixel.Image.js")
-#files.append(src + "Assets/Pixel.Font.js")
+#App
+files.append(src + "App/Pixel.App.js")
+
+
+
 
 # 
 # #Graphics

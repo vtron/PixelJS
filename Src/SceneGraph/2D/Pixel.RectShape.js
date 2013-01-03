@@ -16,9 +16,18 @@ Pixel.RectShape.prototype.draw = function() {
 		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
 		this.canvas.rotate(this.rotation);
 		
-		this.canvas.setFillColor(this.fillColor);
-		this.canvas.setStrokeSize(this.strokeSize);
-		this.canvas.setStrokeColor(this.strokeColor);
+		if(this.fillEnabled) {
+			this.canvas.setFillColor(this.fillColor);
+		} else {
+			this.canvas.noFill();
+		}
+		
+		if(this.strokeEnabled) {
+			this.canvas.setStrokeSize(this.strokeSize);
+			this.canvas.setStrokeColor(this.strokeColor);
+		} else {
+			this.canvas.noStroke();
+		}
 		
 		this.calculateOffset();
 		this.canvas.drawRect(this.offset.x, this.offset.y, this.width, this.height);

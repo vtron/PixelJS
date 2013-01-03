@@ -3,33 +3,18 @@ $(document).ready(function() {
 	
 	App.setSize(1000,400);
 	App.setBackgroundColor(0,0,0);
+	App.showFPS();
 	
 	
 /*
-	var i = new Image();
-	i.onload = function() {
-		var img = new Pixel.ImageShape();
-		img.load(i);
-		App.addChild(img);
-	}
-	i.src = "images/test.jpg";
-*/
-
-	var img = new Pixel.ImageShape();
-	img.load("images/test.jpg");
-	img.pos.x = 200
-	img.alignment = Pixel.ALIGNMENT_CENTER_CENTER;
-	App.addChild(img);
-	
-	
-	
-/*
+	var lines = [];
 	for(var i=0;i<1000; i++) {
 		var r = new Pixel.RectShape();
 		r.pos.set(Math.random()*900, Math.random()*300, 0);
 		r.width=100;
 		r.height=100;
 		r.fillColor.set(255,255,255,0.005);
+		lines.push(r);
 		App.addChild(r);
 	}
 */
@@ -45,10 +30,10 @@ $(document).ready(function() {
 	rect.strokeSize = 2;
 	rect.strokeColor.set(255,0,0);
 	
-	var circle = new Pixel.OvalShape();
+	var circle = new Pixel.EllipseShape();
 	var circleSpeed = new Pixel.Point();
 	circleSpeed.set(5, 5, 0);
-	circle.pos.set(Math.random() * App.getWidth(), Math.random() * App.getHeight(), 0);
+	//circle.pos.set(Math.random() * App.getWidth(), Math.random() * App.getHeight(), 0);
 	circle.width	= 25;
 	circle.height	= 25;
 	circle.fillColor.set(0, 255, 255);
@@ -65,30 +50,26 @@ $(document).ready(function() {
 			rectSpeed.y *= -1;
 		}
 		
-		rect.pos.x		+= rectSpeed.x;
+		/*
+rect.pos.x		+= rectSpeed.x;
 		rect.pos.y		+= rectSpeed.y;
 		rect.rotation	+= rectSpeed.x;
+*/
 		
 		if(circle.pos.x > (App.getWidth()	- circle.width ) || circle.pos.x  < circle.width/2) circleSpeed.x *= -1;
 		if(circle.pos.y > (App.getHeight()	- circle.height ) || circle.pos.y < circle.height/2) circleSpeed.y *= -1;
 		
-		circle.pos.x	+= circleSpeed.x;
+		/*
+circle.pos.x	+= circleSpeed.x;
 		circle.pos.y	+= circleSpeed.y;
-		
-		
-		img.rotation += rectSpeed.x;
-	}
-	
-/*
-	App.draw = function() {
-		App.setFillColor(255,0,255);
-		App.pushMatrix();
-		App.translate(x, y, 0);
-		App.rotate(x);
-		App.drawSquare(-size/2,-size/2,size);
-		App.popMatrix();
-	}
 */
+		
+/*
+		for(var i=0; i<lines.length; i++) {
+			lines[i].pos.set(Math.random()*900, Math.random()*300, 0);
+		}
+*/
+	}
 	
 	
 	$(document.body).append(App.element);
@@ -98,19 +79,19 @@ $(document).ready(function() {
 	$(document).on("click", function() {
 		if(b) {
 			b = false;
-			App.moveChildForward(rect);
-			console.log("fart");
+			App.moveChildToFront(rect);
+			console.log("test");
 		} else {
-			App.moveChildBackward(rect);
+			App.moveChildToBack(rect);
 			b = true;
-			console.log("No Fart");
 		}
-/*
+	});
+	
+	$(document).on("keypress", function() {		
 		if(App.isRunning()) {
 			App.stop();
 		} else {
 			App.start();
 		}
-*/
 	});
 });

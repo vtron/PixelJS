@@ -10,8 +10,9 @@ Pixel.Object = function() {
 	this.offset		= new Pixel.Point(0,0,0);
 	
 	this.rotation	= 0;
-	//this.scale		= new Pixel.Point(1,1,0);
 	this.alignment	= Pixel.ALIGNMENT_TOP_LEFT;
+	this.scaling	= new Pixel.Point(1,1,0);
+	this.rotation	= 0;
 	
 	this.visible = true;
 	
@@ -22,9 +23,7 @@ Pixel.Object = function() {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.update = function() {
-	var i = this.children.length;
-	
-	while(i--) {
+	for(var i=0; i<this.children.length; i++)  {
 		this.children[i].update();
 	}
 }
@@ -34,16 +33,30 @@ Pixel.Object.prototype.update = function() {
 Pixel.Object.prototype.draw = function() {
 	this.canvas.pushMatrix();
 	this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
-	//this.canvas.scale(this.scale.x, this.scale.y);
+	this.canvas.rotate(this.rotation);
+	this.canvas.scale(this.scaling.x, this.scaling.y);
 	
-	var i = this.children.length;
-	while(i--) {
+	for(var i=0; i<this.children.length; i++) {
 		this.children[i].draw();
 	}
 	
 	this.canvas.popMatrix();
 }
 
+//-------------------------------------------------------
+Pixel.Object.prototype.setCanvas = function(canvas) {
+	this.canvas = canvas;
+	
+	var i=this.children.length;
+	while(i--) {
+		this.children[i].setCanvas(canvas);
+	}
+}
+
+
+//-------------------------------------------------------
+//! Children
+//-------------------------------------------------------
 
 //-------------------------------------------------------
 Pixel.Object.prototype.addChild = function(childObject) {
@@ -52,7 +65,8 @@ Pixel.Object.prototype.addChild = function(childObject) {
 	}
 	
 	childObject.parent = this;
-	childObject.canvas = this.canvas;
+	
+	childObject.setCanvas(this.canvas);
 	
 	this.children.push(childObject);
 }
@@ -156,6 +170,10 @@ Pixel.Object.prototype.moveChildToBack = function(object) {
 
 
 //-------------------------------------------------------
+//! Size
+//-------------------------------------------------------
+
+//-------------------------------------------------------
 Pixel.Object.prototype.getWidth = function() {
 	return this.getBounds.width;
 }
@@ -175,38 +193,48 @@ Pixel.Object.prototype.getBounds = function() {
 
 
 //-------------------------------------------------------
-//Returns poPoint
+//! Alignment/Offset
+//-------------------------------------------------------
+
+//-------------------------------------------------------
+Pixel.Object.prototype.setAlignment = function(alignment) {
+	this.alignment = alignment;
+}
+
+
+//-------------------------------------------------------
+//Returns offest (based on alignment) as Pixel.Point
 Pixel.Object.prototype.calculateOffset = function() {
 	switch(this.alignment) {
-		case Pixel.ALIGNMENT_TOP_LEFT:
+		case Pixel.ALIGNMENT_LEFT_TOP:
 			this.offset.set(0, 0);
 			break;
 		
-		case Pixel.ALIGNMENT_CENTER_LEFT:
+		case Pixel.ALIGNMENT_LEFT_CENTER:
 			this.offset.set(0, -this.height/2);
 			break;
 		
-		case Pixel.ALIGNMENT_BOTTOM_LEFT:
+		case Pixel.ALIGNMENT_LEFT_BOTTOM:
 			this.offset.set(0, -this.height);
 			break;
 		
-		case Pixel.ALIGNMENT_TOP_RIGHT:
+		case Pixel.ALIGNMENT_RIGHT_TOP:
 			this.offset.set(-this.width, 0);
 			break;
 		
-		case Pixel.ALIGNMENT_CENTER_RIGHT:
+		case Pixel.ALIGNMENT_RIGHT_CENTER:
 			this.offset.set(-this.width, -this.height/2);
 			break;
 		
-		case Pixel.ALIGNMENT_BOTTOM_RIGHT:
+		case Pixel.ALIGNMENT_RIGHT_BOTTOM:
 			this.offset.set(-this.width, -this.height);
 			break;
 		
-		case Pixel.ALIGNMENT_TOP_CENTER:
+		case Pixel.ALIGNMENT_CENTER_TOP:
 			this.offset.set(-this.width/2, 0);
 			break;
 		
-		case Pixel.ALIGNMENT_BOTTOM_CENTER:
+		case Pixel.ALIGNMENT_CENTER_BOTTOM:
 			this.offset.set(-this.width/2, -this.height);
 			break;
 		
@@ -216,6 +244,10 @@ Pixel.Object.prototype.calculateOffset = function() {
 	}
 }
 
+
+//-------------------------------------------------------
+//! Handlers
+//-------------------------------------------------------
 
 //-------------------------------------------------------
 Pixel.Object.prototype.eventHandler = function(event) {

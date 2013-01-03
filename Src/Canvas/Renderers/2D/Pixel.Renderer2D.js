@@ -10,6 +10,8 @@ Pixel.Renderer2D = function(canvas) {
 	this.bgColor	= new Pixel.Color();
 	
 	this.shapePos = {x:0,y:0};
+	
+	console.log(this.ctx.scale);
 };
 
 //-------------------------------------------------------
@@ -39,6 +41,7 @@ Pixel.Renderer2D.prototype.setSize = function(width, height) {};
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setFillColor = function(r,g,b,a) {
 	this.ctx.fillStyle = Pixel.getColorAsRGBAString(r,g,b,a);
+	this.bFill = true;
 };
 
 //-------------------------------------------------------
@@ -295,7 +298,7 @@ Pixel.Renderer2D.prototype.drawEllipse = function(x,y,width,height) {
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.drawCircle = function(x,y,radius) {
 	this.ctx.beginPath();
-	this.ctx.arc(x, y, radius, 0, Math.PI*2,false);
+	this.ctx.arc(x + radius/2, y + radius/2, radius, 0, Math.PI*2,false);
 	
 	if(this.bStroke) this.ctx.stroke();
   	if(this.bFill) this.ctx.fill();
@@ -353,7 +356,8 @@ Pixel.Renderer2D.prototype.setTransform = function(m11, m12, m21, m22, dx, dy) {
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setFont = function(font, size) {
 	if(size == undefined) {
-		this.setFont(font.font, font.size);
+		console.log(font);
+		this.setFont(font.fontFamily, font.size);
 	} else {
 		this.ctx.font = size + "pt " + font;
 	}
@@ -371,7 +375,17 @@ Pixel.Renderer2D.prototype.setTextAlignment = function(alignment) {
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setTextBaseline = function(baseline) {
-	this.ctx.textBaseline = baseline;
+	switch(baseline) {
+		case Pixel.TEXT_BASELINE_TOP:
+			this.ctx.textBaseline = "top";
+			break;
+		case Pixel.TEXT_BASELINE_MIDDLE:
+			this.ctx.textBaseline = "middle";
+			break;
+		case Pixel.TEXT_BASELINE_BOTTOM:
+			this.ctx.textBaseline = "bottom";
+			break;
+	}
 };
 
 

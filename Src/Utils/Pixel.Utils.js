@@ -1,14 +1,13 @@
 //-------------------------------------------------------
 //Pixel.Utils.js
 
-
 //-------------------------------------------------------
 Pixel.isSet = function(item) { return item != undefined ? item : false; };
 
 
 //-------------------------------------------------------
 Pixel.log = function(message) {
-	console.log("PixelJS Log: " + message)
+	console.log("PixelJS: " + message)
 };
 
 //-------------------------------------------------------
