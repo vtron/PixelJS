@@ -9,10 +9,10 @@ Pixel.Object = function() {
 	this.pos		= new Pixel.Point(0,0,0);
 	this.offset		= new Pixel.Point(0,0,0);
 	
-	this.rotation	= 0;
-	this.alignment	= Pixel.ALIGNMENT_TOP_LEFT;
-	this.scaling	= new Pixel.Point(1,1,0);
-	this.rotation	= 0;
+	this.rotation		= 0;
+	this.alignment		= Pixel.ALIGNMENT_TOP_LEFT;
+	this.scaleAmount	= new Pixel.Point(1,1,0);
+	this.rotation		= 0;
 	
 	this.visible = true;
 	
@@ -34,7 +34,7 @@ Pixel.Object.prototype.draw = function() {
 	this.canvas.pushMatrix();
 	this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
 	this.canvas.rotate(this.rotation);
-	this.canvas.scale(this.scaling.x, this.scaling.y);
+	this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
 	
 	for(var i=0; i<this.children.length; i++) {
 		this.children[i].draw();

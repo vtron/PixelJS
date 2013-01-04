@@ -322,6 +322,11 @@ Pixel.Font.prototype.setFamily = function(family) {
 	this.fontFamily = fontName;
 }
 
+//-------------------------------------------------------
+Pixel.Font.prototype.getFamily = function(family) {
+	return this.fontFamily;
+}
+
 
 //-------------------------------------------------------
 Pixel.Font.prototype.setBaseline = function(baseline) {
@@ -337,7 +342,50 @@ Pixel.Font.prototype.getTextWidth = function(text, size) {
 
 //-------------------------------------------------------
 Pixel.Font.prototype.getTextHeight = function(text, size) {
-	return size;
+	var text = document.createElement('span');
+	text.style.font = size + "px " + this.fontFamily;
+	text.innerHTML	= text;
+	
+	var block = document.createElement('div');
+	block.style.display = "inline-block";
+	block.style.width="1px";
+	block.style.height="0px";
+	
+	var div = document.createElement('div');
+	div.appendChild(text);
+	div.appendChild(block);
+	
+	document.body.appendChild(div);
+	
+	try {
+		var result = {};
+		
+		block.style.verticalAlign = 'baseline';
+		result.ascent = block.offsetTop - text.offsetTop;
+		
+		block.style.verticalAlign = 'bottom';
+		result.height = block.offsetTop - text.offsetTop;
+		
+		result.descent = result.height - result.ascent;
+	
+	} finally {
+		document.body.removeChild(div);
+	}
+	
+	return result;
+}
+
+//-------------------------------------------------------
+Pixel.Font.prototype.getTextMetrics = function(text, size) {
+	var tWidth	= this.getTextWidth(text, size);
+	var tHeight = this.getTextHeight(text, size);
+	
+	return {
+		width: tWidth,
+		height: tHeight.height,
+		ascent: tHeight.ascent,
+		descent: tHeight.descent
+	}
 }//-------------------------------------------------------
 //Pixel.Color.js
 
@@ -579,10 +627,10 @@ Pixel.Object = function() {
 	this.pos		= new Pixel.Point(0,0,0);
 	this.offset		= new Pixel.Point(0,0,0);
 	
-	this.rotation	= 0;
-	this.alignment	= Pixel.ALIGNMENT_TOP_LEFT;
-	this.scaling	= new Pixel.Point(1,1,0);
-	this.rotation	= 0;
+	this.rotation		= 0;
+	this.alignment		= Pixel.ALIGNMENT_TOP_LEFT;
+	this.scaleAmount	= new Pixel.Point(1,1,0);
+	this.rotation		= 0;
 	
 	this.visible = true;
 	
@@ -604,7 +652,7 @@ Pixel.Object.prototype.draw = function() {
 	this.canvas.pushMatrix();
 	this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
 	this.canvas.rotate(this.rotation);
-	this.canvas.scale(this.scaling.x, this.scaling.y);
+	this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
 	
 	for(var i=0; i<this.children.length; i++) {
 		this.children[i].draw();
@@ -1274,10 +1322,10 @@ Pixel.TextField = function(font) {
 	this.textSize		= 10;
 	this.text			= "";
 	
+	this.layout			= new Pixel.TextLayout();
+	
 	//Default to transparent BG
 	this.fillEnabled	= false;
-	
-	this.bAutoSize	= false;
 }
 
 Pixel.TextField.prototype = Object.create(Pixel.Shape2D.prototype);
@@ -1303,11 +1351,26 @@ Pixel.TextField.prototype.setTextSize = function(size) {
 	this.textSize = size;
 }
 
+
 //-------------------------------------------------------
-Pixel.TextField.prototype.setAutoSize = function(autoSize) {
-	this.bAutoSize = autoSize;
+Pixel.TextField.prototype.setTextAlignment = function(textAlignment) {
+	this.layout.textAlignment = textAlignment;
 }
 
+//-------------------------------------------------------
+Pixel.TextField.prototype.getTextAlignment = function() {
+	return this.layout.textAlignment;
+}
+
+//-------------------------------------------------------
+Pixel.TextField.prototype.setLeading = function(leading) {
+	this.layout.leading = leading;
+}
+
+//-------------------------------------------------------
+Pixel.TextField.prototype.getLeading = function() {
+	return this.layout.leading;
+}
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.setText = function(text) {
@@ -1317,15 +1380,24 @@ Pixel.TextField.prototype.setText = function(text) {
 		this.width	= this.font.getTextWidth(this.text, this.textSize);
 		this.height	= this.font.getTextHeight(this.text, this.textSize);
 	}
+	
+	this.doLayout();
 }
 
+
+//-------------------------------------------------------
+Pixel.TextField.prototype.doLayout = function() {
+	this.layout.doLayout(this.text, this.font, this.textSize, 0, this.width, this.height);
+}
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.draw = function() {
 	if(this.canvas) {
 		this.canvas.pushMatrix();
+		
 		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
 		this.canvas.rotate(this.rotation);
+		this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
 		
 		if(this.fillEnabled) {
 			this.canvas.setFillColor(this.fillColor);
@@ -1346,16 +1418,105 @@ Pixel.TextField.prototype.draw = function() {
 		this.canvas.setFillColor(this.textColor);
 		this.canvas.setFont(this.font.fontFamily, this.textSize);
 		this.canvas.setTextBaseline(this.font.baseline);
-		this.canvas.drawText(this.text, this.offset.x, this.offset.y);
+		
+		var nLines = this.layout.getLines().length;;
+		for(var i=0; i<nLines; i++) {
+			var thisLine = this.layout.getLines()[i];
+			this.canvas.drawText(thisLine.text, this.offset.x + thisLine.pos.x, this.offset.y + thisLine.pos.y);
+		}
 		
 		this.canvas.popMatrix();
 	}
 }//-------------------------------------------------------
 //Pixel.TypeLayout.js
 //Font class with added capabilities like position, size, etc
-Pixel.Textfield = function() {
+Pixel.TextLayout = function() {
+	this.lines		= [];
+	this.textAlignment	= Pixel.TEXT_ALIGN_LEFT;
+	this.leading	= null;
+}
+
+//-------------------------------------------------------
+Pixel.TextLayout.prototype.doLayout = function(text, font, textSize, leading, bboxWidth, bboxHeight) {
+	this.lines = [];
 	
-}//-------------------------------------------------------
+	var cursorX = 0,
+		cursorY = 0;
+	
+	var words = text.split(" ");
+	var curLine = this.newLine();
+	
+	for(var i=0; i<words.length; i++) {
+		curLine.width	= font.getTextWidth(curLine.text,	textSize);
+		var wordWidth	= font.getTextWidth(words[i], 		textSize);
+		
+		if(curLine.width + wordWidth < bboxWidth) {
+			curLine.text += words[i] +  " ";
+		} else {
+			//Get metrics and add line
+			curLine.metrics = font.getTextMetrics(curLine.text, textSize);
+			curLine.pos.x = this.getLineXPos(bboxWidth, curLine.metrics.width);
+			curLine.pos.y = cursorY;
+			this.lines.push(curLine);
+				
+			//Set cursor to next line, including leading
+			//Default leading is 1.2 times the text size until changed manually
+			if(this.leading == null) {
+				cursorY += curLine.metrics.height * 1.2;
+			} else {
+				cursorY += curLine.metrics.descent + this.leading;
+			}
+			
+			//Begin new line		
+			curLine = this.newLine();
+			curLine.text = words[i];
+		}
+	}
+	
+	//Get metrics and add final line
+	curLine.metrics = font.getTextMetrics(curLine.text, textSize);
+	curLine.pos.x	= this.getLineXPos(bboxWidth, curLine.metrics.width);
+	curLine.pos.y	= cursorY;
+	this.lines.push(curLine);
+}
+
+
+//-------------------------------------------------------
+Pixel.TextLayout.prototype.getLineXPos = function(bboxWidth, lineWidth) {
+	var xPos = 0;
+	
+	//Set Horizontal position
+	switch(this.textAlignment) {
+		case Pixel.TEXT_ALIGN_LEFT:
+			break;
+		
+		case Pixel.TEXT_ALIGN_CENTER:
+			xPos = bboxWidth/2 - lineWidth/2;
+			break;
+			
+		case Pixel.TEXT_ALIGN_RIGHT:
+			xPos = bboxWidth - lineWidth;
+			break;
+	}
+	
+	return xPos;
+}
+
+
+//-------------------------------------------------------
+Pixel.TextLayout.prototype.getLines = function() {
+	return this.lines;
+}
+
+//-------------------------------------------------------
+Pixel.TextLayout.prototype.newLine = function() {
+	return {
+		text:"",
+		pos: new Pixel.Point(),
+		metrics: null
+	}
+}
+//-------------------------------------------------------
 //Pixel.Canvas.js
 //Canvas Wrapper, implements Renderer functions and adds DOM specific stuff 
 //+ generic vars shared between renderers (i.e. Cursor)

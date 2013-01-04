@@ -12,10 +12,10 @@ Pixel.TextField = function(font) {
 	this.textSize		= 10;
 	this.text			= "";
 	
+	this.layout			= new Pixel.TextLayout();
+	
 	//Default to transparent BG
 	this.fillEnabled	= false;
-	
-	this.bAutoSize	= false;
 }
 
 Pixel.TextField.prototype = Object.create(Pixel.Shape2D.prototype);
@@ -41,11 +41,26 @@ Pixel.TextField.prototype.setTextSize = function(size) {
 	this.textSize = size;
 }
 
+
 //-------------------------------------------------------
-Pixel.TextField.prototype.setAutoSize = function(autoSize) {
-	this.bAutoSize = autoSize;
+Pixel.TextField.prototype.setTextAlignment = function(textAlignment) {
+	this.layout.textAlignment = textAlignment;
 }
 
+//-------------------------------------------------------
+Pixel.TextField.prototype.getTextAlignment = function() {
+	return this.layout.textAlignment;
+}
+
+//-------------------------------------------------------
+Pixel.TextField.prototype.setLeading = function(leading) {
+	this.layout.leading = leading;
+}
+
+//-------------------------------------------------------
+Pixel.TextField.prototype.getLeading = function() {
+	return this.layout.leading;
+}
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.setText = function(text) {
@@ -55,15 +70,24 @@ Pixel.TextField.prototype.setText = function(text) {
 		this.width	= this.font.getTextWidth(this.text, this.textSize);
 		this.height	= this.font.getTextHeight(this.text, this.textSize);
 	}
+	
+	this.doLayout();
 }
 
+
+//-------------------------------------------------------
+Pixel.TextField.prototype.doLayout = function() {
+	this.layout.doLayout(this.text, this.font, this.textSize, 0, this.width, this.height);
+}
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.draw = function() {
 	if(this.canvas) {
 		this.canvas.pushMatrix();
+		
 		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
 		this.canvas.rotate(this.rotation);
+		this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
 		
 		if(this.fillEnabled) {
 			this.canvas.setFillColor(this.fillColor);
@@ -84,7 +108,12 @@ Pixel.TextField.prototype.draw = function() {
 		this.canvas.setFillColor(this.textColor);
 		this.canvas.setFont(this.font.fontFamily, this.textSize);
 		this.canvas.setTextBaseline(this.font.baseline);
-		this.canvas.drawText(this.text, this.offset.x, this.offset.y);
+		
+		var nLines = this.layout.getLines().length;;
+		for(var i=0; i<nLines; i++) {
+			var thisLine = this.layout.getLines()[i];
+			this.canvas.drawText(thisLine.text, this.offset.x + thisLine.pos.x, this.offset.y + thisLine.pos.y);
+		}
 		
 		this.canvas.popMatrix();
 	}
