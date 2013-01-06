@@ -9,6 +9,11 @@ Pixel.Object = function() {
 	this.pos		= new Pixel.Point(0,0,0);
 	this.offset		= new Pixel.Point(0,0,0);
 	
+	this.width	= 0;
+	this.height = 0;
+	this.bounds = new Pixel.Rect(0,0,0,0);
+	this.drawBounds = false;
+	
 	this.rotation		= 0;
 	this.alignment		= Pixel.ALIGNMENT_TOP_LEFT;
 	this.scaleAmount	= new Pixel.Point(1,1,0);
@@ -31,13 +36,24 @@ Pixel.Object.prototype.update = function() {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.draw = function() {
+	this.calculateOffset();
+	this.calculateBounds();
+	
 	this.canvas.pushMatrix();
-	this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
+	this.canvas.translate(this.pos.x + this.offset.x, this.pos.y + this.offset.y, this.pos.z);
 	this.canvas.rotate(this.rotation);
 	this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
 	
 	for(var i=0; i<this.children.length; i++) {
 		this.children[i].draw();
+	}
+	
+	if(this.drawBounds) {
+		this.canvas.setStrokeSize(1);
+		this.canvas.setStrokeColor(255,0,0);
+		this.canvas.noFill();
+		
+		this.canvas.drawRect(0, 0, this.getWidth(), this.getHeight());
 	}
 	
 	this.canvas.popMatrix();
@@ -175,20 +191,44 @@ Pixel.Object.prototype.moveChildToBack = function(object) {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.getWidth = function() {
-	return this.getBounds.width;
+	return this.bounds.width;
 }
 
 
 //-------------------------------------------------------
 Pixel.Object.prototype.getHeight = function() {
-	return this.getBounds.height;
+	return this.bounds.height;
+}
+
+
+//-------------------------------------------------------
+Pixel.Object.prototype.getSize = function() {
+	return { "width": this.getWidth(), "height": this.getHeight() };
 }
 
 
 //-------------------------------------------------------
 //Needs to be implmented
 Pixel.Object.prototype.getBounds = function() {
-	return new Pixel.Rect();
+	this.calculateBounds();
+	return this.bounds;
+}
+
+Pixel.Object.prototype.calculateBounds = function() {
+	this.bounds.set(0,0,0,0);
+	for(var i=0; i<this.children.length; i++) {
+		this.bounds.include(this.children[i].getBounds());
+	}
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.setDrawBounds = function(drawBounds) {
+	this.drawBounds = drawBounds;
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.getDrawBounds = function() {
+	return this.drawBounds;
 }
 
 
@@ -211,35 +251,35 @@ Pixel.Object.prototype.calculateOffset = function() {
 			break;
 		
 		case Pixel.ALIGNMENT_LEFT_CENTER:
-			this.offset.set(0, -this.height/2);
+			this.offset.set(0, -this.getHeight()/2);
 			break;
 		
 		case Pixel.ALIGNMENT_LEFT_BOTTOM:
-			this.offset.set(0, -this.height);
+			this.offset.set(0, -this.getHeight());
 			break;
 		
 		case Pixel.ALIGNMENT_RIGHT_TOP:
-			this.offset.set(-this.width, 0);
+			this.offset.set(-this.getWidth(), 0);
 			break;
 		
 		case Pixel.ALIGNMENT_RIGHT_CENTER:
-			this.offset.set(-this.width, -this.height/2);
+			this.offset.set(-this.getWidth(), -this.getHeight()/2);
 			break;
 		
 		case Pixel.ALIGNMENT_RIGHT_BOTTOM:
-			this.offset.set(-this.width, -this.height);
+			this.offset.set(-this.getWidth(), -this.getHeight());
 			break;
 		
 		case Pixel.ALIGNMENT_CENTER_TOP:
-			this.offset.set(-this.width/2, 0);
+			this.offset.set(-this.getWidth()/2, 0);
 			break;
 		
 		case Pixel.ALIGNMENT_CENTER_BOTTOM:
-			this.offset.set(-this.width/2, -this.height);
+			this.offset.set(-this.getWidth()/2, -this.getHeight());
 			break;
 		
 		case Pixel.ALIGNMENT_CENTER_CENTER:
-			this.offset.set(-this.width/2, -this.height/2);
+			this.offset.set(-this.getWidth()/2, -this.getHeight()/2);
 			break;
 	}
 }
