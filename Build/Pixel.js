@@ -12,6 +12,8 @@ if(typeof Pixel == 'undefined') {
 		'version': '0.1'
 	};
 	
+	window['Pixel'] = Pixel;
+	
 	//Create Alias
 	if(typeof px == 'undefined') px = Pixel;
 } else {
@@ -627,6 +629,11 @@ Pixel.Object = function() {
 	this.pos		= new Pixel.Point(0,0,0);
 	this.offset		= new Pixel.Point(0,0,0);
 	
+	this.width	= 0;
+	this.height = 0;
+	this.bounds = new Pixel.Rect(0,0,0,0);
+	this.drawBounds = false;
+	
 	this.rotation		= 0;
 	this.alignment		= Pixel.ALIGNMENT_TOP_LEFT;
 	this.scaleAmount	= new Pixel.Point(1,1,0);
@@ -649,13 +656,24 @@ Pixel.Object.prototype.update = function() {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.draw = function() {
+	this.calculateOffset();
+	this.calculateBounds();
+	
 	this.canvas.pushMatrix();
-	this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
+	this.canvas.translate(this.pos.x + this.offset.x, this.pos.y + this.offset.y, this.pos.z);
 	this.canvas.rotate(this.rotation);
 	this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
 	
 	for(var i=0; i<this.children.length; i++) {
 		this.children[i].draw();
+	}
+	
+	if(this.drawBounds) {
+		this.canvas.setStrokeSize(1);
+		this.canvas.setStrokeColor(255,0,0);
+		this.canvas.noFill();
+		
+		this.canvas.drawRect(0, 0, this.getWidth(), this.getHeight());
 	}
 	
 	this.canvas.popMatrix();
@@ -793,20 +811,44 @@ Pixel.Object.prototype.moveChildToBack = function(object) {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.getWidth = function() {
-	return this.getBounds.width;
+	return this.bounds.width;
 }
 
 
 //-------------------------------------------------------
 Pixel.Object.prototype.getHeight = function() {
-	return this.getBounds.height;
+	return this.bounds.height;
+}
+
+
+//-------------------------------------------------------
+Pixel.Object.prototype.getSize = function() {
+	return { "width": this.getWidth(), "height": this.getHeight() };
 }
 
 
 //-------------------------------------------------------
 //Needs to be implmented
 Pixel.Object.prototype.getBounds = function() {
-	return new Pixel.Rect();
+	this.calculateBounds();
+	return this.bounds;
+}
+
+Pixel.Object.prototype.calculateBounds = function() {
+	this.bounds.set(0,0,0,0);
+	for(var i=0; i<this.children.length; i++) {
+		this.bounds.include(this.children[i].getBounds());
+	}
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.setDrawBounds = function(drawBounds) {
+	this.drawBounds = drawBounds;
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.getDrawBounds = function() {
+	return this.drawBounds;
 }
 
 
@@ -829,35 +871,35 @@ Pixel.Object.prototype.calculateOffset = function() {
 			break;
 		
 		case Pixel.ALIGNMENT_LEFT_CENTER:
-			this.offset.set(0, -this.height/2);
+			this.offset.set(0, -this.getHeight()/2);
 			break;
 		
 		case Pixel.ALIGNMENT_LEFT_BOTTOM:
-			this.offset.set(0, -this.height);
+			this.offset.set(0, -this.getHeight());
 			break;
 		
 		case Pixel.ALIGNMENT_RIGHT_TOP:
-			this.offset.set(-this.width, 0);
+			this.offset.set(-this.getWidth(), 0);
 			break;
 		
 		case Pixel.ALIGNMENT_RIGHT_CENTER:
-			this.offset.set(-this.width, -this.height/2);
+			this.offset.set(-this.getWidth(), -this.getHeight()/2);
 			break;
 		
 		case Pixel.ALIGNMENT_RIGHT_BOTTOM:
-			this.offset.set(-this.width, -this.height);
+			this.offset.set(-this.getWidth(), -this.getHeight());
 			break;
 		
 		case Pixel.ALIGNMENT_CENTER_TOP:
-			this.offset.set(-this.width/2, 0);
+			this.offset.set(-this.getWidth()/2, 0);
 			break;
 		
 		case Pixel.ALIGNMENT_CENTER_BOTTOM:
-			this.offset.set(-this.width/2, -this.height);
+			this.offset.set(-this.getWidth()/2, -this.getHeight());
 			break;
 		
 		case Pixel.ALIGNMENT_CENTER_CENTER:
-			this.offset.set(-this.width/2, -this.height/2);
+			this.offset.set(-this.getWidth()/2, -this.getHeight()/2);
 			break;
 	}
 }
@@ -885,9 +927,6 @@ Pixel.Object.prototype.messageHandler = function(msg) {
 
 Pixel.Shape2D = function() {
 	Pixel.Object.call(this);
-	
-	this.width	= 0;
-	this.height = 0;
 	
 	this.fillColor			= new Pixel.Color(255,255,255);
 	this.fillEnabled		= true;
@@ -959,7 +998,7 @@ Pixel.Shape2D.prototype.setStrokeColor = function(r,g,b,a) {
 //! Size
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.getWidth = function() {
-	return this.getBounds().width;
+	return this.width;
 }
 
 //-------------------------------------------------------
@@ -970,7 +1009,7 @@ Pixel.Shape2D.prototype.setWidth = function(width) {
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.getHeight = function() {
-	return this.getBounds().height;
+	return this.height;
 }
 
 
@@ -982,7 +1021,7 @@ Pixel.Shape2D.prototype.setHeight = function(height) {
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.getSize = function() {
-	return { "width": this.width, "height": this.height };
+	return { "width": this.getWidth(), "height": this.getHeight() };
 }
 
 
@@ -994,7 +1033,7 @@ Pixel.Shape2D.prototype.setSize = function(width, height) {
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.getBounds = function() {
-	return new Pixel.Rect(this.pos.x, this.pos.y, this.width, this.height);
+	return new Pixel.Rect(this.pos.x, this.pos.y, this.getWidth(), this.getHeight());
 }//-------------------------------------------------------
 //-------------------------------------------------------
 // !RectShape
@@ -1056,9 +1095,9 @@ Pixel.EllipseShape.prototype.draw = function() {
 		this.canvas.rotate(this.rotation);
 		
 		if(this.width == this.height) {
-			this.canvas.drawCircle(this.offset.x, this.offset.y, this.width);
+			this.canvas.drawCircle(this.width/4 + this.offset.x, this.height/4 + this.offset.y, this.width/2);
 		} else {	
-			this.canvas.drawEllipse(this.offset.x, this.offset.y, this.width, this.height);
+			this.canvas.drawEllipse(this.width/4 + this.offset.x, this.height/4 + this.offset.y, this.width/2, this.height/2);
 		}
 		
 		this.canvas.popMatrix();
@@ -1314,21 +1353,80 @@ Pixel.Image = Pixel.Object.extend({
 Pixel.TextField = function(font) {
 	Pixel.Shape2D.call(this);
 	
+	//Size
 	this.width	= 100;
 	this.height = 50;
 	
+	this.textWidth	= 0;
+	this.textHeight	= 0;
+	this.useTextBounds	= false; //Use the text bounds vs the frame of the textfield?
+	
+	//Text Properties
 	this.font			= font || new Pixel.Font("Arial", 14);
+	this.leading		= null;
+	
+	this.textAlignment	= Pixel.TEXT_ALIGN_LEFT;
 	this.textColor		= new Pixel.Color(255,255,255,1);
 	this.textSize		= 10;
+	
 	this.text			= "";
 	
-	this.layout			= new Pixel.TextLayout();
+	this.hideOverflow	= false;
+	
+	//Layout
+	this.lines		= [];
+	
 	
 	//Default to transparent BG
 	this.fillEnabled	= false;
 }
 
 Pixel.TextField.prototype = Object.create(Pixel.Shape2D.prototype);
+
+
+
+//-------------------------------------------------------
+//!Size
+
+//-------------------------------------------------------
+Pixel.TextField.prototype.setUseTextBounds = function(useTextBounds) {
+	this.useTextBounds = useTextBounds;
+}
+
+//-------------------------------------------------------
+Pixel.TextField.prototype.getUseTextBounds = function(useTextBounds) {
+	return this.useTextBounds;
+}
+
+
+//-------------------------------------------------------
+Pixel.TextField.prototype.getWidth = function() {
+	if(this.useTextBounds) {
+		return this.textWidth;
+	} else {
+		return this.width;
+	}
+}
+
+//-------------------------------------------------------
+Pixel.TextField.prototype.getHeight = function() {
+	if(this.useTextBounds) {
+		return this.textHeight;
+	} else {
+		return this.height;
+	}
+}
+
+//-------------------------------------------------------
+Pixel.TextField.prototype.getBounds = function() {
+	this.calculateOffset();
+	this.bounds.set(this.pos.x + this.offset.x, this.pos.y + this.offset.y, this.getWidth(), this.getHeight());
+	return this.bounds;
+}
+
+
+//-------------------------------------------------------
+//!Text Properties
 
 
 //-------------------------------------------------------
@@ -1339,6 +1437,7 @@ Pixel.TextField.prototype.setFont = function(font) {
 		Pixel.log("Not a valid Pixel font object.");
 	}
 }
+
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.setTextColor = function(r,g,b,a) {
@@ -1354,41 +1453,163 @@ Pixel.TextField.prototype.setTextSize = function(size) {
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.setTextAlignment = function(textAlignment) {
-	this.layout.textAlignment = textAlignment;
+	this.textAlignment = textAlignment;
 }
+
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.getTextAlignment = function() {
-	return this.layout.textAlignment;
+	return this.textAlignment;
 }
+
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.setLeading = function(leading) {
-	this.layout.leading = leading;
+	this.leading = leading;
 }
+
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.getLeading = function() {
-	return this.layout.leading;
+	return this.leading;
 }
+
+
+//-------------------------------------------------------
+Pixel.TextField.prototype.setHideOverflow = function(hideOverflow) {
+	this.hideOverflow = hideOverflow;
+}
+
+
+//-------------------------------------------------------
+Pixel.TextField.prototype.getText = function(text) {
+	return this.hideOverflow;
+}
+
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.setText = function(text) {
-	this.text = text;
-	
-	if(this.bAutoSize) {
-		this.width	= this.font.getTextWidth(this.text, this.textSize);
-		this.height	= this.font.getTextHeight(this.text, this.textSize);
-	}
-	
-	this.doLayout();
+	this.text = text.toString();
 }
 
 
 //-------------------------------------------------------
-Pixel.TextField.prototype.doLayout = function() {
-	this.layout.doLayout(this.text, this.font, this.textSize, 0, this.width, this.height);
+Pixel.TextField.prototype.getText = function(text) {
+	return this.text;
 }
+
+
+//-------------------------------------------------------
+//!Layout
+
+//-------------------------------------------------------
+Pixel.TextField.prototype.doLayout = function() {
+	this.lines = [];
+	this.textWidth	= 0;
+	this.textHeight = 0;
+	
+	var cursorX = 0,
+		cursorY = 0;
+	
+	var words	= this.text.split(" ");
+	var curLine = this.newLine();
+	
+	var nWords = words.length;
+	for(var i=0; i<nWords; i++) {
+		curLine.width	= this.font.getTextWidth(curLine.text,	this.textSize);
+		var wordWidth	= this.font.getTextWidth(words[i], 		this.textSize);
+		
+		if(curLine.width + wordWidth < this.width) {
+			curLine.text += words[i];
+			if(i!= nWords-1) curLine.text +=   " ";
+		} else {
+			//Get metrics and add line
+			curLine.metrics = this.font.getTextMetrics(curLine.text, this.textSize);
+			curLine.pos.x = this.getLineXPos(curLine.metrics.width);
+			curLine.pos.y = cursorY;
+			this.lines.push(curLine);
+				
+			//Set cursor to next line, including leading
+			//Default leading is 1.2 times the text size until changed manually
+			
+			if(this.leading == null) this.leading = curLine.metrics.height * 1.2;
+			cursorY += curLine.metrics.descent + this.leading;
+			
+			//Check for overflow, 
+			//If it is set and we're past the box we're done
+			var newLineBottom = cursorY +curLine.metrics.descent + this.leading;
+			
+			if(this.hideOverflow &&  newLineBottom > this.height) {
+				this.calculateTextBounds();
+				return;
+			} 
+			
+			//Otherwise, we begin new line		
+			curLine = this.newLine();
+			curLine.text = words[i];
+		}
+	}
+	
+	//Get metrics and add final line
+	curLine.metrics = this.font.getTextMetrics(curLine.text, this.textSize);
+	curLine.pos.x	= this.getLineXPos(curLine.metrics.width);
+	curLine.pos.y	= cursorY;
+	
+	this.lines.push(curLine);
+	
+	//Set the final width & height of the text (no leading)
+	this.calculateTextBounds();
+}
+
+
+//-------------------------------------------------------
+Pixel.TextField.prototype.getLineXPos = function(lineWidth) {
+	var xPos = 0;
+	
+	//Set Horizontal position
+	switch(this.textAlignment) {
+		case Pixel.TEXT_ALIGN_LEFT:
+			break;
+		
+		case Pixel.TEXT_ALIGN_CENTER:
+			xPos = this.width/2 - lineWidth/2;
+			break;
+			
+		case Pixel.TEXT_ALIGN_RIGHT:
+			xPos = this.width - lineWidth;
+			break;
+	}
+	
+	return xPos;
+}
+
+
+//-------------------------------------------------------
+Pixel.TextField.prototype.getLines = function() {
+	return this.lines;
+}
+
+
+//-------------------------------------------------------
+Pixel.TextField.prototype.newLine = function() {
+	return {
+		text:"",
+		pos: new Pixel.Point(),
+		metrics: null
+	}
+}
+
+//-------------------------------------------------------
+//Calculate the width of the text box based on the widest line
+Pixel.TextField.prototype.calculateTextBounds = function() {
+	for(var i=0; i<this.lines.length; i++) {
+		this.textWidth = (this.lines[i].metrics.width > this.textWidth) ? this.lines[i].metrics.width : this.textWidth;
+	}
+	
+	var lastLine = this.lines[this.lines.length - 1];
+	this.textHeight = lastLine.pos.y + lastLine.metrics.height;
+}
+
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.draw = function() {
@@ -1413,110 +1634,22 @@ Pixel.TextField.prototype.draw = function() {
 		}
 		
 		this.calculateOffset();
-		this.canvas.drawRect(this.offset.x, this.offset.y, this.width, this.height);
+		var bounds = this.getBounds();
+		this.canvas.drawRect(this.offset.x, this.offset.y, bounds.width, bounds.height);
 		
 		this.canvas.setFillColor(this.textColor);
 		this.canvas.setFont(this.font.fontFamily, this.textSize);
 		this.canvas.setTextBaseline(this.font.baseline);
 		
-		var nLines = this.layout.getLines().length;;
+		var nLines = this.lines.length;
 		for(var i=0; i<nLines; i++) {
-			var thisLine = this.layout.getLines()[i];
+			var thisLine = this.lines[i];
 			this.canvas.drawText(thisLine.text, this.offset.x + thisLine.pos.x, this.offset.y + thisLine.pos.y);
 		}
 		
 		this.canvas.popMatrix();
 	}
 }//-------------------------------------------------------
-//Pixel.TypeLayout.js
-//Font class with added capabilities like position, size, etc
-Pixel.TextLayout = function() {
-	this.lines		= [];
-	this.textAlignment	= Pixel.TEXT_ALIGN_LEFT;
-	this.leading	= null;
-}
-
-//-------------------------------------------------------
-Pixel.TextLayout.prototype.doLayout = function(text, font, textSize, leading, bboxWidth, bboxHeight) {
-	this.lines = [];
-	
-	var cursorX = 0,
-		cursorY = 0;
-	
-	var words = text.split(" ");
-	var curLine = this.newLine();
-	
-	for(var i=0; i<words.length; i++) {
-		curLine.width	= font.getTextWidth(curLine.text,	textSize);
-		var wordWidth	= font.getTextWidth(words[i], 		textSize);
-		
-		if(curLine.width + wordWidth < bboxWidth) {
-			curLine.text += words[i] +  " ";
-		} else {
-			//Get metrics and add line
-			curLine.metrics = font.getTextMetrics(curLine.text, textSize);
-			curLine.pos.x = this.getLineXPos(bboxWidth, curLine.metrics.width);
-			curLine.pos.y = cursorY;
-			this.lines.push(curLine);
-				
-			//Set cursor to next line, including leading
-			//Default leading is 1.2 times the text size until changed manually
-			if(this.leading == null) {
-				cursorY += curLine.metrics.height * 1.2;
-			} else {
-				cursorY += curLine.metrics.descent + this.leading;
-			}
-			
-			//Begin new line		
-			curLine = this.newLine();
-			curLine.text = words[i];
-		}
-	}
-	
-	//Get metrics and add final line
-	curLine.metrics = font.getTextMetrics(curLine.text, textSize);
-	curLine.pos.x	= this.getLineXPos(bboxWidth, curLine.metrics.width);
-	curLine.pos.y	= cursorY;
-	this.lines.push(curLine);
-}
-
-
-//-------------------------------------------------------
-Pixel.TextLayout.prototype.getLineXPos = function(bboxWidth, lineWidth) {
-	var xPos = 0;
-	
-	//Set Horizontal position
-	switch(this.textAlignment) {
-		case Pixel.TEXT_ALIGN_LEFT:
-			break;
-		
-		case Pixel.TEXT_ALIGN_CENTER:
-			xPos = bboxWidth/2 - lineWidth/2;
-			break;
-			
-		case Pixel.TEXT_ALIGN_RIGHT:
-			xPos = bboxWidth - lineWidth;
-			break;
-	}
-	
-	return xPos;
-}
-
-
-//-------------------------------------------------------
-Pixel.TextLayout.prototype.getLines = function() {
-	return this.lines;
-}
-
-//-------------------------------------------------------
-Pixel.TextLayout.prototype.newLine = function() {
-	return {
-		text:"",
-		pos: new Pixel.Point(),
-		metrics: null
-	}
-}
-//-------------------------------------------------------
 //Pixel.Canvas.js
 //Canvas Wrapper, implements Renderer functions and adds DOM specific stuff 
 //+ generic vars shared between renderers (i.e. Cursor)
@@ -2262,8 +2395,6 @@ Pixel.Renderer2D.prototype.drawTextfield = function(tf) {
 	this.drawText(tf.text, tf.pos.x, tf.pos.y);
 };//-------------------------------------------------------
 //Pixel.App.js
-
-
 Pixel.App = function(renderer) {
 	Pixel.Canvas.call(this, renderer);
 	
@@ -2405,7 +2536,6 @@ Pixel.App.prototype.getElapsedTime = function() {
 	var curTime = new Date().getTime();
 	return curTime - this.startTime;
 };
-
 
 /*
 //-------------------------------------------------------

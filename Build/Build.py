@@ -42,7 +42,6 @@ files.append(src + "SceneGraph/2D/Pixel.EllipseShape.js")
 files.append(src + "SceneGraph/2D/Pixel.ImageShape.js") 
 
 files.append(src + "SceneGraph/Typography/Pixel.TextField.js")
-files.append(src + "SceneGraph/Typography/Pixel.TextLayout.js")
 
 #Canvas
 files.append(src + "Canvas/Pixel.Canvas.js")
