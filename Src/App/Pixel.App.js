@@ -144,7 +144,6 @@ Pixel.App.prototype.getElapsedTime = function() {
 	return curTime - this.startTime;
 };
 
-
 /*
 //-------------------------------------------------------
 //Events
