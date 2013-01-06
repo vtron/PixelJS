@@ -23,9 +23,9 @@ Pixel.EllipseShape.prototype.draw = function() {
 		this.canvas.rotate(this.rotation);
 		
 		if(this.width == this.height) {
-			this.canvas.drawCircle(this.width/4 + this.offset.x, this.height/4 + this.offset.y, this.width/2);
+			this.canvas.drawCircle(this.offset.x, this.offset.y, this.width);
 		} else {	
-			this.canvas.drawEllipse(this.width/4 + this.offset.x, this.height/4 + this.offset.y, this.width/2, this.height/2);
+			this.canvas.drawEllipse(this.offset.x, this.offset.y, this.width, this.height);
 		}
 		
 		this.canvas.popMatrix();

@@ -296,9 +296,9 @@ Pixel.Renderer2D.prototype.drawEllipse = function(x,y,width,height) {
 
 
 //-------------------------------------------------------
-Pixel.Renderer2D.prototype.drawCircle = function(x,y,radius) {
+Pixel.Renderer2D.prototype.drawCircle = function(x,y,size) {
 	this.ctx.beginPath();
-	this.ctx.arc(x + radius/2, y + radius/2, radius, 0, Math.PI*2,false);
+	this.ctx.arc(x + size/2, y + size/2, size/2, 0, Math.PI*2, false);
 	
 	if(this.bStroke) this.ctx.stroke();
   	if(this.bFill) this.ctx.fill();
