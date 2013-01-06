@@ -6,18 +6,21 @@ Pixel.Object = function() {
 	
 	this.name	= "";
 	
-	this.pos		= new Pixel.Point(0,0,0);
-	this.offset		= new Pixel.Point(0,0,0);
+	this.pos			= new Pixel.Point(0,0,0);
+	this.offset			= new Pixel.Point(0,0,0);
 	
-	this.width	= 0;
-	this.height = 0;
-	this.bounds = new Pixel.Rect(0,0,0,0);
-	this.drawBounds = false;
+	this.width			= 0;
+	this.height 		= 0;
+	this.bounds 		= new Pixel.Rect(0,0,0,0);
+	this.drawBounds 	= false;
 	
 	this.rotation		= 0;
 	this.alignment		= Pixel.ALIGNMENT_TOP_LEFT;
 	this.scaleAmount	= new Pixel.Point(1,1,0);
 	this.rotation		= 0;
+	
+	this.cache			= null;
+	this.isCaching		= false;
 	
 	this.visible = true;
 	
@@ -36,27 +39,36 @@ Pixel.Object.prototype.update = function() {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.draw = function() {
-	this.calculateOffset();
-	this.calculateBounds();
-	
-	this.canvas.pushMatrix();
-	this.canvas.translate(this.pos.x + this.offset.x, this.pos.y + this.offset.y, this.pos.z);
-	this.canvas.rotate(this.rotation);
-	this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
-	
-	for(var i=0; i<this.children.length; i++) {
-		this.children[i].draw();
-	}
-	
-	if(this.drawBounds) {
-		this.canvas.setStrokeSize(1);
-		this.canvas.setStrokeColor(255,0,0);
-		this.canvas.noFill();
+	if(this.children.length != 0 && this.canvas) {
 		
-		this.canvas.drawRect(0, 0, this.getWidth(), this.getHeight());
+		this.calculateOffset();
+		this.calculateBounds();
+		
+		this.canvas.pushMatrix();
+		this.canvas.translate(this.pos.x + this.offset.x, this.pos.y + this.offset.y, this.pos.z);
+		this.canvas.rotate(this.rotation);
+		this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
+		
+		if(this.isCaching == false) {
+			for(var i=0; i<this.children.length; i++) {
+				this.children[i].draw();
+			}
+		} else {
+			this.canvas.drawImage(this.cache.element, 0, 0, this.cache.getWidth(), this.cache.getHeight());
+		}
+		
+		if(this.drawBounds) {
+			this.canvas.setStrokeSize(1);
+			this.canvas.setStrokeColor(255,0,0);
+			this.canvas.noFill();
+			
+			this.canvas.drawRect(0, 0, this.getWidth(), this.getHeight());
+		}
+		
+		this.canvas.popMatrix();
+	} else {
+		console.log("No children");
 	}
-	
-	this.canvas.popMatrix();
 }
 
 //-------------------------------------------------------
@@ -82,15 +94,20 @@ Pixel.Object.prototype.addChild = function(childObject) {
 	
 	childObject.parent = this;
 	
-	childObject.setCanvas(this.canvas);
-	
 	this.children.push(childObject);
+	
+	if(this.isCaching == false) {
+		childObject.setCanvas(this.canvas);
+	} else {
+		childObject.setCanvas(this.cache);
+		this.doCaching();
+	}
 }
 
 
 //-------------------------------------------------------
 Pixel.Object.prototype.removeChild = function(childObject) {
-	var index = this.children.lastIndexOf(object);
+	var index = this.children.lastIndexOf(childObject);
 	if(index != -1) {
 		this.children.splice(i, 1);
 	}
@@ -214,6 +231,7 @@ Pixel.Object.prototype.getBounds = function() {
 	return this.bounds;
 }
 
+//-------------------------------------------------------
 Pixel.Object.prototype.calculateBounds = function() {
 	this.bounds.set(0,0,0,0);
 	for(var i=0; i<this.children.length; i++) {
@@ -284,6 +302,67 @@ Pixel.Object.prototype.calculateOffset = function() {
 	}
 }
 
+//-------------------------------------------------------
+//! Caching
+//-------------------------------------------------------
+
+//-------------------------------------------------------
+Pixel.Object.prototype.setCaching = function(shouldCache) {
+	this.isCaching = shouldCache;
+	
+	if(shouldCache) {
+		if(this.cache == null) {
+			this.createCache();
+			
+			//Set children to use this cache
+			var i=this.children.length;
+			while(i--) {
+				this.children[i].setCanvas(this.cache);
+			}
+		}
+		
+		this.doCaching();
+	} else {
+		//Return children to original canvas
+		var i=this.children.length;
+		while(i--) {
+			this.children[i].setCanvas(this.canvas);
+		}
+		
+		//Free up the cache
+		delete this.cache;
+	}
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.createCache = function() {
+	//Create canvas for caching
+	this.cache = new Pixel.Canvas();
+	this.cache.setSize(this.getWidth() * window.devicePixelRatio, this.getHeight() * window.devicePixelRatio);
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.updateCache = function() {
+	if(!this.isCaching) {
+		this.setCaching(true);
+	}
+	
+	this.doCaching();
+}
+
+
+
+//-------------------------------------------------------
+Pixel.Object.prototype.doCaching = function() {
+	this.calculateBounds();
+	this.cache.setSize(this.getWidth() * window.devicePixelRatio, this.getHeight() * window.devicePixelRatio);
+	this.cache.pushMatrix();
+	this.cache.scale(window.devicePixelRatio,window.devicePixelRatio,1);
+	for(var i=0; i<this.children.length; i++) {
+		this.children[i].draw();
+	}
+	this.cache.popMatrix();
+}
 
 //-------------------------------------------------------
 //! Handlers

@@ -12,8 +12,6 @@ if(typeof Pixel == 'undefined') {
 		'version': '0.1'
 	};
 	
-	window['Pixel'] = Pixel;
-	
 	//Create Alias
 	if(typeof px == 'undefined') px = Pixel;
 } else {
@@ -123,7 +121,9 @@ Pixel.isTouchDevice = function() {
 	return "ontouchstart" in window;
 }
 
-Pixel.scale = window.devicePixelRatio;
+Pixel.getDeviceScale = function() {
+	return window.devicePixelRatio;
+}
 
 //Hide menu bar
 Pixel.hideAddressBar = function() {
@@ -626,18 +626,21 @@ Pixel.Object = function() {
 	
 	this.name	= "";
 	
-	this.pos		= new Pixel.Point(0,0,0);
-	this.offset		= new Pixel.Point(0,0,0);
+	this.pos			= new Pixel.Point(0,0,0);
+	this.offset			= new Pixel.Point(0,0,0);
 	
-	this.width	= 0;
-	this.height = 0;
-	this.bounds = new Pixel.Rect(0,0,0,0);
-	this.drawBounds = false;
+	this.width			= 0;
+	this.height 		= 0;
+	this.bounds 		= new Pixel.Rect(0,0,0,0);
+	this.drawBounds 	= false;
 	
 	this.rotation		= 0;
 	this.alignment		= Pixel.ALIGNMENT_TOP_LEFT;
 	this.scaleAmount	= new Pixel.Point(1,1,0);
 	this.rotation		= 0;
+	
+	this.cache			= null;
+	this.isCaching		= false;
 	
 	this.visible = true;
 	
@@ -656,27 +659,36 @@ Pixel.Object.prototype.update = function() {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.draw = function() {
-	this.calculateOffset();
-	this.calculateBounds();
-	
-	this.canvas.pushMatrix();
-	this.canvas.translate(this.pos.x + this.offset.x, this.pos.y + this.offset.y, this.pos.z);
-	this.canvas.rotate(this.rotation);
-	this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
-	
-	for(var i=0; i<this.children.length; i++) {
-		this.children[i].draw();
-	}
-	
-	if(this.drawBounds) {
-		this.canvas.setStrokeSize(1);
-		this.canvas.setStrokeColor(255,0,0);
-		this.canvas.noFill();
+	if(this.children.length != 0 && this.canvas) {
 		
-		this.canvas.drawRect(0, 0, this.getWidth(), this.getHeight());
+		this.calculateOffset();
+		this.calculateBounds();
+		
+		this.canvas.pushMatrix();
+		this.canvas.translate(this.pos.x + this.offset.x, this.pos.y + this.offset.y, this.pos.z);
+		this.canvas.rotate(this.rotation);
+		this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
+		
+		if(this.isCaching == false) {
+			for(var i=0; i<this.children.length; i++) {
+				this.children[i].draw();
+			}
+		} else {
+			this.canvas.drawImage(this.cache.element, 0, 0, this.cache.getWidth(), this.cache.getHeight());
+		}
+		
+		if(this.drawBounds) {
+			this.canvas.setStrokeSize(1);
+			this.canvas.setStrokeColor(255,0,0);
+			this.canvas.noFill();
+			
+			this.canvas.drawRect(0, 0, this.getWidth(), this.getHeight());
+		}
+		
+		this.canvas.popMatrix();
+	} else {
+		console.log("No children");
 	}
-	
-	this.canvas.popMatrix();
 }
 
 //-------------------------------------------------------
@@ -702,15 +714,20 @@ Pixel.Object.prototype.addChild = function(childObject) {
 	
 	childObject.parent = this;
 	
-	childObject.setCanvas(this.canvas);
-	
 	this.children.push(childObject);
+	
+	if(this.isCaching == false) {
+		childObject.setCanvas(this.canvas);
+	} else {
+		childObject.setCanvas(this.cache);
+		this.doCaching();
+	}
 }
 
 
 //-------------------------------------------------------
 Pixel.Object.prototype.removeChild = function(childObject) {
-	var index = this.children.lastIndexOf(object);
+	var index = this.children.lastIndexOf(childObject);
 	if(index != -1) {
 		this.children.splice(i, 1);
 	}
@@ -834,6 +851,7 @@ Pixel.Object.prototype.getBounds = function() {
 	return this.bounds;
 }
 
+//-------------------------------------------------------
 Pixel.Object.prototype.calculateBounds = function() {
 	this.bounds.set(0,0,0,0);
 	for(var i=0; i<this.children.length; i++) {
@@ -904,6 +922,67 @@ Pixel.Object.prototype.calculateOffset = function() {
 	}
 }
 
+//-------------------------------------------------------
+//! Caching
+//-------------------------------------------------------
+
+//-------------------------------------------------------
+Pixel.Object.prototype.setCaching = function(shouldCache) {
+	this.isCaching = shouldCache;
+	
+	if(shouldCache) {
+		if(this.cache == null) {
+			this.createCache();
+			
+			//Set children to use this cache
+			var i=this.children.length;
+			while(i--) {
+				this.children[i].setCanvas(this.cache);
+			}
+		}
+		
+		this.doCaching();
+	} else {
+		//Return children to original canvas
+		var i=this.children.length;
+		while(i--) {
+			this.children[i].setCanvas(this.canvas);
+		}
+		
+		//Free up the cache
+		delete this.cache;
+	}
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.createCache = function() {
+	//Create canvas for caching
+	this.cache = new Pixel.Canvas();
+	this.cache.setSize(this.getWidth() * window.devicePixelRatio, this.getHeight() * window.devicePixelRatio);
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.updateCache = function() {
+	if(!this.isCaching) {
+		this.setCaching(true);
+	}
+	
+	this.doCaching();
+}
+
+
+
+//-------------------------------------------------------
+Pixel.Object.prototype.doCaching = function() {
+	this.calculateBounds();
+	this.cache.setSize(this.getWidth() * window.devicePixelRatio, this.getHeight() * window.devicePixelRatio);
+	this.cache.pushMatrix();
+	this.cache.scale(window.devicePixelRatio,window.devicePixelRatio,1);
+	for(var i=0; i<this.children.length; i++) {
+		this.children[i].draw();
+	}
+	this.cache.popMatrix();
+}
 
 //-------------------------------------------------------
 //! Handlers
@@ -1033,7 +1112,7 @@ Pixel.Shape2D.prototype.setSize = function(width, height) {
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.getBounds = function() {
-	return new Pixel.Rect(this.pos.x, this.pos.y, this.getWidth(), this.getHeight());
+	return new Pixel.Rect(this.pos.x + this.offset.x, this.pos.y + this.offset.y, this.getWidth(), this.getHeight());
 }//-------------------------------------------------------
 //-------------------------------------------------------
 // !RectShape
@@ -1095,9 +1174,9 @@ Pixel.EllipseShape.prototype.draw = function() {
 		this.canvas.rotate(this.rotation);
 		
 		if(this.width == this.height) {
-			this.canvas.drawCircle(this.width/4 + this.offset.x, this.height/4 + this.offset.y, this.width/2);
+			this.canvas.drawCircle(this.offset.x, this.offset.y, this.width);
 		} else {	
-			this.canvas.drawEllipse(this.width/4 + this.offset.x, this.height/4 + this.offset.y, this.width/2, this.height/2);
+			this.canvas.drawEllipse(this.offset.x, this.offset.y, this.width, this.height);
 		}
 		
 		this.canvas.popMatrix();
@@ -1891,8 +1970,8 @@ Pixel.Canvas.prototype.drawEllipse = function(x,y,width,height) {
 
 
 //-------------------------------------------------------
-Pixel.Canvas.prototype.drawCircle = function(x,y,radius) {
-	this.renderer.drawCircle(x,y,radius);
+Pixel.Canvas.prototype.drawCircle = function(x,y,size) {
+	this.renderer.drawCircle(x,y,size);
 };
 
 
@@ -2279,9 +2358,9 @@ Pixel.Renderer2D.prototype.drawEllipse = function(x,y,width,height) {
 
 
 //-------------------------------------------------------
-Pixel.Renderer2D.prototype.drawCircle = function(x,y,radius) {
+Pixel.Renderer2D.prototype.drawCircle = function(x,y,size) {
 	this.ctx.beginPath();
-	this.ctx.arc(x + radius/2, y + radius/2, radius, 0, Math.PI*2,false);
+	this.ctx.arc(x + size/2, y + size/2, size/2, 0, Math.PI*2, false);
 	
 	if(this.bStroke) this.ctx.stroke();
   	if(this.bFill) this.ctx.fill();
@@ -2395,6 +2474,8 @@ Pixel.Renderer2D.prototype.drawTextfield = function(tf) {
 	this.drawText(tf.text, tf.pos.x, tf.pos.y);
 };//-------------------------------------------------------
 //Pixel.App.js
+
+
 Pixel.App = function(renderer) {
 	Pixel.Canvas.call(this, renderer);
 	

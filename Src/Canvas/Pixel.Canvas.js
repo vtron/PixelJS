@@ -240,8 +240,8 @@ Pixel.Canvas.prototype.drawEllipse = function(x,y,width,height) {
 
 
 //-------------------------------------------------------
-Pixel.Canvas.prototype.drawCircle = function(x,y,radius) {
-	this.renderer.drawCircle(x,y,radius);
+Pixel.Canvas.prototype.drawCircle = function(x,y,size) {
+	this.renderer.drawCircle(x,y,size);
 };
 
 

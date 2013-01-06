@@ -19,7 +19,9 @@ Pixel.isTouchDevice = function() {
 	return "ontouchstart" in window;
 }
 
-Pixel.scale = window.devicePixelRatio;
+Pixel.getDeviceScale = function() {
+	return window.devicePixelRatio;
+}
 
 //Hide menu bar
 Pixel.hideAddressBar = function() {
