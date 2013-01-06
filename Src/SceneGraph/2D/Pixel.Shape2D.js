@@ -10,9 +10,6 @@
 Pixel.Shape2D = function() {
 	Pixel.Object.call(this);
 	
-	this.width	= 0;
-	this.height = 0;
-	
 	this.fillColor			= new Pixel.Color(255,255,255);
 	this.fillEnabled		= true;
 	
@@ -83,7 +80,7 @@ Pixel.Shape2D.prototype.setStrokeColor = function(r,g,b,a) {
 //! Size
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.getWidth = function() {
-	return this.getBounds().width;
+	return this.width;
 }
 
 //-------------------------------------------------------
@@ -94,7 +91,7 @@ Pixel.Shape2D.prototype.setWidth = function(width) {
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.getHeight = function() {
-	return this.getBounds().height;
+	return this.height;
 }
 
 
@@ -106,7 +103,7 @@ Pixel.Shape2D.prototype.setHeight = function(height) {
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.getSize = function() {
-	return { "width": this.width, "height": this.height };
+	return { "width": this.getWidth(), "height": this.getHeight() };
 }
 
 
@@ -118,5 +115,5 @@ Pixel.Shape2D.prototype.setSize = function(width, height) {
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.getBounds = function() {
-	return new Pixel.Rect(this.pos.x, this.pos.y, this.width, this.height);
+	return new Pixel.Rect(this.pos.x, this.pos.y, this.getWidth(), this.getHeight());
 }
