@@ -2,30 +2,30 @@
 //-------------------------------------------------------
 //Main Object
 Pixel.Object = function() {
-	this.canvas = null;
+	this.canvas				= null;
 	
-	this.name	= "";
+	this.name				= "";
 	
-	this.pos			= new Pixel.Point(0,0,0);
-	this.offset			= new Pixel.Point(0,0,0);
+	this.pos				= new Pixel.Point(0,0,0);
+	this.offset				= new Pixel.Point(0,0,0);
 	
-	this.width			= 0;
-	this.height 		= 0;
-	this.bounds 		= new Pixel.Rect(0,0,0,0);
-	this.drawBounds 	= false;
+	this.width				= 0;
+	this.height 			= 0;
+	this.bounds 			= new Pixel.Rect(0,0,0,0);
+	this.shouldDrawBounds 	= false;
 	
-	this.rotation		= 0;
-	this.alignment		= Pixel.ALIGNMENT_TOP_LEFT;
-	this.scaleAmount	= new Pixel.Point(1,1,0);
-	this.rotation		= 0;
+	this.rotation			= 0;
+	this.alignment			= Pixel.ALIGNMENT_TOP_LEFT;
+	this.scaleAmount		= new Pixel.Point(1,1,0);
+	this.rotation			= 0;
 	
-	this.cache			= null;
-	this.isCaching		= false;
+	this.cache				= null;
+	this.isCaching			= false;
 	
-	this.visible = true;
+	this.visible			= true;
 	
-	this.parent   = null;
-	this.children = [];
+	this.parent				= null;
+	this.children			= [];
 }
 
 
@@ -41,11 +41,11 @@ Pixel.Object.prototype.update = function() {
 Pixel.Object.prototype.draw = function() {
 	if(this.children.length != 0 && this.canvas) {
 		
-		this.calculateOffset();
 		this.calculateBounds();
+		this.calculateOffset();
 		
 		this.canvas.pushMatrix();
-		this.canvas.translate(this.pos.x + this.offset.x, this.pos.y + this.offset.y, this.pos.z);
+		this.canvas.translate(this.pos.x + this.offset.x, this.pos.y + this.offset.y, 0);
 		this.canvas.rotate(this.rotation);
 		this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
 		
@@ -57,12 +57,8 @@ Pixel.Object.prototype.draw = function() {
 			this.canvas.drawImage(this.cache.element, 0, 0, this.cache.getWidth(), this.cache.getHeight());
 		}
 		
-		if(this.drawBounds) {
-			this.canvas.setStrokeSize(1);
-			this.canvas.setStrokeColor(255,0,0);
-			this.canvas.noFill();
-			
-			this.canvas.drawRect(0, 0, this.getWidth(), this.getHeight());
+		if(this.shouldDrawBounds) {
+			this.drawBounds();
 		}
 		
 		this.canvas.popMatrix();
@@ -225,7 +221,10 @@ Pixel.Object.prototype.getSize = function() {
 
 
 //-------------------------------------------------------
-//Needs to be implmented
+//! Bounds
+//-------------------------------------------------------
+
+//-------------------------------------------------------
 Pixel.Object.prototype.getBounds = function() {
 	this.calculateBounds();
 	return this.bounds;
@@ -240,13 +239,29 @@ Pixel.Object.prototype.calculateBounds = function() {
 }
 
 //-------------------------------------------------------
-Pixel.Object.prototype.setDrawBounds = function(drawBounds) {
-	this.drawBounds = drawBounds;
+Pixel.Object.prototype.setDrawBounds = function(shouldDrawBounds) {
+	this.shouldDrawBounds = shouldDrawBounds;
 }
 
 //-------------------------------------------------------
 Pixel.Object.prototype.getDrawBounds = function() {
-	return this.drawBounds;
+	return this.shouldDrawBounds;
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.drawBounds = function() {
+	//Draw Frame
+	this.canvas.setStrokeSize(1);
+	this.canvas.setStrokeColor(255,0,0);
+	this.canvas.noFill();
+	
+	this.canvas.drawRect(this.bounds.x, this.bounds.y, this.getWidth(), this.getHeight());
+	
+	//Draw Origin
+	this.canvas.setFillColor(255,0,0);
+	this.canvas.noStroke();
+	
+	this.canvas.drawRect(-2, -2, 4,4);
 }
 
 

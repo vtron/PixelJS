@@ -11,6 +11,25 @@ Pixel.Rect = function(x,y,width,height) {
 	this.set(x,y,width,height);
 }
 
+//-------------------------------------------------------
+Pixel.Rect.prototype.top = function() {
+	return this.y;
+}
+
+//-------------------------------------------------------
+Pixel.Rect.prototype.right = function() {
+	return this.x + this.width;
+}
+
+//-------------------------------------------------------
+Pixel.Rect.prototype.bottom = function() {
+	return this.y + this.height;
+}
+
+//-------------------------------------------------------
+Pixel.Rect.prototype.left = function() {
+	return this.x;
+}
 
 //-------------------------------------------------------
 Pixel.Rect.prototype.set = function(x,y,width,height) {
@@ -62,9 +81,9 @@ Pixel.Rect.prototype.pointInside = function(x,y) {
 
 //-------------------------------------------------------
 Pixel.Rect.prototype.include = function(rect) {
-	if(rect.x < this.x) this.x = rect.x;
-	if(rect.y < this.y) this.y = rect.y;
+	if(rect.left < this.left)	this.x = rect.x;
+	if(rect.top < this.top)		this.y = rect.y;
 	
-	if(rect.x + rect.width	> this.width)	this.width	= rect.x + rect.width;
-	if(rect.y + rect.height > this.height)	this.height = rect.y + rect.height;
+	if(rect.right() > this.right())		this.width	+= rect.right()-this.right();
+	if(rect.bottom() > this.bottom())	this.height	+= rect.bottom()-this.bottom();
 }
