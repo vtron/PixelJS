@@ -11,7 +11,7 @@ Pixel.RectShape.prototype = Object.create(Pixel.Shape2D.prototype);
 
 //-------------------------------------------------------
 Pixel.RectShape.prototype.draw = function() {
-	if(this.canvas) {
+	if(this.canvas && this.visible) {
 		this.canvas.pushMatrix();
 		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
 		this.canvas.rotate(this.rotation);

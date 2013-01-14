@@ -119,5 +119,6 @@ Pixel.Shape2D.prototype.setSize = function(width, height) {
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.getBounds = function() {
+	this.calculateOffset();
 	return new Pixel.Rect(this.offset.x, this.offset.y, this.getWidth(), this.getHeight());
 }

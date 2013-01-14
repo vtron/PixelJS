@@ -71,7 +71,7 @@ Pixel.TextField.prototype.getHeight = function() {
 //-------------------------------------------------------
 Pixel.TextField.prototype.getBounds = function() {
 	this.calculateOffset();
-	this.bounds.set(this.pos.x + this.offset.x, this.pos.y + this.offset.y, this.getWidth(), this.getHeight());
+	this.bounds.set(this.offset.x, this.offset.y, this.getWidth(), this.getHeight());
 	return this.bounds;
 }
 
@@ -264,7 +264,7 @@ Pixel.TextField.prototype.calculateTextBounds = function() {
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.draw = function() {
-	if(this.canvas) {
+	if(this.canvas && this.visible) {
 		this.canvas.pushMatrix();
 		
 		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);

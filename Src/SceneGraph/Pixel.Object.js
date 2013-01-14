@@ -39,8 +39,7 @@ Pixel.Object.prototype.update = function() {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.draw = function() {
-	if(this.children.length != 0 && this.canvas) {
-		
+	if(this.children.length != 0 && this.canvas && this.visible) {
 		this.calculateBounds();
 		this.calculateOffset();
 		
@@ -75,6 +74,11 @@ Pixel.Object.prototype.setCanvas = function(canvas) {
 	while(i--) {
 		this.children[i].setCanvas(canvas);
 	}
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.setVisible = function(isVisible) {
+	this.visible = isVisible;
 }
 
 
@@ -233,8 +237,12 @@ Pixel.Object.prototype.getBounds = function() {
 //-------------------------------------------------------
 Pixel.Object.prototype.calculateBounds = function() {
 	this.bounds.set(0,0,0,0);
+	var childBounds;
 	for(var i=0; i<this.children.length; i++) {
-		this.bounds.include(this.children[i].getBounds());
+		childBounds = this.children[i].getBounds();
+		childBounds.x += this.children[i].pos.x;
+		childBounds.y += this.children[i].pos.y;
+		this.bounds.include(childBounds);
 	}
 }
 
@@ -328,7 +336,6 @@ Pixel.Object.prototype.setCaching = function(shouldCache) {
 	if(shouldCache) {
 		if(this.cache == null) {
 			this.createCache();
-			
 			//Set children to use this cache
 			var i=this.children.length;
 			while(i--) {
@@ -353,6 +360,7 @@ Pixel.Object.prototype.setCaching = function(shouldCache) {
 Pixel.Object.prototype.createCache = function() {
 	//Create canvas for caching
 	this.cache = new Pixel.Canvas();
+	this.calculateBounds();
 	this.cache.setSize(this.getWidth() * window.devicePixelRatio, this.getHeight() * window.devicePixelRatio);
 }
 
@@ -371,6 +379,7 @@ Pixel.Object.prototype.updateCache = function() {
 Pixel.Object.prototype.doCaching = function() {
 	this.calculateBounds();
 	this.cache.setSize(this.getWidth() * window.devicePixelRatio, this.getHeight() * window.devicePixelRatio);
+	console.log(this.cache.width);
 	this.cache.pushMatrix();
 	this.cache.scale(window.devicePixelRatio,window.devicePixelRatio,1);
 	for(var i=0; i<this.children.length; i++) {

@@ -54,7 +54,7 @@ Pixel.ImageShape.prototype.load = function(image) {
 
 //-------------------------------------------------------
 Pixel.ImageShape.prototype.draw = function() {
-	if(this.canvas) {
+	if(this.canvas && this.visible) {
 		//Make sure image isn't null
 		if(this.image == null) return;
 		

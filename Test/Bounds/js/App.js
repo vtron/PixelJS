@@ -13,6 +13,7 @@ $(document).ready(function() {
 	var e = new Pixel.EllipseShape();
 	e.setAlignment(Pixel.ALIGNMENT_CENTER_CENTER);
 	e.setSize(250, 250);
+	e.pos.set(50,75);
 	o.addChild(e);
 	
 	var r = new Pixel.RectShape();

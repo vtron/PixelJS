@@ -315,8 +315,8 @@ Pixel.Rect.prototype.pointInside = function(x,y) {
 
 //-------------------------------------------------------
 Pixel.Rect.prototype.include = function(rect) {
-	if(rect.left < this.left)	this.x = rect.x;
-	if(rect.top < this.top)		this.y = rect.y;
+	if(rect.left() < this.left()) this.x = rect.x;
+	if(rect.top() < this.top()) this.y = rect.y;
 	
 	if(rect.right() > this.right())		this.width	+= rect.right()-this.right();
 	if(rect.bottom() > this.bottom())	this.height	+= rect.bottom()-this.bottom();
@@ -678,8 +678,7 @@ Pixel.Object.prototype.update = function() {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.draw = function() {
-	if(this.children.length != 0 && this.canvas) {
-		
+	if(this.children.length != 0 && this.canvas && this.visible) {
 		this.calculateBounds();
 		this.calculateOffset();
 		
@@ -714,6 +713,11 @@ Pixel.Object.prototype.setCanvas = function(canvas) {
 	while(i--) {
 		this.children[i].setCanvas(canvas);
 	}
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.setVisible = function(isVisible) {
+	this.visible = isVisible;
 }
 
 
@@ -872,8 +876,12 @@ Pixel.Object.prototype.getBounds = function() {
 //-------------------------------------------------------
 Pixel.Object.prototype.calculateBounds = function() {
 	this.bounds.set(0,0,0,0);
+	var childBounds;
 	for(var i=0; i<this.children.length; i++) {
-		this.bounds.include(this.children[i].getBounds());
+		childBounds = this.children[i].getBounds();
+		childBounds.x += this.children[i].pos.x;
+		childBounds.y += this.children[i].pos.y;
+		this.bounds.include(childBounds);
 	}
 }
 
@@ -967,7 +975,6 @@ Pixel.Object.prototype.setCaching = function(shouldCache) {
 	if(shouldCache) {
 		if(this.cache == null) {
 			this.createCache();
-			
 			//Set children to use this cache
 			var i=this.children.length;
 			while(i--) {
@@ -992,6 +999,7 @@ Pixel.Object.prototype.setCaching = function(shouldCache) {
 Pixel.Object.prototype.createCache = function() {
 	//Create canvas for caching
 	this.cache = new Pixel.Canvas();
+	this.calculateBounds();
 	this.cache.setSize(this.getWidth() * window.devicePixelRatio, this.getHeight() * window.devicePixelRatio);
 }
 
@@ -1010,6 +1018,7 @@ Pixel.Object.prototype.updateCache = function() {
 Pixel.Object.prototype.doCaching = function() {
 	this.calculateBounds();
 	this.cache.setSize(this.getWidth() * window.devicePixelRatio, this.getHeight() * window.devicePixelRatio);
+	console.log(this.cache.width);
 	this.cache.pushMatrix();
 	this.cache.scale(window.devicePixelRatio,window.devicePixelRatio,1);
 	for(var i=0; i<this.children.length; i++) {
@@ -1150,6 +1159,7 @@ Pixel.Shape2D.prototype.setSize = function(width, height) {
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.getBounds = function() {
+	this.calculateOffset();
 	return new Pixel.Rect(this.offset.x, this.offset.y, this.getWidth(), this.getHeight());
 }//-------------------------------------------------------
 //-------------------------------------------------------
@@ -1164,7 +1174,7 @@ Pixel.RectShape.prototype = Object.create(Pixel.Shape2D.prototype);
 
 //-------------------------------------------------------
 Pixel.RectShape.prototype.draw = function() {
-	if(this.canvas) {
+	if(this.canvas && this.visible) {
 		this.canvas.pushMatrix();
 		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
 		this.canvas.rotate(this.rotation);
@@ -1200,7 +1210,7 @@ Pixel.EllipseShape.prototype = Object.create(Pixel.Shape2D.prototype);
 
 //-------------------------------------------------------
 Pixel.EllipseShape.prototype.draw = function() {
-	if(this.canvas) {		
+	if(this.canvas && this.visible) {
 		this.canvas.setFillColor(this.fillColor);
 		this.canvas.setStrokeSize(this.strokeSize);
 		this.canvas.setStrokeColor(this.strokeColor);
@@ -1275,7 +1285,7 @@ Pixel.ImageShape.prototype.load = function(image) {
 
 //-------------------------------------------------------
 Pixel.ImageShape.prototype.draw = function() {
-	if(this.canvas) {
+	if(this.canvas && this.visible) {
 		//Make sure image isn't null
 		if(this.image == null) return;
 		
@@ -1537,7 +1547,7 @@ Pixel.TextField.prototype.getHeight = function() {
 //-------------------------------------------------------
 Pixel.TextField.prototype.getBounds = function() {
 	this.calculateOffset();
-	this.bounds.set(this.pos.x + this.offset.x, this.pos.y + this.offset.y, this.getWidth(), this.getHeight());
+	this.bounds.set(this.offset.x, this.offset.y, this.getWidth(), this.getHeight());
 	return this.bounds;
 }
 
@@ -1730,7 +1740,7 @@ Pixel.TextField.prototype.calculateTextBounds = function() {
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.draw = function() {
-	if(this.canvas) {
+	if(this.canvas && this.visible) {
 		this.canvas.pushMatrix();
 		
 		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);

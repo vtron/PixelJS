@@ -11,7 +11,7 @@ Pixel.EllipseShape.prototype = Object.create(Pixel.Shape2D.prototype);
 
 //-------------------------------------------------------
 Pixel.EllipseShape.prototype.draw = function() {
-	if(this.canvas) {		
+	if(this.canvas && this.visible) {
 		this.canvas.setFillColor(this.fillColor);
 		this.canvas.setStrokeSize(this.strokeSize);
 		this.canvas.setStrokeColor(this.strokeColor);

@@ -81,8 +81,8 @@ Pixel.Rect.prototype.pointInside = function(x,y) {
 
 //-------------------------------------------------------
 Pixel.Rect.prototype.include = function(rect) {
-	if(rect.left < this.left)	this.x = rect.x;
-	if(rect.top < this.top)		this.y = rect.y;
+	if(rect.left() < this.left()) this.x = rect.x;
+	if(rect.top() < this.top()) this.y = rect.y;
 	
 	if(rect.right() > this.right())		this.width	+= rect.right()-this.right();
 	if(rect.bottom() > this.bottom())	this.height	+= rect.bottom()-this.bottom();
