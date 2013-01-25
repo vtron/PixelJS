@@ -37,6 +37,12 @@ Pixel.Canvas = function(renderer) {
 	//Init Vars
 	//this.setPos(0,0);
 	this.setSize(400,400);
+	
+	//Events
+	var self = this;
+	this.element.addEventListener("mousedown",		function(e) { self.mouseDownListener.call(self, e) },	false);
+	this.element.addEventListener("mousemove",		function(e) { self.mouseMovedListener.call(self, e) },	false);
+	this.element.addEventListener("mouseup",		function(e) { self.mouseUpListener.call(self, e) },		false);
 };
 
 
@@ -330,4 +336,44 @@ Pixel.Canvas.prototype.drawText = function(string, x, y) {
 //-------------------------------------------------------
 Pixel.Canvas.prototype.drawTextfield = function(textfield) {
 	this.renderer.drawTextfield(textfield);
+};
+
+
+
+
+
+
+
+//-------------------------------------------------------
+//!EVENTS
+
+
+//-------------------------------------------------------
+Pixel.Canvas.prototype.mouseDownListener = function(e) {
+	this.bMouseDown = true;
+	
+	//Get Position of Event
+	var position = Pixel.getRelativeMouseCoords(e, this.element);
+	
+	console.log(position);
+};
+
+
+//-------------------------------------------------------
+Pixel.Canvas.prototype.mouseMovedListener = function(e) {
+	if(this.bMouseDown) {
+		//this.mouseDraggedListener(e);
+	}
+	
+	//Get Position of Event
+	var position = Pixel.getRelativeMouseCoords(e, this.element);
+};
+
+
+//-------------------------------------------------------
+Pixel.Canvas.prototype.mouseUpListener = function(e) {
+	this.bMouseDown = false;
+	
+	//Get Position of Event
+	var position = Pixel.getRelativeMouseCoords(e, this.element);
 };

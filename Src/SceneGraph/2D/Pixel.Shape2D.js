@@ -16,6 +16,8 @@ Pixel.Shape2D = function() {
 	this.strokeColor		= new Pixel.Color();
 	this.strokeSize			= 1;
 	this.strokeEnabled		= false;
+	
+	this.path 				= null;
 }
 
 Pixel.Shape2D.prototype = Object.create(Pixel.Object.prototype);

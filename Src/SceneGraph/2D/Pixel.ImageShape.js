@@ -63,7 +63,7 @@ Pixel.ImageShape.prototype.draw = function() {
 		
 		//Otherwise, draw it
 		this.canvas.pushMatrix();
-		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
+		this.canvas.translate(this.position.x, this.position.y, this.position.z);
 		this.canvas.rotate(this.rotation);
 
 		this.calculateOffset();

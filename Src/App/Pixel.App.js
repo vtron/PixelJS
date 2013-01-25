@@ -64,23 +64,17 @@ Pixel.App.prototype.isRunning = function() {
 	return this.bRunning;
 };
 
-//-------------------------------------------------------
-Pixel.App.prototype.setup = function() {
-};
-
 
 //-------------------------------------------------------
 Pixel.App.prototype.run = function() {
 	if(this.bRunning) {
-		//Run App Setup if uninitalised
-		if(this.setup != undefined && this.bSetup == false) {
-			this.setup();
-			this.bSetup = true;
-		}
-	
+		//Calculates bounds on all children
+		this.calculateBounds();
 		
+		//Update All Children
 		this.update();
 		
+		//Draw Everything
 		if(this.bClearBackground) this.clear(0,0, this.getWidth(), this.getHeight());
 		this.draw();
 		

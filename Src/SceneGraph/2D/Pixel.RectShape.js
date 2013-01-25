@@ -12,8 +12,10 @@ Pixel.RectShape.prototype = Object.create(Pixel.Shape2D.prototype);
 //-------------------------------------------------------
 Pixel.RectShape.prototype.draw = function() {
 	if(this.canvas && this.visible) {
+		this.calculateOffset();
+		
 		this.canvas.pushMatrix();
-		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
+		this.canvas.translate(this.position.x, this.position.y, this.position.z);
 		this.canvas.rotate(this.rotation);
 		
 		if(this.fillEnabled) {
@@ -29,7 +31,7 @@ Pixel.RectShape.prototype.draw = function() {
 			this.canvas.noStroke();
 		}
 		
-		this.calculateOffset();
+		//this.calculateOffset();
 		this.canvas.drawRect(this.offset.x, this.offset.y, this.width, this.height);
 		
 		this.canvas.popMatrix();

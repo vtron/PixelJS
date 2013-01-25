@@ -1,41 +1,62 @@
 $(document).ready(function() {
 	var App = new Pixel.App();
 	
-	App.setSize(1000,500);
+	App.setSize(900, 900);
 	App.setBackgroundColor(0,0,0);
+	App.name = "App";
 	
 	var o = new Pixel.Object();
-	o.pos.set(App.getWidth()/2, App.getHeight()/2);
+	//o.setAlignment(Pixel.ALIGNMENT_CENTER_CENTER);
+	o.position.set(App.getWidth()/4, App.getHeight()/2);
 	o.setDrawBounds(true);
+	o.name ="Test Object";
 	
 	App.addChild(o);
 	
-	var e = new Pixel.EllipseShape();
-	e.setAlignment(Pixel.ALIGNMENT_CENTER_CENTER);
-	e.setSize(250, 250);
-	e.pos.set(50,75);
-	o.addChild(e);
 	
 	var r = new Pixel.RectShape();
-	r.setSize(250,250);
+	var rSpeed = 1;
+	r.setAlignment(Pixel.ALIGNMENT_CENTER_CENTER);
+	r.name = "Rectangle";
+	r.setSize(200,200);
+	
+	var e = new Pixel.EllipseShape();
+	var eSpeed = 5;
+	e.setAlignment(Pixel.ALIGNMENT_CENTER_CENTER);
+	e.name = "Ellipse";
+	e.setSize(200, 200);
+	e.position.set(50,75);
+	
+	
+	o.addChild(e);
 	o.addChild(r);
+	//o.addChild(e);
 	
-	
-	var testRect = new Pixel.Rect(0,0,0,0);
-	testRect.include(new Pixel.Rect(-125.5,-125.5, 250,250));
-	testRect.include(new Pixel.Rect(0,0, 250,250));
-	
-	console.log(testRect);
-	
+	var r1 = new Pixel.Rect(0,0,200,200);
+	var r2 = new Pixel.Rect(-50,-25,200,200);
+	r2.include(r1);
+	console.log(r2);
 	//----------------------------------------
 	//Update
 	App.update = function() {
+		//o.rotation++;
+		
+		if(e.position.x > App.getWidth() - e.getWidth() || e.position.x < -o.position.x) {
+			eSpeed *= -1;
+		}
+		
+		e.position.x += eSpeed;
+		
+		if(r.position.y > App.getHeight() - r.getHeight() || r.position.y < -o.position.y) {
+			rSpeed *= -1;
+		}
+		
+		r.position.y += rSpeed;
 	}
 	
 	//----------------------------------------
 	//Add to DOM and Init App
 	$(document.body).append(App.element);
 	App.start();
-	
 	//App.stop();
 });

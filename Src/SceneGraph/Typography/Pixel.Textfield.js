@@ -176,8 +176,8 @@ Pixel.TextField.prototype.doLayout = function() {
 		} else {
 			//Get metrics and add line
 			curLine.metrics = this.font.getTextMetrics(curLine.text, this.textSize);
-			curLine.pos.x = this.getLineXPos(curLine.metrics.width);
-			curLine.pos.y = cursorY;
+			curLine.position.x = this.getLineXPos(curLine.metrics.width);
+			curLine.position.y = cursorY;
 			this.lines.push(curLine);
 				
 			//Set cursor to next line, including leading
@@ -203,8 +203,8 @@ Pixel.TextField.prototype.doLayout = function() {
 	
 	//Get metrics and add final line
 	curLine.metrics = this.font.getTextMetrics(curLine.text, this.textSize);
-	curLine.pos.x	= this.getLineXPos(curLine.metrics.width);
-	curLine.pos.y	= cursorY;
+	curLine.position.x	= this.getLineXPos(curLine.metrics.width);
+	curLine.position.y	= cursorY;
 	
 	this.lines.push(curLine);
 	
@@ -245,7 +245,7 @@ Pixel.TextField.prototype.getLines = function() {
 Pixel.TextField.prototype.newLine = function() {
 	return {
 		text:"",
-		pos: new Pixel.Point(),
+		position: new Pixel.Point(),
 		metrics: null
 	}
 }
@@ -258,7 +258,7 @@ Pixel.TextField.prototype.calculateTextBounds = function() {
 	}
 	
 	var lastLine = this.lines[this.lines.length - 1];
-	this.textHeight = lastLine.pos.y + lastLine.metrics.height;
+	this.textHeight = lastLine.position.y + lastLine.metrics.height;
 }
 
 
@@ -267,7 +267,7 @@ Pixel.TextField.prototype.draw = function() {
 	if(this.canvas && this.visible) {
 		this.canvas.pushMatrix();
 		
-		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
+		this.canvas.translate(this.position.x, this.position.y, this.position.z);
 		this.canvas.rotate(this.rotation);
 		this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
 		
@@ -295,7 +295,7 @@ Pixel.TextField.prototype.draw = function() {
 		var nLines = this.lines.length;
 		for(var i=0; i<nLines; i++) {
 			var thisLine = this.lines[i];
-			this.canvas.drawText(thisLine.text, this.offset.x + thisLine.pos.x, this.offset.y + thisLine.pos.y);
+			this.canvas.drawText(thisLine.text, this.offset.x + thisLine.position.x, this.offset.y + thisLine.position.y);
 		}
 		
 		this.canvas.popMatrix();

@@ -6,7 +6,7 @@ Pixel.Object = function() {
 	
 	this.name				= "";
 	
-	this.pos				= new Pixel.Point(0,0,0);
+	this.position			= new Pixel.Point(0,0,0);
 	this.offset				= new Pixel.Point(0,0,0);
 	
 	this.width				= 0;
@@ -26,6 +26,8 @@ Pixel.Object = function() {
 	
 	this.parent				= null;
 	this.children			= [];
+	
+	this.events				= [];
 }
 
 
@@ -36,15 +38,13 @@ Pixel.Object.prototype.update = function() {
 	}
 }
 
-
 //-------------------------------------------------------
 Pixel.Object.prototype.draw = function() {
 	if(this.children.length != 0 && this.canvas && this.visible) {
-		this.calculateBounds();
 		this.calculateOffset();
 		
 		this.canvas.pushMatrix();
-		this.canvas.translate(this.pos.x + this.offset.x, this.pos.y + this.offset.y, 0);
+		this.canvas.translate(this.position.x + this.offset.x, this.position.y + this.offset.y, 0);
 		this.canvas.rotate(this.rotation);
 		this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
 		
@@ -61,8 +61,6 @@ Pixel.Object.prototype.draw = function() {
 		}
 		
 		this.canvas.popMatrix();
-	} else {
-		console.log("No children");
 	}
 }
 
@@ -237,11 +235,13 @@ Pixel.Object.prototype.getBounds = function() {
 //-------------------------------------------------------
 Pixel.Object.prototype.calculateBounds = function() {
 	this.bounds.set(0,0,0,0);
-	var childBounds;
+	var childBounds = new Pixel.Rect(0,0,0,0);
 	for(var i=0; i<this.children.length; i++) {
-		childBounds = this.children[i].getBounds();
-		childBounds.x += this.children[i].pos.x;
-		childBounds.y += this.children[i].pos.y;
+		var r = this.children[i].getBounds();
+		childBounds.set(r.x, r.y, r.width, r.height);
+		childBounds.x += this.children[i].position.x;
+		childBounds.y += this.children[i].position.y;
+		
 		this.bounds.include(childBounds);
 	}
 }
@@ -379,17 +379,44 @@ Pixel.Object.prototype.updateCache = function() {
 Pixel.Object.prototype.doCaching = function() {
 	this.calculateBounds();
 	this.cache.setSize(this.getWidth() * window.devicePixelRatio, this.getHeight() * window.devicePixelRatio);
-	console.log(this.cache.width);
 	this.cache.pushMatrix();
+	
 	this.cache.scale(window.devicePixelRatio,window.devicePixelRatio,1);
 	for(var i=0; i<this.children.length; i++) {
 		this.children[i].draw();
 	}
+	
 	this.cache.popMatrix();
 }
 
 //-------------------------------------------------------
-//! Handlers
+//! Events
+//-------------------------------------------------------
+
+//-------------------------------------------------------
+Pixel.Object.prototype.addEvent = function(event) {
+	if(this.events.indexOf(event) == -1) {
+		this.events.push(event);
+	}
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.removeEvent = function(event) {
+	var index = this.events.indexOf(event);
+	if(index != -1) {
+		this.events.splice(index, 1);
+	}
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.removeAllEvents = function() {
+	this.events = [];
+}
+
+Pixel.Object.prototype.fireEvent = function(event) {
+	//if(
+}
+
 //-------------------------------------------------------
 
 //-------------------------------------------------------

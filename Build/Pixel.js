@@ -69,6 +69,11 @@ Pixel.ALIGNMENT_CENTER_TOP		= 6,
 Pixel.ALIGNMENT_CENTER_BOTTOM	= 7,
 Pixel.ALIGNMENT_CENTER_CENTER	= 8;
 
+//Events
+Pixel.MOUSE_DOWN_EVENT			= 0;
+Pixel.MOUSE_MOVE_EVENT			= 1;
+Pixel.MOUSE_UP_EVENT			= 2;
+
 //Tween Types
 /*
 Pixel.NO_EASE		= TWEEN.Easing.Linear.EaseNone;
@@ -102,9 +107,6 @@ Pixel.EASE_OUT_CIRC		= TWEEN.Easing.Circular.EaseOut;
 Pixel.EASE_IN_OUT_CIRC	= TWEEN.Easing.Circular.EaseInOut;
 *///-------------------------------------------------------
 //Pixel.Utils.js
-
-//-------------------------------------------------------
-Pixel.isSet = function(item) { return item != undefined ? item : false; };
 
 
 //-------------------------------------------------------
@@ -274,8 +276,8 @@ Pixel.Rect.prototype.set = function(x,y,width,height) {
 
 //-------------------------------------------------------
 Pixel.Rect.prototype.setPos = function(x,y) {
-	if(Pixel.isSet(x)) this.x = x;
-	if(Pixel.isSet(y)) this.y = y;
+	this.x = x;
+	this.y = y;
 }
 
 
@@ -315,8 +317,15 @@ Pixel.Rect.prototype.pointInside = function(x,y) {
 
 //-------------------------------------------------------
 Pixel.Rect.prototype.include = function(rect) {
-	if(rect.left() < this.left()) this.x = rect.x;
-	if(rect.top() < this.top()) this.y = rect.y;
+	if(rect.x < this.x) {
+		this.width += this.x - rect.x;
+		this.x = rect.x;
+	}
+	
+	if(rect.y < this.y) {
+		this.height += this.y - rect.y;
+		this.y = rect.y;
+	}
 	
 	if(rect.right() > this.right())		this.width	+= rect.right()-this.right();
 	if(rect.bottom() > this.bottom())	this.height	+= rect.bottom()-this.bottom();
@@ -645,7 +654,7 @@ Pixel.Object = function() {
 	
 	this.name				= "";
 	
-	this.pos				= new Pixel.Point(0,0,0);
+	this.position			= new Pixel.Point(0,0,0);
 	this.offset				= new Pixel.Point(0,0,0);
 	
 	this.width				= 0;
@@ -665,6 +674,8 @@ Pixel.Object = function() {
 	
 	this.parent				= null;
 	this.children			= [];
+	
+	this.events				= [];
 }
 
 
@@ -675,15 +686,13 @@ Pixel.Object.prototype.update = function() {
 	}
 }
 
-
 //-------------------------------------------------------
 Pixel.Object.prototype.draw = function() {
 	if(this.children.length != 0 && this.canvas && this.visible) {
-		this.calculateBounds();
 		this.calculateOffset();
 		
 		this.canvas.pushMatrix();
-		this.canvas.translate(this.pos.x + this.offset.x, this.pos.y + this.offset.y, 0);
+		this.canvas.translate(this.position.x + this.offset.x, this.position.y + this.offset.y, 0);
 		this.canvas.rotate(this.rotation);
 		this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
 		
@@ -700,8 +709,6 @@ Pixel.Object.prototype.draw = function() {
 		}
 		
 		this.canvas.popMatrix();
-	} else {
-		console.log("No children");
 	}
 }
 
@@ -876,11 +883,13 @@ Pixel.Object.prototype.getBounds = function() {
 //-------------------------------------------------------
 Pixel.Object.prototype.calculateBounds = function() {
 	this.bounds.set(0,0,0,0);
-	var childBounds;
+	var childBounds = new Pixel.Rect(0,0,0,0);
 	for(var i=0; i<this.children.length; i++) {
-		childBounds = this.children[i].getBounds();
-		childBounds.x += this.children[i].pos.x;
-		childBounds.y += this.children[i].pos.y;
+		var r = this.children[i].getBounds();
+		childBounds.set(r.x, r.y, r.width, r.height);
+		childBounds.x += this.children[i].position.x;
+		childBounds.y += this.children[i].position.y;
+		
 		this.bounds.include(childBounds);
 	}
 }
@@ -1018,17 +1027,44 @@ Pixel.Object.prototype.updateCache = function() {
 Pixel.Object.prototype.doCaching = function() {
 	this.calculateBounds();
 	this.cache.setSize(this.getWidth() * window.devicePixelRatio, this.getHeight() * window.devicePixelRatio);
-	console.log(this.cache.width);
 	this.cache.pushMatrix();
+	
 	this.cache.scale(window.devicePixelRatio,window.devicePixelRatio,1);
 	for(var i=0; i<this.children.length; i++) {
 		this.children[i].draw();
 	}
+	
 	this.cache.popMatrix();
 }
 
 //-------------------------------------------------------
-//! Handlers
+//! Events
+//-------------------------------------------------------
+
+//-------------------------------------------------------
+Pixel.Object.prototype.addEvent = function(event) {
+	if(this.events.indexOf(event) == -1) {
+		this.events.push(event);
+	}
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.removeEvent = function(event) {
+	var index = this.events.indexOf(event);
+	if(index != -1) {
+		this.events.splice(index, 1);
+	}
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.removeAllEvents = function() {
+	this.events = [];
+}
+
+Pixel.Object.prototype.fireEvent = function(event) {
+	//if(
+}
+
 //-------------------------------------------------------
 
 //-------------------------------------------------------
@@ -1056,6 +1092,8 @@ Pixel.Shape2D = function() {
 	this.strokeColor		= new Pixel.Color();
 	this.strokeSize			= 1;
 	this.strokeEnabled		= false;
+	
+	this.path 				= null;
 }
 
 Pixel.Shape2D.prototype = Object.create(Pixel.Object.prototype);
@@ -1175,8 +1213,10 @@ Pixel.RectShape.prototype = Object.create(Pixel.Shape2D.prototype);
 //-------------------------------------------------------
 Pixel.RectShape.prototype.draw = function() {
 	if(this.canvas && this.visible) {
+		this.calculateOffset();
+		
 		this.canvas.pushMatrix();
-		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
+		this.canvas.translate(this.position.x, this.position.y, this.position.z);
 		this.canvas.rotate(this.rotation);
 		
 		if(this.fillEnabled) {
@@ -1192,7 +1232,7 @@ Pixel.RectShape.prototype.draw = function() {
 			this.canvas.noStroke();
 		}
 		
-		this.calculateOffset();
+		//this.calculateOffset();
 		this.canvas.drawRect(this.offset.x, this.offset.y, this.width, this.height);
 		
 		this.canvas.popMatrix();
@@ -1211,15 +1251,21 @@ Pixel.EllipseShape.prototype = Object.create(Pixel.Shape2D.prototype);
 //-------------------------------------------------------
 Pixel.EllipseShape.prototype.draw = function() {
 	if(this.canvas && this.visible) {
-		this.canvas.setFillColor(this.fillColor);
-		this.canvas.setStrokeSize(this.strokeSize);
-		this.canvas.setStrokeColor(this.strokeColor);
-		
 		this.calculateOffset();
 		
+		if(this.fillEnabled) {
+			this.canvas.setFillColor(this.fillColor);
+		}
+		
+		if(this.strokeEnabled) {
+			this.canvas.setStrokeSize(this.strokeSize);
+			this.canvas.setStrokeColor(this.strokeColor);
+		}
+		
 		this.canvas.pushMatrix();
-		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
+		this.canvas.translate(this.position.x, this.position.y, this.position.z);
 		this.canvas.rotate(this.rotation);
+		this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
 		
 		if(this.width == this.height) {
 			this.canvas.drawCircle(this.offset.x, this.offset.y, this.width);
@@ -1294,7 +1340,7 @@ Pixel.ImageShape.prototype.draw = function() {
 		
 		//Otherwise, draw it
 		this.canvas.pushMatrix();
-		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
+		this.canvas.translate(this.position.x, this.position.y, this.position.z);
 		this.canvas.rotate(this.rotation);
 
 		this.calculateOffset();
@@ -1652,8 +1698,8 @@ Pixel.TextField.prototype.doLayout = function() {
 		} else {
 			//Get metrics and add line
 			curLine.metrics = this.font.getTextMetrics(curLine.text, this.textSize);
-			curLine.pos.x = this.getLineXPos(curLine.metrics.width);
-			curLine.pos.y = cursorY;
+			curLine.position.x = this.getLineXPos(curLine.metrics.width);
+			curLine.position.y = cursorY;
 			this.lines.push(curLine);
 				
 			//Set cursor to next line, including leading
@@ -1679,8 +1725,8 @@ Pixel.TextField.prototype.doLayout = function() {
 	
 	//Get metrics and add final line
 	curLine.metrics = this.font.getTextMetrics(curLine.text, this.textSize);
-	curLine.pos.x	= this.getLineXPos(curLine.metrics.width);
-	curLine.pos.y	= cursorY;
+	curLine.position.x	= this.getLineXPos(curLine.metrics.width);
+	curLine.position.y	= cursorY;
 	
 	this.lines.push(curLine);
 	
@@ -1721,7 +1767,7 @@ Pixel.TextField.prototype.getLines = function() {
 Pixel.TextField.prototype.newLine = function() {
 	return {
 		text:"",
-		pos: new Pixel.Point(),
+		position: new Pixel.Point(),
 		metrics: null
 	}
 }
@@ -1734,7 +1780,7 @@ Pixel.TextField.prototype.calculateTextBounds = function() {
 	}
 	
 	var lastLine = this.lines[this.lines.length - 1];
-	this.textHeight = lastLine.pos.y + lastLine.metrics.height;
+	this.textHeight = lastLine.position.y + lastLine.metrics.height;
 }
 
 
@@ -1743,7 +1789,7 @@ Pixel.TextField.prototype.draw = function() {
 	if(this.canvas && this.visible) {
 		this.canvas.pushMatrix();
 		
-		this.canvas.translate(this.pos.x, this.pos.y, this.pos.z);
+		this.canvas.translate(this.position.x, this.position.y, this.position.z);
 		this.canvas.rotate(this.rotation);
 		this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
 		
@@ -1771,7 +1817,7 @@ Pixel.TextField.prototype.draw = function() {
 		var nLines = this.lines.length;
 		for(var i=0; i<nLines; i++) {
 			var thisLine = this.lines[i];
-			this.canvas.drawText(thisLine.text, this.offset.x + thisLine.pos.x, this.offset.y + thisLine.pos.y);
+			this.canvas.drawText(thisLine.text, this.offset.x + thisLine.position.x, this.offset.y + thisLine.position.y);
 		}
 		
 		this.canvas.popMatrix();
@@ -1815,6 +1861,12 @@ Pixel.Canvas = function(renderer) {
 	//Init Vars
 	//this.setPos(0,0);
 	this.setSize(400,400);
+	
+	//Events
+	var self = this;
+	this.element.addEventListener("mousedown",		function(e) { self.mouseDownListener.call(self, e) },	false);
+	this.element.addEventListener("mousemove",		function(e) { self.mouseMovedListener.call(self, e) },	false);
+	this.element.addEventListener("mouseup",		function(e) { self.mouseUpListener.call(self, e) },		false);
 };
 
 
@@ -2108,8 +2160,48 @@ Pixel.Canvas.prototype.drawText = function(string, x, y) {
 //-------------------------------------------------------
 Pixel.Canvas.prototype.drawTextfield = function(textfield) {
 	this.renderer.drawTextfield(textfield);
+};
+
+
+
+
+
+
+
+//-------------------------------------------------------
+//!EVENTS
+
+
+//-------------------------------------------------------
+Pixel.Canvas.prototype.mouseDownListener = function(e) {
+	this.bMouseDown = true;
+	
+	//Get Position of Event
+	var position = Pixel.getRelativeMouseCoords(e, this.element);
+	
+	console.log(position);
+};
+
+
+//-------------------------------------------------------
+Pixel.Canvas.prototype.mouseMovedListener = function(e) {
+	if(this.bMouseDown) {
+		//this.mouseDraggedListener(e);
+	}
+	
+	//Get Position of Event
+	var position = Pixel.getRelativeMouseCoords(e, this.element);
+};
+
+
+//-------------------------------------------------------
+Pixel.Canvas.prototype.mouseUpListener = function(e) {
+	this.bMouseDown = false;
+	
+	//Get Position of Event
+	var position = Pixel.getRelativeMouseCoords(e, this.element);
 }; //-------------------------------------------------------
-//Pixel.Renderer2D.js
+//!Pixel.Renderer2D.js
 //2D Rendering
 
 Pixel.Renderer2D = function(canvas) {
@@ -2121,7 +2213,12 @@ Pixel.Renderer2D = function(canvas) {
 	
 	this.shapePos = {x:0,y:0};
 	
-	console.log(this.ctx.scale);
+	this.matrices = [];
+	this.transformation = mat4.create();
+	
+	this.translationVec		= vec3.create();
+	this.scaleVec			= vec3.create();
+	this.rotationAxisVec	= vec3.create();
 };
 
 //-------------------------------------------------------
@@ -2131,6 +2228,8 @@ Pixel.Renderer2D.prototype.setBackgroundColor = function(r,g,b,a) {
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.clear = function(x,y,width,height) {
+	this.setTransformation();
+	
 	//Store cur fill
 	var curFill		= this.ctx.fillStyle;
 	
@@ -2141,7 +2240,7 @@ Pixel.Renderer2D.prototype.clear = function(x,y,width,height) {
 	//Reset cur fill
 	this.ctx.fillStyle = curFill;
 	
-	//this.ctx.clearRect(x,y,width,height);
+/* 	this.ctx.clearRect(x,y,width,height); */
 };
 
 //-------------------------------------------------------
@@ -2205,14 +2304,14 @@ Pixel.Renderer2D.prototype.noShadow = function() {
 
 
 //-------------------------------------------------------
-//IMAGE DRAWING
+//!IMAGE DRAWING
 Pixel.Renderer2D.prototype.drawImage = function(image, x, y, w, h) {
 	this.ctx.drawImage(image, x, y, w, h);
 };
 
 
 //-------------------------------------------------------
-//SHAPE DRAWING
+//!SHAPE DRAWING
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.beginShape = function(x,y) {
@@ -2279,7 +2378,7 @@ Pixel.Renderer2D.prototype.drawLine = function(x1,y1,x2,y2) {
 
 
 //-------------------------------------------------------
-//Dashed line code from http://davidowens.wordpress.com/2010/09/07/html-5-canvas-and-dashed-lines/
+//!Dashed line code from http://davidowens.wordpress.com/2010/09/07/html-5-canvas-and-dashed-lines/
 Pixel.Renderer2D.prototype.dashedLine = function (fromX, fromY, toX, toY, pattern) {
 // Our growth rate for our line can be one of the following:
   //   (+,+), (+,-), (-,+), (-,-)
@@ -2382,7 +2481,7 @@ Pixel.Renderer2D.prototype.drawRoundedRect = function(x,y,width,height, radius) 
 
 
 //-------------------------------------------------------
-//From http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+//!From http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
 Pixel.Renderer2D.prototype.drawEllipse = function(x,y,width,height) {
 	var kappa = .5522848;
       ox = (width / 2) * kappa, 	// control point offset horizontal
@@ -2416,34 +2515,50 @@ Pixel.Renderer2D.prototype.drawCircle = function(x,y,size) {
 
 
 //-------------------------------------------------------
-//TRANSFORMATIONS
+//!TRANSFORMATIONS
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.pushMatrix = function() {
-	this.ctx.save();
+	//this.ctx.save();
+	this.matrices.push(this.transformation);
+	this.transformation = mat4.create();
+	mat4.multiply(this.transformation, this.transformation, this.matrices[this.matrices.length-1]);
 };
 
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.popMatrix = function() {
-	this.ctx.restore();
+	this.transformation = this.matrices[this.matrices.length-1];
+	this.matrices.splice(this.matrices.length-1, 1);
+	//this.ctx.restore();
 };
 
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.translate = function(x,y) {
-	this.ctx.translate(x,y);
+	vec3.set(this.translationVec, x, y, 0);
+	mat4.translate(this.transformation, this.transformation, this.translationVec);
+	this.setTransformation();
+	//console.log(this.transformation);
+/* 	this.ctx.translate(x,y); */
 };
 
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.scale = function(x,y) {
-	this.ctx.scale(x,y);
+	vec3.set(this.scaleVec, x, y, 1);
+	//console.log(this.scaleVec);
+	mat4.scale(this.transformation, this.transformation, this.scaleVec);
+	this.setTransformation();
+	//this.ctx.scale(x,y);
 };
 
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.rotate = function(angle) {
-	this.ctx.rotate(Pixel.Math.degreesToRadians(angle));
+	vec3.set(this.rotationAxisVec, 0,0,1);
+	mat4.rotate(this.transformation, this.transformation, angle, this.rotationAxisVec);
+	this.setTransformation();
+	//this.ctx.rotate(Pixel.Math.degreesToRadians(angle));
 };
 
 
@@ -2451,6 +2566,11 @@ Pixel.Renderer2D.prototype.rotate = function(angle) {
 Pixel.Renderer2D.prototype.transform = function(m11, m12, m21, m22, dx, dy) {
 	this.ctx.transform(m11, m12, m21, m22, dx, dy);
 };
+
+//-------------------------------------------------------
+Pixel.Renderer2D.prototype.setTransformation = function() {
+	this.ctx.setTransform(this.transformation[0], this.transformation[1], this.transformation[4], this.transformation[5], this.transformation[12], this.transformation[13]);
+}
 
 
 //-------------------------------------------------------
@@ -2460,7 +2580,7 @@ Pixel.Renderer2D.prototype.setTransform = function(m11, m12, m21, m22, dx, dy) {
 
 
 //-------------------------------------------------------
-//FONTS/TEXT
+//!FONTS/TEXT
 //-------------------------------------------------------
 
 //-------------------------------------------------------
@@ -2586,23 +2706,17 @@ Pixel.App.prototype.isRunning = function() {
 	return this.bRunning;
 };
 
-//-------------------------------------------------------
-Pixel.App.prototype.setup = function() {
-};
-
 
 //-------------------------------------------------------
 Pixel.App.prototype.run = function() {
 	if(this.bRunning) {
-		//Run App Setup if uninitalised
-		if(this.setup != undefined && this.bSetup == false) {
-			this.setup();
-			this.bSetup = true;
-		}
-	
+		//Calculates bounds on all children
+		this.calculateBounds();
 		
+		//Update All Children
 		this.update();
 		
+		//Draw Everything
 		if(this.bClearBackground) this.clear(0,0, this.getWidth(), this.getHeight());
 		this.draw();
 		
