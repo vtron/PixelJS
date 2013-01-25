@@ -46,6 +46,11 @@ Pixel.ALIGNMENT_CENTER_TOP		= 6,
 Pixel.ALIGNMENT_CENTER_BOTTOM	= 7,
 Pixel.ALIGNMENT_CENTER_CENTER	= 8;
 
+//Events
+Pixel.MOUSE_DOWN_EVENT			= 0;
+Pixel.MOUSE_MOVE_EVENT			= 1;
+Pixel.MOUSE_UP_EVENT			= 2;
+
 //Tween Types
 /*
 Pixel.NO_EASE		= TWEEN.Easing.Linear.EaseNone;
