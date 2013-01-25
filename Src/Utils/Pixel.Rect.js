@@ -40,8 +40,8 @@ Pixel.Rect.prototype.set = function(x,y,width,height) {
 
 //-------------------------------------------------------
 Pixel.Rect.prototype.setPos = function(x,y) {
-	if(Pixel.isSet(x)) this.x = x;
-	if(Pixel.isSet(y)) this.y = y;
+	this.x = x;
+	this.y = y;
 }
 
 
@@ -81,8 +81,15 @@ Pixel.Rect.prototype.pointInside = function(x,y) {
 
 //-------------------------------------------------------
 Pixel.Rect.prototype.include = function(rect) {
-	if(rect.left() < this.left()) this.x = rect.x;
-	if(rect.top() < this.top()) this.y = rect.y;
+	if(rect.x < this.x) {
+		this.width += this.x - rect.x;
+		this.x = rect.x;
+	}
+	
+	if(rect.y < this.y) {
+		this.height += this.y - rect.y;
+		this.y = rect.y;
+	}
 	
 	if(rect.right() > this.right())		this.width	+= rect.right()-this.right();
 	if(rect.bottom() > this.bottom())	this.height	+= rect.bottom()-this.bottom();
