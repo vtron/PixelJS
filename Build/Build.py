@@ -44,6 +44,7 @@ files.append(src + "SceneGraph/2D/Pixel.ImageShape.js")
 files.append(src + "SceneGraph/Typography/Pixel.TextField.js")
 
 #Events
+files.append(src + "SceneGraph/Events/Pixel.EventTypes.js") 
 files.append(src + "SceneGraph/Events/Pixel.EventCenter.js") 
 
 #Canvas

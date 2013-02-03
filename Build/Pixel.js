@@ -71,8 +71,8 @@ Pixel.ALIGNMENT_CENTER_CENTER	= 8;
 
 //Events
 Pixel.MOUSE_DOWN_EVENT			= "PIXEL_MOUSE_DOWN_EVENT";
-Pixel.MOUSE_MOVE_EVENT			= 1;
-Pixel.MOUSE_UP_EVENT			= 2;
+Pixel.MOUSE_MOVE_EVENT			= "PIXEL_MOUSE_MOVE_EVENT";
+Pixel.MOUSE_UP_EVENT			= "PIXEL_MOUSE_UP_EVENT";
 
 //Tween Types
 /*
@@ -726,10 +726,19 @@ Pixel.Object.prototype.setCanvas = function(canvas) {
 }
 
 //-------------------------------------------------------
+Pixel.Object.prototype.getCanvas = function() {
+	return this.canvas;
+}
+
+//-------------------------------------------------------
 Pixel.Object.prototype.setVisible = function(isVisible) {
 	this.visible = isVisible;
 }
 
+//-------------------------------------------------------
+Pixel.Object.prototype.isVisible = function() {
+	return this.visible;
+}
 
 //-------------------------------------------------------
 //! Transformation
@@ -884,6 +893,7 @@ Pixel.Object.prototype.moveChildToBack = function(object) {
 	}
 }
 
+
 //-------------------------------------------------------
 Pixel.Object.prototype.getChildPosition = function(object) {
 	for(var i=0; i<this.children.length; i++) {
@@ -892,6 +902,13 @@ Pixel.Object.prototype.getChildPosition = function(object) {
 	
 	return -1;
 }
+
+
+//-------------------------------------------------------
+Pixel.Object.prototype.getParent = function() {
+	return this.parent;
+}
+
 
 //-------------------------------------------------------
 //! Size
@@ -1873,22 +1890,63 @@ Pixel.TextField.prototype.draw = function() {
 		
 		this.canvas.popMatrix();
 	}
-}//-------------------------------------------------------
-//-------------------------------------------------------
-//Main Object
-Pixel.EventCenter = {};
-Pixel.EventCenter.eventQueue = {};
-Pixel.EventCenter.eventListeners = {};
+}
+//------------------------------------------------------
+//!Events
 
-//-------------------------------------------------------
+//----------------------------------------
+//!GENERIC EVENT
+Pixel.Event = function() {
+	this.type = null;
+	this.data = null;
+	
+	this.propogate = true;
+}
+
+//----------------------------------------
+Pixel.Event.prototype.stopPropogation = function() {
+	this.propogate = false;
+}
+
+//----------------------------------------
+//!MOUSE EVENT
+Pixel.MouseEvent = function() {
+	Pixel.Event.call(this);
+	
+	this.position		= null;
+	this.localPosition	= null;
+}
+
+Pixel.MouseEvent.prototype = Object.create(Pixel.Event.prototype);
+
+
+
+Pixel.isMouseEvent = function(eventType) {
+	if(	eventType == Pixel.MOUSE_DOWN_EVENT	||
+		eventType == Pixel.MOUSE_MOVE_EVENT ||
+		eventType == Pixel.MOUSE_UP_EVENT) 
+	{
+		return true;
+	};
+		
+	return false;
+}//-------------------------------------------------------
 //!Event Listener
 Pixel.EventListener = function() {
 	this.object = null;
 	this.data	= {};
 }
 
+
 //-------------------------------------------------------
-//!Event Subscriptions
+//-------------------------------------------------------
+//!EVENT CENTER
+Pixel.EventCenter = {};
+Pixel.EventCenter.eventQueue = {};
+Pixel.EventCenter.eventListeners = {};
+
+//-------------------------------------------------------
+//!EVENT SUBSCRIPTIONS
 
 //-------------------------------------------------------
 Pixel.EventCenter.addListener = function(object, eventType, data) {
@@ -1928,10 +1986,15 @@ Pixel.EventCenter.removeAllListeners = function(object) {
 	}
 }
 
-
+//-------------------------------------------------------
+//!OBJECT SORTING
+//We need to sort by draw orders to make hit testing work with layers!
+Pixel.EventCenter.sortListenersByDrawOrder = function(listeners) {
+	listeners.sort(function(a, b) {return a.object.drawOrder > b.object.drawOrder});
+}
 
 //-------------------------------------------------------
-//!Event Dispatching
+//!EVENT DISPATCHING
 
 //-------------------------------------------------------
 Pixel.EventCenter.queueEvent = function(event, canvas) {
@@ -1941,6 +2004,7 @@ Pixel.EventCenter.queueEvent = function(event, canvas) {
 	
 	Pixel.EventCenter.eventQueue[canvas].push(event);
 }
+
 
 //-------------------------------------------------------
 Pixel.EventCenter.dispatchEvents = function(canvas) {
@@ -1952,13 +2016,23 @@ Pixel.EventCenter.dispatchEvents = function(canvas) {
 	var listeners = Pixel.EventCenter.eventListeners;
 	
 	for(var i=0; i<queue.length; i++) {
+		var thisEvent = queue[i];
 		if(queue[i].type in listeners) {
+			//this.sortListenersByDrawOrder(listeners[queue[i]);
+			
 			for(var j=0; j<listeners[queue[i].type].length; j++) {
-				//Dispatch event to object
-				var event = queue[i];
-				event.localPosition = listeners[event.type][j].object.getLocalPosition(event.position);
-				event.data = listeners[event.type][j].data;
-				listeners[event.type][j].object.eventHandler(event);
+				if(thisEvent.propogate) {
+					var listeningObject = listeners[thisEvent.type][j].object;
+					
+					if(listeningObject.getCanvas() == canvas) {
+						//Dispatch event to object
+						thisEvent.data = listeners[thisEvent.type][j].data;
+						
+						if(Pixel.isMouseEvent(thisEvent.type)) {
+							this.handleMouseEvent(thisEvent, listeningObject);
+						} 
+					}
+				}
 			}
 		}
 	}
@@ -1969,26 +2043,24 @@ Pixel.EventCenter.dispatchEvents = function(canvas) {
 
 
 //-------------------------------------------------------
-//!Events
-
-//----------------------------------------
-//Generic event
-Pixel.Event = function() {
-	this.type = null;
-	this.data = null;
-}
-
-//----------------------------------------
-//Mouse Event
-Pixel.MouseEvent = function() {
-	Pixel.Event.call(this);
+//!MOUSE EVENTS
+Pixel.EventCenter.handleMouseEvent = function(event, object) {
+	//Send basic event
+	event.localPosition = object.getLocalPosition(event.position);
+	object.eventHandler(event);
 	
-	this.position		= null;
-	this.localPosition	= null;
+	//Send inside events
+/*
+	switch(event.type) {
+		case Pixel.MOUSE_DOWN_EVENT:
+			if(object.pointInside(localPosition)) {
+				event.type = Pixel.MOUSE_DOWN_INSIDE_EVENT;
+				object.eventHandler(event);
+			}
+			break;
+	}
+*/
 }
-
-//Pixel.MouseEvent.prototype = Object.create(Pixel.Event.prototype);
-
 
 
 //-------------------------------------------------------

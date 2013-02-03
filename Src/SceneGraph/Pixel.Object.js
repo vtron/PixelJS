@@ -78,10 +78,19 @@ Pixel.Object.prototype.setCanvas = function(canvas) {
 }
 
 //-------------------------------------------------------
+Pixel.Object.prototype.getCanvas = function() {
+	return this.canvas;
+}
+
+//-------------------------------------------------------
 Pixel.Object.prototype.setVisible = function(isVisible) {
 	this.visible = isVisible;
 }
 
+//-------------------------------------------------------
+Pixel.Object.prototype.isVisible = function() {
+	return this.visible;
+}
 
 //-------------------------------------------------------
 //! Transformation
@@ -236,6 +245,7 @@ Pixel.Object.prototype.moveChildToBack = function(object) {
 	}
 }
 
+
 //-------------------------------------------------------
 Pixel.Object.prototype.getChildPosition = function(object) {
 	for(var i=0; i<this.children.length; i++) {
@@ -244,6 +254,13 @@ Pixel.Object.prototype.getChildPosition = function(object) {
 	
 	return -1;
 }
+
+
+//-------------------------------------------------------
+Pixel.Object.prototype.getParent = function() {
+	return this.parent;
+}
+
 
 //-------------------------------------------------------
 //! Size
