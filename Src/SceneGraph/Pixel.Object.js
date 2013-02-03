@@ -9,6 +9,8 @@ Pixel.Object = function() {
 	this.position			= new Pixel.Point(0,0,0);
 	this.offset				= new Pixel.Point(0,0,0);
 	
+	this.matrix				= mat4.create();
+	
 	this.width				= 0;
 	this.height 			= 0;
 	this.bounds 			= new Pixel.Rect(0,0,0,0);
@@ -27,6 +29,7 @@ Pixel.Object = function() {
 	this.parent				= null;
 	this.children			= [];
 	
+	this.drawOrder			= -1;
 	this.events				= [];
 }
 
@@ -39,16 +42,17 @@ Pixel.Object.prototype.update = function() {
 }
 
 //-------------------------------------------------------
-Pixel.Object.prototype.draw = function() {
+//Draws the object, then it's children.
+Pixel.Object.prototype.drawTree = function() {
 	if(this.children.length != 0 && this.canvas && this.visible) {
 		this.calculateOffset();
+		this.setTransformation();
 		
-		this.canvas.pushMatrix();
-		this.canvas.translate(this.position.x + this.offset.x, this.position.y + this.offset.y, 0);
-		this.canvas.rotate(this.rotation);
-		this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
+		this.drawOrder = this.canvas.getNextDrawOrder();
 		
 		if(this.isCaching == false) {
+			this.draw();
+			
 			for(var i=0; i<this.children.length; i++) {
 				this.children[i].draw();
 			}
@@ -56,13 +60,12 @@ Pixel.Object.prototype.draw = function() {
 			this.canvas.drawImage(this.cache.element, 0, 0, this.cache.getWidth(), this.cache.getHeight());
 		}
 		
-		if(this.shouldDrawBounds) {
-			this.drawBounds();
-		}
-		
-		this.canvas.popMatrix();
+		this.unsetTransformation();
 	}
 }
+
+//-------------------------------------------------------
+Pixel.Object.prototype.draw = function() {}
 
 //-------------------------------------------------------
 Pixel.Object.prototype.setCanvas = function(canvas) {
@@ -79,6 +82,42 @@ Pixel.Object.prototype.setVisible = function(isVisible) {
 	this.visible = isVisible;
 }
 
+
+//-------------------------------------------------------
+//! Transformation
+
+//-------------------------------------------------------
+//Sets the rotation, scale and position
+Pixel.Object.prototype.setTransformation = function() {
+	this.canvas.pushMatrix();
+	
+	this.canvas.translate(this.position.x + this.offset.x, this.position.y + this.offset.y, 0);
+	this.canvas.rotate(this.rotation);
+	this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
+	
+	mat4.copy(this.matrix, this.canvas.getTransformation());
+}
+
+//-------------------------------------------------------
+//Returns the transformation to its previous state
+Pixel.Object.prototype.unsetTransformation = function() {
+	this.canvas.popMatrix();
+}
+
+//-------------------------------------------------------
+//Returns the transformation to its previous state
+Pixel.Object.prototype.getWorldMatrix = function() {
+/*
+	var parentMatrix;
+
+    if ( this.parent == null)
+        return mat4.identity();
+
+    parentMatrix = this.parent.getWorldMatrix();
+    
+    return mat4.multiply( parentMatrix, this.matrix );
+*/
+}
 
 //-------------------------------------------------------
 //! Children
@@ -105,18 +144,12 @@ Pixel.Object.prototype.addChild = function(childObject) {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.removeChild = function(childObject) {
-	var index = this.children.lastIndexOf(childObject);
-	if(index != -1) {
-		this.children.splice(i, 1);
-	}
-	var i = this.children.length;
-	while(i--) {
-		if(this.children[i] == childObject) {
-			childObject.parent = null;
-			childObject.canvas = null;
-			this.children.splice(i, 1);
-			return true;
-		}
+	var pos = this.getChildPosition(childObject);
+	if(pos != -1) {
+		childObject.parent = null;
+		childObject.canvas = null;
+		this.children.splice(pos, 1);
+		return true;
 	}
 	
 	return false;
@@ -127,16 +160,18 @@ Pixel.Object.prototype.removeChild = function(childObject) {
 Pixel.Object.prototype.moveChildForward = function(object) {
 	//If its already on top, just return
 	if(object == this.children[this.children.length-1]) {
-		return false;
+		return true;
 	} else {
 		//Get the current index
-		var index = this.children.lastIndexOf(object);
+		var pos = this.getChildPosition(object);
 		
-		if(index != -1) {
-			this.children.splice(index, 1);
+		if(pos != -1) {
+			//Remove Child
+			this.children.splice(pos, 1);
 			
-			if(index < this.children.length) {
-				this.children.splice(index + 1, 0, object);
+			//Add it forward
+			if(pos < this.children.length) {
+				this.children.splice(pos + 1, 0, object);
 			} else {
 				this.children.push(object);
 			}
@@ -150,10 +185,10 @@ Pixel.Object.prototype.moveChildForward = function(object) {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.moveChildToFront = function(object) {
-	var index = this.children.lastIndexOf(object);
+	var pos = this.getChildPosition(object);
 	
-	if(index != -1) {
-		this.children.splice(index, 1);
+	if(pos != -1) {
+		this.children.splice(pos, 1);
 		this.children.push(object);
 		return true;
 	} else {
@@ -166,18 +201,21 @@ Pixel.Object.prototype.moveChildToFront = function(object) {
 Pixel.Object.prototype.moveChildBackward = function(object) {
 	//If its already last, just return
 	if(object == this.children[0]) {
-		return false;
+		return true;
 	} else {
 		//Get the current index
-		var index = this.children.lastIndexOf(object);
-		
-		if(index != -1) {
-			this.children.splice(index, 1);
-			if(index -1 > 0) {
-				this.children.splice(index - 1, 0, object);
+		var pos = this.getChildPosition(object);
+		if(pos != -1) {
+			//Remove Child
+			this.children.splice(pos, 1);
+			
+			//Add it back lower
+			if(pos - 1 > 0) {
+				this.children.splice(pos - 1, 0, object);
 			} else {
 				this.children.unshift(object);
 			}
+			
 			return true;
 		} else {
 			return false;
@@ -188,10 +226,9 @@ Pixel.Object.prototype.moveChildBackward = function(object) {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.moveChildToBack = function(object) {
-	var index = this.children.lastIndexOf(object);
-	
-	if(index != -1) {
-		this.children.splice(index, 1);
+	var pos = this.getChildPosition(object);
+	if(pos != -1) {
+		this.children.splice(pos, 1);
 		this.children.unshift(object);
 		return true;
 	} else {
@@ -199,6 +236,14 @@ Pixel.Object.prototype.moveChildToBack = function(object) {
 	}
 }
 
+//-------------------------------------------------------
+Pixel.Object.prototype.getChildPosition = function(object) {
+	for(var i=0; i<this.children.length; i++) {
+		if(this.children[i] == object) return i;
+	}
+	
+	return -1;
+}
 
 //-------------------------------------------------------
 //! Size
@@ -394,33 +439,38 @@ Pixel.Object.prototype.doCaching = function() {
 //-------------------------------------------------------
 
 //-------------------------------------------------------
-Pixel.Object.prototype.addEvent = function(event) {
-	if(this.events.indexOf(event) == -1) {
-		this.events.push(event);
-	}
+Pixel.Object.prototype.getLocalPosition = function(globalPosition) {
+	var globalPosition = vec3.fromValues(globalPosition.x, globalPosition.y, globalPosition.z);
+	
+	var localPosition = vec3.create();
+	vec3.subtract(localPosition, globalPosition, localPosition);
+	vec3.transformMat4(localPosition, globalPosition, this.matrix);
+	
+	return new Pixel.Point(localPosition[0], localPosition[1], 0);
 }
+
+//-------------------------------------------------------
+Pixel.Object.prototype.addEvent = function(event, data) {
+	Pixel.EventCenter.addListener(this, event, data);
+}
+
 
 //-------------------------------------------------------
 Pixel.Object.prototype.removeEvent = function(event) {
-	var index = this.events.indexOf(event);
-	if(index != -1) {
-		this.events.splice(index, 1);
-	}
+	Pixel.EventCenter.removeListener(this, event);
 }
+
 
 //-------------------------------------------------------
-Pixel.Object.prototype.removeAllEvents = function() {
-	this.events = [];
+Pixel.Object.prototype.removeAllEvents = function(event) {
+	Pixel.EventCenter.removeAllListeners(this);
 }
 
-Pixel.Object.prototype.fireEvent = function(event) {
-	//if(
-}
-
-//-------------------------------------------------------
 
 //-------------------------------------------------------
 Pixel.Object.prototype.eventHandler = function(event) {
+	console.log(event.localPosition);
+	console.log(event.data);
 }
 
 

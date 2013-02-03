@@ -11,8 +11,8 @@ Pixel.Renderer2D = function(canvas) {
 	
 	this.shapePos = {x:0,y:0};
 	
-	this.matrices = [];
-	this.transformation = mat4.create();
+	this.matrixStack = [];
+	this.transformMatrix = mat4.create();
 	
 	this.translationVec		= vec3.create();
 	this.scaleVec			= vec3.create();
@@ -317,16 +317,16 @@ Pixel.Renderer2D.prototype.drawCircle = function(x,y,size) {
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.pushMatrix = function() {
 	//this.ctx.save();
-	this.matrices.push(this.transformation);
-	this.transformation = mat4.create();
-	mat4.multiply(this.transformation, this.transformation, this.matrices[this.matrices.length-1]);
+	this.matrixStack.push(this.transformMatrix);
+	this.transformMatrix = mat4.create();
+	mat4.multiply(this.transformMatrix, this.transformMatrix, this.matrixStack[this.matrixStack.length-1]);
 };
 
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.popMatrix = function() {
-	this.transformation = this.matrices[this.matrices.length-1];
-	this.matrices.splice(this.matrices.length-1, 1);
+	this.transformMatrix = this.matrixStack[this.matrixStack.length-1];
+	this.matrixStack.splice(this.matrixStack.length-1, 1);
 	//this.ctx.restore();
 };
 
@@ -334,9 +334,9 @@ Pixel.Renderer2D.prototype.popMatrix = function() {
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.translate = function(x,y) {
 	vec3.set(this.translationVec, x, y, 0);
-	mat4.translate(this.transformation, this.transformation, this.translationVec);
+	mat4.translate(this.transformMatrix, this.transformMatrix, this.translationVec);
 	this.setTransformation();
-	//console.log(this.transformation);
+	//console.log(this.transformMatrix);
 /* 	this.ctx.translate(x,y); */
 };
 
@@ -345,7 +345,7 @@ Pixel.Renderer2D.prototype.translate = function(x,y) {
 Pixel.Renderer2D.prototype.scale = function(x,y) {
 	vec3.set(this.scaleVec, x, y, 1);
 	//console.log(this.scaleVec);
-	mat4.scale(this.transformation, this.transformation, this.scaleVec);
+	mat4.scale(this.transformMatrix, this.transformMatrix, this.scaleVec);
 	this.setTransformation();
 	//this.ctx.scale(x,y);
 };
@@ -354,7 +354,7 @@ Pixel.Renderer2D.prototype.scale = function(x,y) {
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.rotate = function(angle) {
 	vec3.set(this.rotationAxisVec, 0,0,1);
-	mat4.rotate(this.transformation, this.transformation, angle, this.rotationAxisVec);
+	mat4.rotate(this.transformMatrix, this.transformMatrix, angle, this.rotationAxisVec);
 	this.setTransformation();
 	//this.ctx.rotate(Pixel.Math.degreesToRadians(angle));
 };
@@ -367,7 +367,12 @@ Pixel.Renderer2D.prototype.transform = function(m11, m12, m21, m22, dx, dy) {
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setTransformation = function() {
-	this.ctx.setTransform(this.transformation[0], this.transformation[1], this.transformation[4], this.transformation[5], this.transformation[12], this.transformation[13]);
+	this.ctx.setTransform(this.transformMatrix[0], this.transformMatrix[1], this.transformMatrix[4], this.transformMatrix[5], this.transformMatrix[12], this.transformMatrix[13]);
+}
+
+//-------------------------------------------------------
+Pixel.Renderer2D.prototype.getTransformation = function() {
+	return this.transformMatrix;
 }
 
 

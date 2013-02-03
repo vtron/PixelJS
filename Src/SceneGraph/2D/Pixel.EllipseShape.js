@@ -23,10 +23,7 @@ Pixel.EllipseShape.prototype.draw = function() {
 			this.canvas.setStrokeColor(this.strokeColor);
 		}
 		
-		this.canvas.pushMatrix();
-		this.canvas.translate(this.position.x, this.position.y, this.position.z);
-		this.canvas.rotate(this.rotation);
-		this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
+		this.setTransformation();
 		
 		if(this.width == this.height) {
 			this.canvas.drawCircle(this.offset.x, this.offset.y, this.width);
@@ -34,6 +31,10 @@ Pixel.EllipseShape.prototype.draw = function() {
 			this.canvas.drawEllipse(this.offset.x, this.offset.y, this.width, this.height);
 		}
 		
-		this.canvas.popMatrix();
+		if(this.shouldDrawBounds) {
+			this.drawBounds();
+		}
+		
+		this.unsetTransformation();
 	}
 }

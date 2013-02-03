@@ -43,6 +43,8 @@ Pixel.Canvas = function(renderer) {
 	this.element.addEventListener("mousedown",		function(e) { self.mouseDownListener.call(self, e) },	false);
 	this.element.addEventListener("mousemove",		function(e) { self.mouseMovedListener.call(self, e) },	false);
 	this.element.addEventListener("mouseup",		function(e) { self.mouseUpListener.call(self, e) },		false);
+	
+	this.drawOrderStack = 0;
 };
 
 
@@ -294,7 +296,10 @@ Pixel.Canvas.prototype.setTransform = function(m11, m12, m21, m22, dx, dy) {
 	this.renderer.setTransform(m11, m12, m21, m22, dx, dy);
 };
 
-
+//-------------------------------------------------------
+Pixel.Canvas.prototype.getTransformation = function() {
+	return this.renderer.getTransformation();
+}
 
 //-------------------------------------------------------
 //!TEXT
@@ -339,14 +344,27 @@ Pixel.Canvas.prototype.drawTextfield = function(textfield) {
 };
 
 
+//-------------------------------------------------------
+//!DRAW ORDER
+//Used to determine overlapping objects, mostly for inside events
 
+//-------------------------------------------------------
+Pixel.Canvas.prototype.getNextDrawOrder = function() {
+	this.drawOrderStack++;
+	return this.drawOrderStack;
+}
+
+
+//-------------------------------------------------------
+Pixel.Canvas.prototype.resetDrawOrder = function() {
+	this.drawOrderStack = 0;
+}
 
 
 
 
 //-------------------------------------------------------
 //!EVENTS
-
 
 //-------------------------------------------------------
 Pixel.Canvas.prototype.mouseDownListener = function(e) {
@@ -355,7 +373,11 @@ Pixel.Canvas.prototype.mouseDownListener = function(e) {
 	//Get Position of Event
 	var position = Pixel.getRelativeMouseCoords(e, this.element);
 	
-	console.log(position);
+	var event = new Pixel.MouseEvent;
+	event.type = Pixel.MOUSE_DOWN_EVENT;
+	event.position = position;
+	
+	Pixel.EventCenter.queueEvent(event, this);
 };
 
 
@@ -377,3 +399,5 @@ Pixel.Canvas.prototype.mouseUpListener = function(e) {
 	//Get Position of Event
 	var position = Pixel.getRelativeMouseCoords(e, this.element);
 };
+
+

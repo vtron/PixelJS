@@ -59,5 +59,5 @@ Pixel.getRelativeMouseCoords = function(event, element){
     canvasX = event.pageX - totalOffsetX;
     canvasY = event.pageY - totalOffsetY;
     
-    return {x:canvasX, y:canvasY}
+    return new Pixel.Point(canvasX, canvasY);
 }

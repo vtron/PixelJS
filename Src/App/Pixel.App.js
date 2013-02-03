@@ -71,12 +71,16 @@ Pixel.App.prototype.run = function() {
 		//Calculates bounds on all children
 		this.calculateBounds();
 		
+		//Dispatch Events
+		Pixel.EventCenter.dispatchEvents(this);
+		
 		//Update All Children
 		this.update();
 		
 		//Draw Everything
 		if(this.bClearBackground) this.clear(0,0, this.getWidth(), this.getHeight());
-		this.draw();
+		this.resetDrawOrder();
+		this.drawTree();
 		
 		if(this.bShowFPS) {
 			this.updateFPS();

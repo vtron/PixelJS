@@ -70,7 +70,7 @@ Pixel.ALIGNMENT_CENTER_BOTTOM	= 7,
 Pixel.ALIGNMENT_CENTER_CENTER	= 8;
 
 //Events
-Pixel.MOUSE_DOWN_EVENT			= 0;
+Pixel.MOUSE_DOWN_EVENT			= "PIXEL_MOUSE_DOWN_EVENT";
 Pixel.MOUSE_MOVE_EVENT			= 1;
 Pixel.MOUSE_UP_EVENT			= 2;
 
@@ -166,7 +166,7 @@ Pixel.getRelativeMouseCoords = function(event, element){
     canvasX = event.pageX - totalOffsetX;
     canvasY = event.pageY - totalOffsetY;
     
-    return {x:canvasX, y:canvasY}
+    return new Pixel.Point(canvasX, canvasY);
 }//-------------------------------------------------------
 //Utils
 //Various classes and functions that make math easier
@@ -657,6 +657,8 @@ Pixel.Object = function() {
 	this.position			= new Pixel.Point(0,0,0);
 	this.offset				= new Pixel.Point(0,0,0);
 	
+	this.matrix				= mat4.create();
+	
 	this.width				= 0;
 	this.height 			= 0;
 	this.bounds 			= new Pixel.Rect(0,0,0,0);
@@ -675,6 +677,7 @@ Pixel.Object = function() {
 	this.parent				= null;
 	this.children			= [];
 	
+	this.drawOrder			= -1;
 	this.events				= [];
 }
 
@@ -687,16 +690,17 @@ Pixel.Object.prototype.update = function() {
 }
 
 //-------------------------------------------------------
-Pixel.Object.prototype.draw = function() {
+//Draws the object, then it's children.
+Pixel.Object.prototype.drawTree = function() {
 	if(this.children.length != 0 && this.canvas && this.visible) {
 		this.calculateOffset();
+		this.setTransformation();
 		
-		this.canvas.pushMatrix();
-		this.canvas.translate(this.position.x + this.offset.x, this.position.y + this.offset.y, 0);
-		this.canvas.rotate(this.rotation);
-		this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
+		this.drawOrder = this.canvas.getNextDrawOrder();
 		
 		if(this.isCaching == false) {
+			this.draw();
+			
 			for(var i=0; i<this.children.length; i++) {
 				this.children[i].draw();
 			}
@@ -704,13 +708,12 @@ Pixel.Object.prototype.draw = function() {
 			this.canvas.drawImage(this.cache.element, 0, 0, this.cache.getWidth(), this.cache.getHeight());
 		}
 		
-		if(this.shouldDrawBounds) {
-			this.drawBounds();
-		}
-		
-		this.canvas.popMatrix();
+		this.unsetTransformation();
 	}
 }
+
+//-------------------------------------------------------
+Pixel.Object.prototype.draw = function() {}
 
 //-------------------------------------------------------
 Pixel.Object.prototype.setCanvas = function(canvas) {
@@ -727,6 +730,42 @@ Pixel.Object.prototype.setVisible = function(isVisible) {
 	this.visible = isVisible;
 }
 
+
+//-------------------------------------------------------
+//! Transformation
+
+//-------------------------------------------------------
+//Sets the rotation, scale and position
+Pixel.Object.prototype.setTransformation = function() {
+	this.canvas.pushMatrix();
+	
+	this.canvas.translate(this.position.x + this.offset.x, this.position.y + this.offset.y, 0);
+	this.canvas.rotate(this.rotation);
+	this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
+	
+	mat4.copy(this.matrix, this.canvas.getTransformation());
+}
+
+//-------------------------------------------------------
+//Returns the transformation to its previous state
+Pixel.Object.prototype.unsetTransformation = function() {
+	this.canvas.popMatrix();
+}
+
+//-------------------------------------------------------
+//Returns the transformation to its previous state
+Pixel.Object.prototype.getWorldMatrix = function() {
+/*
+	var parentMatrix;
+
+    if ( this.parent == null)
+        return mat4.identity();
+
+    parentMatrix = this.parent.getWorldMatrix();
+    
+    return mat4.multiply( parentMatrix, this.matrix );
+*/
+}
 
 //-------------------------------------------------------
 //! Children
@@ -753,18 +792,12 @@ Pixel.Object.prototype.addChild = function(childObject) {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.removeChild = function(childObject) {
-	var index = this.children.lastIndexOf(childObject);
-	if(index != -1) {
-		this.children.splice(i, 1);
-	}
-	var i = this.children.length;
-	while(i--) {
-		if(this.children[i] == childObject) {
-			childObject.parent = null;
-			childObject.canvas = null;
-			this.children.splice(i, 1);
-			return true;
-		}
+	var pos = this.getChildPosition(childObject);
+	if(pos != -1) {
+		childObject.parent = null;
+		childObject.canvas = null;
+		this.children.splice(pos, 1);
+		return true;
 	}
 	
 	return false;
@@ -775,16 +808,18 @@ Pixel.Object.prototype.removeChild = function(childObject) {
 Pixel.Object.prototype.moveChildForward = function(object) {
 	//If its already on top, just return
 	if(object == this.children[this.children.length-1]) {
-		return false;
+		return true;
 	} else {
 		//Get the current index
-		var index = this.children.lastIndexOf(object);
+		var pos = this.getChildPosition(object);
 		
-		if(index != -1) {
-			this.children.splice(index, 1);
+		if(pos != -1) {
+			//Remove Child
+			this.children.splice(pos, 1);
 			
-			if(index < this.children.length) {
-				this.children.splice(index + 1, 0, object);
+			//Add it forward
+			if(pos < this.children.length) {
+				this.children.splice(pos + 1, 0, object);
 			} else {
 				this.children.push(object);
 			}
@@ -798,10 +833,10 @@ Pixel.Object.prototype.moveChildForward = function(object) {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.moveChildToFront = function(object) {
-	var index = this.children.lastIndexOf(object);
+	var pos = this.getChildPosition(object);
 	
-	if(index != -1) {
-		this.children.splice(index, 1);
+	if(pos != -1) {
+		this.children.splice(pos, 1);
 		this.children.push(object);
 		return true;
 	} else {
@@ -814,18 +849,21 @@ Pixel.Object.prototype.moveChildToFront = function(object) {
 Pixel.Object.prototype.moveChildBackward = function(object) {
 	//If its already last, just return
 	if(object == this.children[0]) {
-		return false;
+		return true;
 	} else {
 		//Get the current index
-		var index = this.children.lastIndexOf(object);
-		
-		if(index != -1) {
-			this.children.splice(index, 1);
-			if(index -1 > 0) {
-				this.children.splice(index - 1, 0, object);
+		var pos = this.getChildPosition(object);
+		if(pos != -1) {
+			//Remove Child
+			this.children.splice(pos, 1);
+			
+			//Add it back lower
+			if(pos - 1 > 0) {
+				this.children.splice(pos - 1, 0, object);
 			} else {
 				this.children.unshift(object);
 			}
+			
 			return true;
 		} else {
 			return false;
@@ -836,10 +874,9 @@ Pixel.Object.prototype.moveChildBackward = function(object) {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.moveChildToBack = function(object) {
-	var index = this.children.lastIndexOf(object);
-	
-	if(index != -1) {
-		this.children.splice(index, 1);
+	var pos = this.getChildPosition(object);
+	if(pos != -1) {
+		this.children.splice(pos, 1);
 		this.children.unshift(object);
 		return true;
 	} else {
@@ -847,6 +884,14 @@ Pixel.Object.prototype.moveChildToBack = function(object) {
 	}
 }
 
+//-------------------------------------------------------
+Pixel.Object.prototype.getChildPosition = function(object) {
+	for(var i=0; i<this.children.length; i++) {
+		if(this.children[i] == object) return i;
+	}
+	
+	return -1;
+}
 
 //-------------------------------------------------------
 //! Size
@@ -1042,33 +1087,38 @@ Pixel.Object.prototype.doCaching = function() {
 //-------------------------------------------------------
 
 //-------------------------------------------------------
-Pixel.Object.prototype.addEvent = function(event) {
-	if(this.events.indexOf(event) == -1) {
-		this.events.push(event);
-	}
+Pixel.Object.prototype.getLocalPosition = function(globalPosition) {
+	var globalPosition = vec3.fromValues(globalPosition.x, globalPosition.y, globalPosition.z);
+	
+	var localPosition = vec3.create();
+	vec3.subtract(localPosition, globalPosition, localPosition);
+	vec3.transformMat4(localPosition, globalPosition, this.matrix);
+	
+	return new Pixel.Point(localPosition[0], localPosition[1], 0);
 }
+
+//-------------------------------------------------------
+Pixel.Object.prototype.addEvent = function(event, data) {
+	Pixel.EventCenter.addListener(this, event, data);
+}
+
 
 //-------------------------------------------------------
 Pixel.Object.prototype.removeEvent = function(event) {
-	var index = this.events.indexOf(event);
-	if(index != -1) {
-		this.events.splice(index, 1);
-	}
+	Pixel.EventCenter.removeListener(this, event);
 }
+
 
 //-------------------------------------------------------
-Pixel.Object.prototype.removeAllEvents = function() {
-	this.events = [];
+Pixel.Object.prototype.removeAllEvents = function(event) {
+	Pixel.EventCenter.removeAllListeners(this);
 }
 
-Pixel.Object.prototype.fireEvent = function(event) {
-	//if(
-}
-
-//-------------------------------------------------------
 
 //-------------------------------------------------------
 Pixel.Object.prototype.eventHandler = function(event) {
+	console.log(event.localPosition);
+	console.log(event.data);
 }
 
 
@@ -1262,10 +1312,7 @@ Pixel.EllipseShape.prototype.draw = function() {
 			this.canvas.setStrokeColor(this.strokeColor);
 		}
 		
-		this.canvas.pushMatrix();
-		this.canvas.translate(this.position.x, this.position.y, this.position.z);
-		this.canvas.rotate(this.rotation);
-		this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
+		this.setTransformation();
 		
 		if(this.width == this.height) {
 			this.canvas.drawCircle(this.offset.x, this.offset.y, this.width);
@@ -1273,7 +1320,11 @@ Pixel.EllipseShape.prototype.draw = function() {
 			this.canvas.drawEllipse(this.offset.x, this.offset.y, this.width, this.height);
 		}
 		
-		this.canvas.popMatrix();
+		if(this.shouldDrawBounds) {
+			this.drawBounds();
+		}
+		
+		this.unsetTransformation();
 	}
 }//-------------------------------------------------------
 //Pixel.Image.js
@@ -1823,6 +1874,124 @@ Pixel.TextField.prototype.draw = function() {
 		this.canvas.popMatrix();
 	}
 }//-------------------------------------------------------
+//-------------------------------------------------------
+//Main Object
+Pixel.EventCenter = {};
+Pixel.EventCenter.eventQueue = {};
+Pixel.EventCenter.eventListeners = {};
+
+//-------------------------------------------------------
+//!Event Listener
+Pixel.EventListener = function() {
+	this.object = null;
+	this.data	= {};
+}
+
+//-------------------------------------------------------
+//!Event Subscriptions
+
+//-------------------------------------------------------
+Pixel.EventCenter.addListener = function(object, eventType, data) {
+	var listeners = Pixel.EventCenter.eventListeners;
+	
+	if(!(eventType in listeners)) {
+		listeners[eventType] = [];
+	}
+	
+	var thisListener = new Pixel.EventListener();
+	thisListener.object = object;
+	
+	if(data != undefined)
+		thisListener.data = data;
+		
+	listeners[eventType].push(thisListener);
+}
+
+//-------------------------------------------------------
+Pixel.EventCenter.removeListener = function(object, event) {
+	var listeners = Pixel.EventCenter.eventListeners;
+	
+	if(event in listeners) {
+		for(var i=0; i<listeners[event].length; i++) {
+			if(listeners[event][i].object == object) {
+				listeners[event].splice(i, 1);
+				return;
+			}
+		}
+	}
+}
+
+//-------------------------------------------------------
+Pixel.EventCenter.removeAllListeners = function(object) {
+	for(var key in eventListeners) {
+		removeListener(key, object);
+	}
+}
+
+
+
+//-------------------------------------------------------
+//!Event Dispatching
+
+//-------------------------------------------------------
+Pixel.EventCenter.queueEvent = function(event, canvas) {
+	if(!(canvas in Pixel.EventCenter.eventQueue)) {
+		Pixel.EventCenter.eventQueue[canvas] = [];
+	}
+	
+	Pixel.EventCenter.eventQueue[canvas].push(event);
+}
+
+//-------------------------------------------------------
+Pixel.EventCenter.dispatchEvents = function(canvas) {
+	if(!(canvas in Pixel.EventCenter.eventQueue)) {
+		return; //No events for this canvas ever sent,don't bother
+	}
+	
+	var queue = Pixel.EventCenter.eventQueue[canvas];
+	var listeners = Pixel.EventCenter.eventListeners;
+	
+	for(var i=0; i<queue.length; i++) {
+		if(queue[i].type in listeners) {
+			for(var j=0; j<listeners[queue[i].type].length; j++) {
+				//Dispatch event to object
+				var event = queue[i];
+				event.localPosition = listeners[event.type][j].object.getLocalPosition(event.position);
+				event.data = listeners[event.type][j].data;
+				listeners[event.type][j].object.eventHandler(event);
+			}
+		}
+	}
+	
+	//Empty the queue
+	Pixel.EventCenter.eventQueue[canvas] = [];
+}
+
+
+//-------------------------------------------------------
+//!Events
+
+//----------------------------------------
+//Generic event
+Pixel.Event = function() {
+	this.type = null;
+	this.data = null;
+}
+
+//----------------------------------------
+//Mouse Event
+Pixel.MouseEvent = function() {
+	Pixel.Event.call(this);
+	
+	this.position		= null;
+	this.localPosition	= null;
+}
+
+//Pixel.MouseEvent.prototype = Object.create(Pixel.Event.prototype);
+
+
+
+//-------------------------------------------------------
 //Pixel.Canvas.js
 //Canvas Wrapper, implements Renderer functions and adds DOM specific stuff 
 //+ generic vars shared between renderers (i.e. Cursor)
@@ -1867,6 +2036,8 @@ Pixel.Canvas = function(renderer) {
 	this.element.addEventListener("mousedown",		function(e) { self.mouseDownListener.call(self, e) },	false);
 	this.element.addEventListener("mousemove",		function(e) { self.mouseMovedListener.call(self, e) },	false);
 	this.element.addEventListener("mouseup",		function(e) { self.mouseUpListener.call(self, e) },		false);
+	
+	this.drawOrderStack = 0;
 };
 
 
@@ -2118,7 +2289,10 @@ Pixel.Canvas.prototype.setTransform = function(m11, m12, m21, m22, dx, dy) {
 	this.renderer.setTransform(m11, m12, m21, m22, dx, dy);
 };
 
-
+//-------------------------------------------------------
+Pixel.Canvas.prototype.getTransformation = function() {
+	return this.renderer.getTransformation();
+}
 
 //-------------------------------------------------------
 //!TEXT
@@ -2163,14 +2337,27 @@ Pixel.Canvas.prototype.drawTextfield = function(textfield) {
 };
 
 
+//-------------------------------------------------------
+//!DRAW ORDER
+//Used to determine overlapping objects, mostly for inside events
 
+//-------------------------------------------------------
+Pixel.Canvas.prototype.getNextDrawOrder = function() {
+	this.drawOrderStack++;
+	return this.drawOrderStack;
+}
+
+
+//-------------------------------------------------------
+Pixel.Canvas.prototype.resetDrawOrder = function() {
+	this.drawOrderStack = 0;
+}
 
 
 
 
 //-------------------------------------------------------
 //!EVENTS
-
 
 //-------------------------------------------------------
 Pixel.Canvas.prototype.mouseDownListener = function(e) {
@@ -2179,7 +2366,11 @@ Pixel.Canvas.prototype.mouseDownListener = function(e) {
 	//Get Position of Event
 	var position = Pixel.getRelativeMouseCoords(e, this.element);
 	
-	console.log(position);
+	var event = new Pixel.MouseEvent;
+	event.type = Pixel.MOUSE_DOWN_EVENT;
+	event.position = position;
+	
+	Pixel.EventCenter.queueEvent(event, this);
 };
 
 
@@ -2200,7 +2391,10 @@ Pixel.Canvas.prototype.mouseUpListener = function(e) {
 	
 	//Get Position of Event
 	var position = Pixel.getRelativeMouseCoords(e, this.element);
-}; //-------------------------------------------------------
+};
+
+
+ //-------------------------------------------------------
 //!Pixel.Renderer2D.js
 //2D Rendering
 
@@ -2213,8 +2407,8 @@ Pixel.Renderer2D = function(canvas) {
 	
 	this.shapePos = {x:0,y:0};
 	
-	this.matrices = [];
-	this.transformation = mat4.create();
+	this.matrixStack = [];
+	this.transformMatrix = mat4.create();
 	
 	this.translationVec		= vec3.create();
 	this.scaleVec			= vec3.create();
@@ -2519,16 +2713,16 @@ Pixel.Renderer2D.prototype.drawCircle = function(x,y,size) {
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.pushMatrix = function() {
 	//this.ctx.save();
-	this.matrices.push(this.transformation);
-	this.transformation = mat4.create();
-	mat4.multiply(this.transformation, this.transformation, this.matrices[this.matrices.length-1]);
+	this.matrixStack.push(this.transformMatrix);
+	this.transformMatrix = mat4.create();
+	mat4.multiply(this.transformMatrix, this.transformMatrix, this.matrixStack[this.matrixStack.length-1]);
 };
 
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.popMatrix = function() {
-	this.transformation = this.matrices[this.matrices.length-1];
-	this.matrices.splice(this.matrices.length-1, 1);
+	this.transformMatrix = this.matrixStack[this.matrixStack.length-1];
+	this.matrixStack.splice(this.matrixStack.length-1, 1);
 	//this.ctx.restore();
 };
 
@@ -2536,9 +2730,9 @@ Pixel.Renderer2D.prototype.popMatrix = function() {
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.translate = function(x,y) {
 	vec3.set(this.translationVec, x, y, 0);
-	mat4.translate(this.transformation, this.transformation, this.translationVec);
+	mat4.translate(this.transformMatrix, this.transformMatrix, this.translationVec);
 	this.setTransformation();
-	//console.log(this.transformation);
+	//console.log(this.transformMatrix);
 /* 	this.ctx.translate(x,y); */
 };
 
@@ -2547,7 +2741,7 @@ Pixel.Renderer2D.prototype.translate = function(x,y) {
 Pixel.Renderer2D.prototype.scale = function(x,y) {
 	vec3.set(this.scaleVec, x, y, 1);
 	//console.log(this.scaleVec);
-	mat4.scale(this.transformation, this.transformation, this.scaleVec);
+	mat4.scale(this.transformMatrix, this.transformMatrix, this.scaleVec);
 	this.setTransformation();
 	//this.ctx.scale(x,y);
 };
@@ -2556,7 +2750,7 @@ Pixel.Renderer2D.prototype.scale = function(x,y) {
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.rotate = function(angle) {
 	vec3.set(this.rotationAxisVec, 0,0,1);
-	mat4.rotate(this.transformation, this.transformation, angle, this.rotationAxisVec);
+	mat4.rotate(this.transformMatrix, this.transformMatrix, angle, this.rotationAxisVec);
 	this.setTransformation();
 	//this.ctx.rotate(Pixel.Math.degreesToRadians(angle));
 };
@@ -2569,7 +2763,12 @@ Pixel.Renderer2D.prototype.transform = function(m11, m12, m21, m22, dx, dy) {
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setTransformation = function() {
-	this.ctx.setTransform(this.transformation[0], this.transformation[1], this.transformation[4], this.transformation[5], this.transformation[12], this.transformation[13]);
+	this.ctx.setTransform(this.transformMatrix[0], this.transformMatrix[1], this.transformMatrix[4], this.transformMatrix[5], this.transformMatrix[12], this.transformMatrix[13]);
+}
+
+//-------------------------------------------------------
+Pixel.Renderer2D.prototype.getTransformation = function() {
+	return this.transformMatrix;
 }
 
 
@@ -2713,12 +2912,16 @@ Pixel.App.prototype.run = function() {
 		//Calculates bounds on all children
 		this.calculateBounds();
 		
+		//Dispatch Events
+		Pixel.EventCenter.dispatchEvents(this);
+		
 		//Update All Children
 		this.update();
 		
 		//Draw Everything
 		if(this.bClearBackground) this.clear(0,0, this.getWidth(), this.getHeight());
-		this.draw();
+		this.resetDrawOrder();
+		this.drawTree();
 		
 		if(this.bShowFPS) {
 			this.updateFPS();
