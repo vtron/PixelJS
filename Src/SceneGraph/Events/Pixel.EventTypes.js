@@ -30,8 +30,9 @@ Pixel.MouseEvent.prototype = Object.create(Pixel.Event.prototype);
 
 
 Pixel.isMouseEvent = function(eventType) {
-	if(	eventType == Pixel.MOUSE_DOWN_EVENT	||
-		eventType == Pixel.MOUSE_MOVE_EVENT ||
+	if(	eventType == Pixel.MOUSE_DOWN_EVENT			||
+		eventType == Pixel.MOUSE_DOWN_INSIDE_EVENT	||
+		eventType == Pixel.MOUSE_MOVE_EVENT 		||
 		eventType == Pixel.MOUSE_UP_EVENT) 
 	{
 		return true;

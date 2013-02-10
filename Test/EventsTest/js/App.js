@@ -5,8 +5,19 @@ $(document).ready(function() {
 	App.setBackgroundColor(0,0,0);
 	App.showFPS(true);
 	
-	for(var i=0; i<5; i++) {
+	var circle = new Pixel.RectShape();
+	circle.setSize(200, 200);
+	circle.position.set(App.getWidth()/2, App.getHeight()/2);
+	circle.addEvent(Pixel.MOUSE_DOWN_INSIDE_EVENT, circle);
+	circle.eventHandler = function(event) {
+		this.fillColor.set(255,0,0);
+	}
+	
+	circle.rotation = Math.PI*0.65;
 		
+	App.addChild(circle);
+/*
+	for(var i=0; i<5; i++) {
 		var circle = new Pixel.EllipseShape();
 		circle.setSize(25,25);
 		//circle.setAlignment(Pixel.ALIGNMENT_CENTER_CENTER);
@@ -21,10 +32,11 @@ $(document).ready(function() {
 			event.stopPropogation();
 		}
 		
-		circle.addEvent(Pixel.MOUSE_DOWN_EVENT, {"test":"fart"});
+		circle.addEvent(Pixel.MOUSE_DOWN_INSIDE_EVENT, circle, {"test":"fart"});
 		
 		App.addChild(circle);
 	}
+*/
 	
 	
 	//----------------------------------------

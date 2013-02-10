@@ -1,8 +1,9 @@
 //-------------------------------------------------------
 //!Event Listener
 Pixel.EventListener = function() {
-	this.object = null;
-	this.data	= {};
+	this.object		= null;
+	this.responder	= null;
+	this.data		= {};
 }
 
 
@@ -17,15 +18,16 @@ Pixel.EventCenter.eventListeners = {};
 //!EVENT SUBSCRIPTIONS
 
 //-------------------------------------------------------
-Pixel.EventCenter.addListener = function(object, eventType, data) {
+Pixel.EventCenter.addListener = function(eventType, object, responder, data) {
 	var listeners = Pixel.EventCenter.eventListeners;
 	
 	if(!(eventType in listeners)) {
 		listeners[eventType] = [];
 	}
 	
-	var thisListener = new Pixel.EventListener();
-	thisListener.object = object;
+	var thisListener		= new Pixel.EventListener();
+	thisListener.object		= object;
+	thisListener.responder 	= responder;
 	
 	if(data != undefined)
 		thisListener.data = data;
@@ -80,26 +82,30 @@ Pixel.EventCenter.dispatchEvents = function(canvas) {
 		return; //No events for this canvas ever sent,don't bother
 	}
 	
-	var queue = Pixel.EventCenter.eventQueue[canvas];
-	var listeners = Pixel.EventCenter.eventListeners;
+	var queue		= Pixel.EventCenter.eventQueue[canvas];
+	var listeners	= Pixel.EventCenter.eventListeners;
 	
 	for(var i=0; i<queue.length; i++) {
 		var thisEvent = queue[i];
+		
 		if(queue[i].type in listeners) {
-			//this.sortListenersByDrawOrder(listeners[queue[i]);
+			Pixel.EventCenter.sortListenersByDrawOrder(listeners[thisEvent.type]);
 			
 			for(var j=0; j<listeners[queue[i].type].length; j++) {
 				if(thisEvent.propogate) {
 					var listeningObject = listeners[thisEvent.type][j].object;
+					var responder		= listeners[thisEvent.type][j].responder;
 					
 					if(listeningObject.getCanvas() == canvas) {
 						//Dispatch event to object
 						thisEvent.data = listeners[thisEvent.type][j].data;
 						
 						if(Pixel.isMouseEvent(thisEvent.type)) {
-							this.handleMouseEvent(thisEvent, listeningObject);
+							this.handleMouseEvent(thisEvent, listeningObject, responder);
 						} 
 					}
+				} else {
+					break;
 				}
 			}
 		}
@@ -112,22 +118,21 @@ Pixel.EventCenter.dispatchEvents = function(canvas) {
 
 //-------------------------------------------------------
 //!MOUSE EVENTS
-Pixel.EventCenter.handleMouseEvent = function(event, object) {
+
+//-------------------------------------------------------
+Pixel.EventCenter.handleMouseEvent = function(event, object, responder) {
 	//Send basic event
 	event.localPosition = object.getLocalPosition(event.position);
-	object.eventHandler(event);
-	
-	//Send inside events
-/*
+	console.log(object);
 	switch(event.type) {
-		case Pixel.MOUSE_DOWN_EVENT:
-			if(object.pointInside(localPosition)) {
-				event.type = Pixel.MOUSE_DOWN_INSIDE_EVENT;
-				object.eventHandler(event);
+		case Pixel.MOUSE_DOWN_INSIDE_EVENT:
+			if(!object.pointInside(event.localPosition)) {
+				return;
 			}
 			break;
 	}
-*/
+	
+	responder.eventHandler(event);
 }
 
 

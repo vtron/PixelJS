@@ -44,7 +44,7 @@ Pixel.Object.prototype.update = function() {
 //-------------------------------------------------------
 //Draws the object, then it's children.
 Pixel.Object.prototype.drawTree = function() {
-	if(this.children.length != 0 && this.canvas && this.visible) {
+	if(this.canvas && this.visible) {
 		this.calculateOffset();
 		this.setTransformation();
 		
@@ -52,9 +52,8 @@ Pixel.Object.prototype.drawTree = function() {
 		
 		if(this.isCaching == false) {
 			this.draw();
-			
 			for(var i=0; i<this.children.length; i++) {
-				this.children[i].draw();
+				this.children[i].drawTree();
 			}
 		} else {
 			this.canvas.drawImage(this.cache.element, 0, 0, this.cache.getWidth(), this.cache.getHeight());
@@ -457,29 +456,30 @@ Pixel.Object.prototype.doCaching = function() {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.getLocalPosition = function(globalPosition) {
-	var globalPosition = vec3.fromValues(globalPosition.x, globalPosition.y, globalPosition.z);
+	var globalPosition	= vec3.fromValues(globalPosition.x, globalPosition.y, globalPosition.z);
+	var localPosition	= vec3.create();
 	
-	var localPosition = vec3.create();
-	vec3.subtract(localPosition, globalPosition, localPosition);
-	vec3.transformMat4(localPosition, globalPosition, this.matrix);
+	var localMatrix = mat4.clone(this.matrix);
+	mat4.invert(localMatrix, localMatrix);
+	vec3.transformMat4(localPosition, globalPosition, localMatrix);
 	
 	return new Pixel.Point(localPosition[0], localPosition[1], 0);
 }
 
 //-------------------------------------------------------
-Pixel.Object.prototype.addEvent = function(event, data) {
-	Pixel.EventCenter.addListener(this, event, data);
+Pixel.Object.prototype.addEvent = function(event, responder, data) {
+	Pixel.EventCenter.addListener(event, this, responder, data);
 }
 
 
 //-------------------------------------------------------
-Pixel.Object.prototype.removeEvent = function(event) {
+Pixel.Object.prototype.removeEvents = function(event) {
 	Pixel.EventCenter.removeListener(this, event);
 }
 
 
 //-------------------------------------------------------
-Pixel.Object.prototype.removeAllEvents = function(event) {
+Pixel.Object.prototype.removeAllEvents = function() {
 	Pixel.EventCenter.removeAllListeners(this);
 }
 

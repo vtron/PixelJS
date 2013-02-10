@@ -373,11 +373,16 @@ Pixel.Canvas.prototype.mouseDownListener = function(e) {
 	//Get Position of Event
 	var position = Pixel.getRelativeMouseCoords(e, this.element);
 	
-	var event = new Pixel.MouseEvent;
-	event.type = Pixel.MOUSE_DOWN_EVENT;
-	event.position = position;
+	var downEvent		= new Pixel.MouseEvent;
+	downEvent.type		= Pixel.MOUSE_DOWN_EVENT;
+	downEvent.position	= position;
 	
-	Pixel.EventCenter.queueEvent(event, this);
+	var downInsideEvent			= new Pixel.MouseEvent;
+	downInsideEvent.type		= Pixel.MOUSE_DOWN_INSIDE_EVENT;
+	downInsideEvent.position	= position;
+	
+	Pixel.EventCenter.queueEvent(downEvent, this);
+	Pixel.EventCenter.queueEvent(downInsideEvent, this);
 };
 
 
