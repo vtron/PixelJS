@@ -70,9 +70,10 @@ Pixel.ALIGNMENT_CENTER_BOTTOM	= 7,
 Pixel.ALIGNMENT_CENTER_CENTER	= 8;
 
 //Events
-Pixel.MOUSE_DOWN_EVENT			= "PIXEL_MOUSE_DOWN_EVENT";
-Pixel.MOUSE_MOVE_EVENT			= "PIXEL_MOUSE_MOVE_EVENT";
-Pixel.MOUSE_UP_EVENT			= "PIXEL_MOUSE_UP_EVENT";
+Pixel.MOUSE_DOWN_EVENT					= "PIXEL_MOUSE_DOWN_EVENT";
+Pixel.MOUSE_DOWN_INSIDE_EVENT			= "PIXEL_MOUSE_DOWN_INSIDE_EVENT";
+Pixel.MOUSE_MOVE_EVENT					= "PIXEL_MOUSE_MOVE_EVENT";
+Pixel.MOUSE_UP_EVENT					= "PIXEL_MOUSE_UP_EVENT";
 
 //Tween Types
 /*
@@ -692,7 +693,7 @@ Pixel.Object.prototype.update = function() {
 //-------------------------------------------------------
 //Draws the object, then it's children.
 Pixel.Object.prototype.drawTree = function() {
-	if(this.children.length != 0 && this.canvas && this.visible) {
+	if(this.canvas && this.visible) {
 		this.calculateOffset();
 		this.setTransformation();
 		
@@ -700,9 +701,8 @@ Pixel.Object.prototype.drawTree = function() {
 		
 		if(this.isCaching == false) {
 			this.draw();
-			
 			for(var i=0; i<this.children.length; i++) {
-				this.children[i].draw();
+				this.children[i].drawTree();
 			}
 		} else {
 			this.canvas.drawImage(this.cache.element, 0, 0, this.cache.getWidth(), this.cache.getHeight());
@@ -1105,29 +1105,30 @@ Pixel.Object.prototype.doCaching = function() {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.getLocalPosition = function(globalPosition) {
-	var globalPosition = vec3.fromValues(globalPosition.x, globalPosition.y, globalPosition.z);
+	var globalPosition	= vec3.fromValues(globalPosition.x, globalPosition.y, globalPosition.z);
+	var localPosition	= vec3.create();
 	
-	var localPosition = vec3.create();
-	vec3.subtract(localPosition, globalPosition, localPosition);
-	vec3.transformMat4(localPosition, globalPosition, this.matrix);
+	var localMatrix = mat4.clone(this.matrix);
+	mat4.invert(localMatrix, localMatrix);
+	vec3.transformMat4(localPosition, globalPosition, localMatrix);
 	
 	return new Pixel.Point(localPosition[0], localPosition[1], 0);
 }
 
 //-------------------------------------------------------
-Pixel.Object.prototype.addEvent = function(event, data) {
-	Pixel.EventCenter.addListener(this, event, data);
+Pixel.Object.prototype.addEvent = function(event, responder, data) {
+	Pixel.EventCenter.addListener(event, this, responder, data);
 }
 
 
 //-------------------------------------------------------
-Pixel.Object.prototype.removeEvent = function(event) {
+Pixel.Object.prototype.removeEvents = function(event) {
 	Pixel.EventCenter.removeListener(this, event);
 }
 
 
 //-------------------------------------------------------
-Pixel.Object.prototype.removeAllEvents = function(event) {
+Pixel.Object.prototype.removeAllEvents = function() {
 	Pixel.EventCenter.removeAllListeners(this);
 }
 
@@ -1276,16 +1277,18 @@ Pixel.RectShape = function() {
 
 Pixel.RectShape.prototype = Object.create(Pixel.Shape2D.prototype);
 
+//-------------------------------------------------------
+Pixel.RectShape.prototype.pointInside = function(position) {
+	console.log(position);
+	if(position.x > 0 && position.x < this.getWidth() && position.y > 0 && position.y < this.getHeight()) {
+		return true;
+	}
+	
+	return false;
+}
 
 //-------------------------------------------------------
 Pixel.RectShape.prototype.draw = function() {
-	if(this.canvas && this.visible) {
-		this.calculateOffset();
-		
-		this.canvas.pushMatrix();
-		this.canvas.translate(this.position.x, this.position.y, this.position.z);
-		this.canvas.rotate(this.rotation);
-		
 		if(this.fillEnabled) {
 			this.canvas.setFillColor(this.fillColor);
 		} else {
@@ -1299,11 +1302,7 @@ Pixel.RectShape.prototype.draw = function() {
 			this.canvas.noStroke();
 		}
 		
-		//this.calculateOffset();
 		this.canvas.drawRect(this.offset.x, this.offset.y, this.width, this.height);
-		
-		this.canvas.popMatrix();
-	}
 }//-------------------------------------------------------
 //-------------------------------------------------------
 // !EllipseShape
@@ -1314,34 +1313,35 @@ Pixel.EllipseShape = function() {
 
 Pixel.EllipseShape.prototype = Object.create(Pixel.Shape2D.prototype);
 
+//-------------------------------------------------------
+Pixel.EllipseShape.prototype.pointInside = function(position) {
+console.log(position);
+	if(position.x < this.getWidth() && position.y < this.getHeight()) {
+		return true;
+	}
+	
+	return false;
+}
 
 //-------------------------------------------------------
 Pixel.EllipseShape.prototype.draw = function() {
-	if(this.canvas && this.visible) {
-		this.calculateOffset();
-		
-		if(this.fillEnabled) {
-			this.canvas.setFillColor(this.fillColor);
-		}
-		
-		if(this.strokeEnabled) {
-			this.canvas.setStrokeSize(this.strokeSize);
-			this.canvas.setStrokeColor(this.strokeColor);
-		}
-		
-		this.setTransformation();
-		
-		if(this.width == this.height) {
-			this.canvas.drawCircle(this.offset.x, this.offset.y, this.width);
-		} else {	
-			this.canvas.drawEllipse(this.offset.x, this.offset.y, this.width, this.height);
-		}
-		
-		if(this.shouldDrawBounds) {
-			this.drawBounds();
-		}
-		
-		this.unsetTransformation();
+	if(this.fillEnabled) {
+		this.canvas.setFillColor(this.fillColor);
+	}
+	
+	if(this.strokeEnabled) {
+		this.canvas.setStrokeSize(this.strokeSize);
+		this.canvas.setStrokeColor(this.strokeColor);
+	}
+	
+	if(this.width == this.height) {
+		this.canvas.drawCircle(this.offset.x, this.offset.y, this.width);
+	} else {	
+		this.canvas.drawEllipse(this.offset.x, this.offset.y, this.width, this.height);
+	}
+	
+	if(this.shouldDrawBounds) {
+		this.drawBounds();
 	}
 }//-------------------------------------------------------
 //Pixel.Image.js
@@ -1922,8 +1922,9 @@ Pixel.MouseEvent.prototype = Object.create(Pixel.Event.prototype);
 
 
 Pixel.isMouseEvent = function(eventType) {
-	if(	eventType == Pixel.MOUSE_DOWN_EVENT	||
-		eventType == Pixel.MOUSE_MOVE_EVENT ||
+	if(	eventType == Pixel.MOUSE_DOWN_EVENT			||
+		eventType == Pixel.MOUSE_DOWN_INSIDE_EVENT	||
+		eventType == Pixel.MOUSE_MOVE_EVENT 		||
 		eventType == Pixel.MOUSE_UP_EVENT) 
 	{
 		return true;
@@ -1933,8 +1934,9 @@ Pixel.isMouseEvent = function(eventType) {
 }//-------------------------------------------------------
 //!Event Listener
 Pixel.EventListener = function() {
-	this.object = null;
-	this.data	= {};
+	this.object		= null;
+	this.responder	= null;
+	this.data		= {};
 }
 
 
@@ -1949,15 +1951,16 @@ Pixel.EventCenter.eventListeners = {};
 //!EVENT SUBSCRIPTIONS
 
 //-------------------------------------------------------
-Pixel.EventCenter.addListener = function(object, eventType, data) {
+Pixel.EventCenter.addListener = function(eventType, object, responder, data) {
 	var listeners = Pixel.EventCenter.eventListeners;
 	
 	if(!(eventType in listeners)) {
 		listeners[eventType] = [];
 	}
 	
-	var thisListener = new Pixel.EventListener();
-	thisListener.object = object;
+	var thisListener		= new Pixel.EventListener();
+	thisListener.object		= object;
+	thisListener.responder 	= responder;
 	
 	if(data != undefined)
 		thisListener.data = data;
@@ -2012,26 +2015,30 @@ Pixel.EventCenter.dispatchEvents = function(canvas) {
 		return; //No events for this canvas ever sent,don't bother
 	}
 	
-	var queue = Pixel.EventCenter.eventQueue[canvas];
-	var listeners = Pixel.EventCenter.eventListeners;
+	var queue		= Pixel.EventCenter.eventQueue[canvas];
+	var listeners	= Pixel.EventCenter.eventListeners;
 	
 	for(var i=0; i<queue.length; i++) {
 		var thisEvent = queue[i];
+		
 		if(queue[i].type in listeners) {
-			//this.sortListenersByDrawOrder(listeners[queue[i]);
+			Pixel.EventCenter.sortListenersByDrawOrder(listeners[thisEvent.type]);
 			
 			for(var j=0; j<listeners[queue[i].type].length; j++) {
 				if(thisEvent.propogate) {
 					var listeningObject = listeners[thisEvent.type][j].object;
+					var responder		= listeners[thisEvent.type][j].responder;
 					
 					if(listeningObject.getCanvas() == canvas) {
 						//Dispatch event to object
 						thisEvent.data = listeners[thisEvent.type][j].data;
 						
 						if(Pixel.isMouseEvent(thisEvent.type)) {
-							this.handleMouseEvent(thisEvent, listeningObject);
+							this.handleMouseEvent(thisEvent, listeningObject, responder);
 						} 
 					}
+				} else {
+					break;
 				}
 			}
 		}
@@ -2044,22 +2051,21 @@ Pixel.EventCenter.dispatchEvents = function(canvas) {
 
 //-------------------------------------------------------
 //!MOUSE EVENTS
-Pixel.EventCenter.handleMouseEvent = function(event, object) {
+
+//-------------------------------------------------------
+Pixel.EventCenter.handleMouseEvent = function(event, object, responder) {
 	//Send basic event
 	event.localPosition = object.getLocalPosition(event.position);
-	object.eventHandler(event);
-	
-	//Send inside events
-/*
+	console.log(object);
 	switch(event.type) {
-		case Pixel.MOUSE_DOWN_EVENT:
-			if(object.pointInside(localPosition)) {
-				event.type = Pixel.MOUSE_DOWN_INSIDE_EVENT;
-				object.eventHandler(event);
+		case Pixel.MOUSE_DOWN_INSIDE_EVENT:
+			if(!object.pointInside(event.localPosition)) {
+				return;
 			}
 			break;
 	}
-*/
+	
+	responder.eventHandler(event);
 }
 
 
@@ -2438,11 +2444,16 @@ Pixel.Canvas.prototype.mouseDownListener = function(e) {
 	//Get Position of Event
 	var position = Pixel.getRelativeMouseCoords(e, this.element);
 	
-	var event = new Pixel.MouseEvent;
-	event.type = Pixel.MOUSE_DOWN_EVENT;
-	event.position = position;
+	var downEvent		= new Pixel.MouseEvent;
+	downEvent.type		= Pixel.MOUSE_DOWN_EVENT;
+	downEvent.position	= position;
 	
-	Pixel.EventCenter.queueEvent(event, this);
+	var downInsideEvent			= new Pixel.MouseEvent;
+	downInsideEvent.type		= Pixel.MOUSE_DOWN_INSIDE_EVENT;
+	downInsideEvent.position	= position;
+	
+	Pixel.EventCenter.queueEvent(downEvent, this);
+	Pixel.EventCenter.queueEvent(downInsideEvent, this);
 };
 
 
