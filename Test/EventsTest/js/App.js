@@ -5,28 +5,42 @@ $(document).ready(function() {
 	App.setBackgroundColor(0,0,0);
 	App.showFPS(true);
 	
-	var circle1 = new Pixel.RectShape();
-	circle1.setSize(200, 200);
-	circle1.setAlignment(Pixel.ALIGNMENT_CENTER_CENTER);
-	circle1.position.set(App.getWidth()/2, App.getHeight()/2);
-	//circle1.rotation = Math.PI *2 - Math.PI*0.65;
-	circle1.addEvent(Pixel.MOUSE_DOWN_INSIDE_EVENT, circle1);
-	circle1.setDrawBounds(true);
-	circle1.eventHandler = function(event) {
-		this.fillColor.set(255,0,0);
-	}
-	
-	App.addChild(circle1);
-	
 	var circle = new Pixel.RectShape();
 	circle.setSize(200, 200);
 	circle.setAlignment(Pixel.ALIGNMENT_CENTER_CENTER);
 	circle.position.set(App.getWidth()/2, App.getHeight()/2);
 	circle.rotation = Math.PI*0.65;
+	
 	circle.addEvent(Pixel.MOUSE_DOWN_INSIDE_EVENT, circle);
+	circle.addEvent(Pixel.MOUSE_MOVE_EVENT, circle);
+	circle.addEvent(Pixel.MOUSE_UP_EVENT, circle);
+	
+	circle.bPressed = false;
 	circle.eventHandler = function(event) {
-		this.fillColor.set(255,0,0);
-		event.stopPropogation();
+		switch(event.type) {
+			case Pixel.MOUSE_DOWN_INSIDE_EVENT:
+				this.prevMousePos = event.position;
+				this.bPressed = true;
+				
+				this.fillColor.set(255,0,0);
+		
+				break;
+				
+			case Pixel.MOUSE_MOVE_EVENT:
+				if(this.bPressed) {
+					this.position.x += event.position.x - this.prevMousePos.x;
+					this.position.y +=  event.position.y -this.prevMousePos.y;
+					
+					this.prevMousePos = event.position;
+				}
+				
+				break;
+				
+			case Pixel.MOUSE_UP_EVENT:
+				this.bPressed = false;
+				this.fillColor.set(255,255,255);
+				break;
+		};
 	}
 		
 	App.addChild(circle);
