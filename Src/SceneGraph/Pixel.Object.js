@@ -52,6 +52,7 @@ Pixel.Object.prototype.drawTree = function() {
 		
 		if(this.isCaching == false) {
 			this.draw();
+			if(this.shouldDrawBounds != false) this.drawBounds();
 			for(var i=0; i<this.children.length; i++) {
 				this.children[i].drawTree();
 			}
@@ -440,11 +441,14 @@ Pixel.Object.prototype.updateCache = function() {
 Pixel.Object.prototype.doCaching = function() {
 	this.calculateBounds();
 	this.cache.setSize(this.getWidth() * window.devicePixelRatio, this.getHeight() * window.devicePixelRatio);
-	this.cache.pushMatrix();
 	
+	this.cache.pushMatrix();
 	this.cache.scale(window.devicePixelRatio,window.devicePixelRatio,1);
+	
 	for(var i=0; i<this.children.length; i++) {
-		this.children[i].draw();
+		this.children[i].setCanvas(this.cache);
+		this.children[i].drawTree();
+		this.children[i].setCanvas(this.canvas);
 	}
 	
 	this.cache.popMatrix();
