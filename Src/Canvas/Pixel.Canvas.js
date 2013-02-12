@@ -373,27 +373,21 @@ Pixel.Canvas.prototype.mouseDownListener = function(e) {
 	//Get Position of Event
 	var position = Pixel.getRelativeMouseCoords(e, this.element);
 	
-	var downEvent		= new Pixel.MouseEvent;
-	downEvent.type		= Pixel.MOUSE_DOWN_EVENT;
-	downEvent.position	= position;
-	
-	var downInsideEvent			= new Pixel.MouseEvent;
-	downInsideEvent.type		= Pixel.MOUSE_DOWN_INSIDE_EVENT;
-	downInsideEvent.position	= position;
-	
+	var downEvent		= new Pixel.MouseEvent(Pixel.MOUSE_DOWN_EVENT, position);
 	Pixel.EventCenter.queueEvent(downEvent, this);
+	
+	var downInsideEvent = new Pixel.MouseEvent(Pixel.MOUSE_DOWN_INSIDE_EVENT, position);
 	Pixel.EventCenter.queueEvent(downInsideEvent, this);
 };
 
 
 //-------------------------------------------------------
 Pixel.Canvas.prototype.mouseMovedListener = function(e) {
-	if(this.bMouseDown) {
-		//this.mouseDraggedListener(e);
-	}
-	
 	//Get Position of Event
 	var position = Pixel.getRelativeMouseCoords(e, this.element);
+	
+	var moveEvent = new Pixel.MouseEvent(Pixel.MOUSE_MOVE_EVENT, position);
+	Pixel.EventCenter.queueEvent(moveEvent, this);
 };
 
 
@@ -403,6 +397,12 @@ Pixel.Canvas.prototype.mouseUpListener = function(e) {
 	
 	//Get Position of Event
 	var position = Pixel.getRelativeMouseCoords(e, this.element);
+	
+	var upEvent = new Pixel.MouseEvent(Pixel.MOUSE_UP_EVENT, position);
+	Pixel.EventCenter.queueEvent(upEvent, this);
+	
+	var upInsideEvent = new Pixel.MouseEvent(Pixel.MOUSE_UP_INSIDE_EVENT, position);
+	Pixel.EventCenter.queueEvent(upInsideEvent, this);
 };
 
 

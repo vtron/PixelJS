@@ -18,11 +18,12 @@ Pixel.Event.prototype.stopPropogation = function() {
 
 //----------------------------------------
 //!MOUSE EVENT
-Pixel.MouseEvent = function() {
+Pixel.MouseEvent = function(type, position) {
 	Pixel.Event.call(this);
 	
-	this.position		= null;
-	this.localPosition	= null;
+	this.type			= type;
+	this.position		= position;
+	this.localPosition	= null; //Set in Event Handler
 }
 
 Pixel.MouseEvent.prototype = Object.create(Pixel.Event.prototype);
@@ -33,7 +34,8 @@ Pixel.isMouseEvent = function(eventType) {
 	if(	eventType == Pixel.MOUSE_DOWN_EVENT			||
 		eventType == Pixel.MOUSE_DOWN_INSIDE_EVENT	||
 		eventType == Pixel.MOUSE_MOVE_EVENT 		||
-		eventType == Pixel.MOUSE_UP_EVENT) 
+		eventType == Pixel.MOUSE_UP_EVENT 			||
+		eventType == Pixel.MOUSE_UP_INSIDE_EVENT)
 	{
 		return true;
 	};
