@@ -60,7 +60,7 @@ Pixel.EventCenter.removeAllListeners = function(object) {
 //!OBJECT SORTING
 //We need to sort by draw orders to make hit testing work with layers!
 Pixel.EventCenter.sortListenersByDrawOrder = function(listeners) {
-	listeners.sort(function(a, b) {return a.object.drawOrder > b.object.drawOrder});
+	listeners.sort(function(a, b) {return a.object.drawOrder < b.object.drawOrder});
 }
 
 //-------------------------------------------------------
