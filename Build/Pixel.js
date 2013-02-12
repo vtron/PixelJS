@@ -701,6 +701,7 @@ Pixel.Object.prototype.drawTree = function() {
 		
 		if(this.isCaching == false) {
 			this.draw();
+			if(this.shouldDrawBounds != false) this.drawBounds();
 			for(var i=0; i<this.children.length; i++) {
 				this.children[i].drawTree();
 			}
@@ -1089,11 +1090,14 @@ Pixel.Object.prototype.updateCache = function() {
 Pixel.Object.prototype.doCaching = function() {
 	this.calculateBounds();
 	this.cache.setSize(this.getWidth() * window.devicePixelRatio, this.getHeight() * window.devicePixelRatio);
-	this.cache.pushMatrix();
 	
+	this.cache.pushMatrix();
 	this.cache.scale(window.devicePixelRatio,window.devicePixelRatio,1);
+	
 	for(var i=0; i<this.children.length; i++) {
-		this.children[i].draw();
+		this.children[i].setCanvas(this.cache);
+		this.children[i].drawTree();
+		this.children[i].setCanvas(this.canvas);
 	}
 	
 	this.cache.popMatrix();
@@ -1302,7 +1306,7 @@ Pixel.RectShape.prototype.draw = function() {
 			this.canvas.noStroke();
 		}
 		
-		this.canvas.drawRect(this.offset.x, this.offset.y, this.width, this.height);
+		this.canvas.drawRect(0, 0, this.width, this.height);
 }//-------------------------------------------------------
 //-------------------------------------------------------
 // !EllipseShape
@@ -1335,9 +1339,9 @@ Pixel.EllipseShape.prototype.draw = function() {
 	}
 	
 	if(this.width == this.height) {
-		this.canvas.drawCircle(this.offset.x, this.offset.y, this.width);
+		this.canvas.drawCircle(0, 0, this.width);
 	} else {	
-		this.canvas.drawEllipse(this.offset.x, this.offset.y, this.width, this.height);
+		this.canvas.drawEllipse(0, 0, this.width, this.height);
 	}
 	
 	if(this.shouldDrawBounds) {
@@ -1853,42 +1857,32 @@ Pixel.TextField.prototype.calculateTextBounds = function() {
 
 
 //-------------------------------------------------------
-Pixel.TextField.prototype.draw = function() {
-	if(this.canvas && this.visible) {
-		this.canvas.pushMatrix();
-		
-		this.canvas.translate(this.position.x, this.position.y, this.position.z);
-		this.canvas.rotate(this.rotation);
-		this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
-		
-		if(this.fillEnabled) {
-			this.canvas.setFillColor(this.fillColor);
-		} else {
-			this.canvas.noFill();
-		}
-		
-		if(this.strokeEnabled) {
-			this.canvas.setStrokeSize(this.strokeSize);
-			this.canvas.setStrokeColor(this.strokeColor);
-		} else {
-			this.canvas.noStroke();
-		}
-		
-		this.calculateOffset();
-		var bounds = this.getBounds();
-		this.canvas.drawRect(this.offset.x, this.offset.y, bounds.width, bounds.height);
-		
-		this.canvas.setFillColor(this.textColor);
-		this.canvas.setFont(this.font.fontFamily, this.textSize);
-		this.canvas.setTextBaseline(this.font.baseline);
-		
-		var nLines = this.lines.length;
-		for(var i=0; i<nLines; i++) {
-			var thisLine = this.lines[i];
-			this.canvas.drawText(thisLine.text, this.offset.x + thisLine.position.x, this.offset.y + thisLine.position.y);
-		}
-		
-		this.canvas.popMatrix();
+Pixel.TextField.prototype.draw = function() {		
+	if(this.fillEnabled) {
+		this.canvas.setFillColor(this.fillColor);
+	} else {
+		this.canvas.noFill();
+	}
+	
+	if(this.strokeEnabled) {
+		this.canvas.setStrokeSize(this.strokeSize);
+		this.canvas.setStrokeColor(this.strokeColor);
+	} else {
+		this.canvas.noStroke();
+	}
+	
+	this.calculateOffset();
+	var bounds = this.getBounds();
+	this.canvas.drawRect(this.offset.x, this.offset.y, bounds.width, bounds.height);
+	
+	this.canvas.setFillColor(this.textColor);
+	this.canvas.setFont(this.font.fontFamily, this.textSize);
+	this.canvas.setTextBaseline(this.font.baseline);
+	
+	var nLines = this.lines.length;
+	for(var i=0; i<nLines; i++) {
+		var thisLine = this.lines[i];
+		this.canvas.drawText(thisLine.text, thisLine.position.x,thisLine.position.y);
 	}
 }
 //------------------------------------------------------
@@ -1993,7 +1987,7 @@ Pixel.EventCenter.removeAllListeners = function(object) {
 //!OBJECT SORTING
 //We need to sort by draw orders to make hit testing work with layers!
 Pixel.EventCenter.sortListenersByDrawOrder = function(listeners) {
-	listeners.sort(function(a, b) {return a.object.drawOrder > b.object.drawOrder});
+	listeners.sort(function(a, b) {return a.object.drawOrder < b.object.drawOrder});
 }
 
 //-------------------------------------------------------
