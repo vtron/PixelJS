@@ -33,5 +33,5 @@ Pixel.RectShape.prototype.draw = function() {
 			this.canvas.noStroke();
 		}
 		
-		this.canvas.drawRect(this.offset.x, this.offset.y, this.width, this.height);
+		this.canvas.drawRect(0, 0, this.width, this.height);
 }

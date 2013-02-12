@@ -30,9 +30,9 @@ Pixel.EllipseShape.prototype.draw = function() {
 	}
 	
 	if(this.width == this.height) {
-		this.canvas.drawCircle(this.offset.x, this.offset.y, this.width);
+		this.canvas.drawCircle(0, 0, this.width);
 	} else {	
-		this.canvas.drawEllipse(this.offset.x, this.offset.y, this.width, this.height);
+		this.canvas.drawEllipse(0, 0, this.width, this.height);
 	}
 	
 	if(this.shouldDrawBounds) {

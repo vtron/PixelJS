@@ -263,41 +263,31 @@ Pixel.TextField.prototype.calculateTextBounds = function() {
 
 
 //-------------------------------------------------------
-Pixel.TextField.prototype.draw = function() {
-	if(this.canvas && this.visible) {
-		this.canvas.pushMatrix();
-		
-		this.canvas.translate(this.position.x, this.position.y, this.position.z);
-		this.canvas.rotate(this.rotation);
-		this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
-		
-		if(this.fillEnabled) {
-			this.canvas.setFillColor(this.fillColor);
-		} else {
-			this.canvas.noFill();
-		}
-		
-		if(this.strokeEnabled) {
-			this.canvas.setStrokeSize(this.strokeSize);
-			this.canvas.setStrokeColor(this.strokeColor);
-		} else {
-			this.canvas.noStroke();
-		}
-		
-		this.calculateOffset();
-		var bounds = this.getBounds();
-		this.canvas.drawRect(this.offset.x, this.offset.y, bounds.width, bounds.height);
-		
-		this.canvas.setFillColor(this.textColor);
-		this.canvas.setFont(this.font.fontFamily, this.textSize);
-		this.canvas.setTextBaseline(this.font.baseline);
-		
-		var nLines = this.lines.length;
-		for(var i=0; i<nLines; i++) {
-			var thisLine = this.lines[i];
-			this.canvas.drawText(thisLine.text, this.offset.x + thisLine.position.x, this.offset.y + thisLine.position.y);
-		}
-		
-		this.canvas.popMatrix();
+Pixel.TextField.prototype.draw = function() {		
+	if(this.fillEnabled) {
+		this.canvas.setFillColor(this.fillColor);
+	} else {
+		this.canvas.noFill();
+	}
+	
+	if(this.strokeEnabled) {
+		this.canvas.setStrokeSize(this.strokeSize);
+		this.canvas.setStrokeColor(this.strokeColor);
+	} else {
+		this.canvas.noStroke();
+	}
+	
+	this.calculateOffset();
+	var bounds = this.getBounds();
+	this.canvas.drawRect(this.offset.x, this.offset.y, bounds.width, bounds.height);
+	
+	this.canvas.setFillColor(this.textColor);
+	this.canvas.setFont(this.font.fontFamily, this.textSize);
+	this.canvas.setTextBaseline(this.font.baseline);
+	
+	var nLines = this.lines.length;
+	for(var i=0; i<nLines; i++) {
+		var thisLine = this.lines[i];
+		this.canvas.drawText(thisLine.text, thisLine.position.x,thisLine.position.y);
 	}
 }
