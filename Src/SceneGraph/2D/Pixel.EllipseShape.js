@@ -18,6 +18,7 @@ console.log(position);
 	return false;
 }
 
+
 //-------------------------------------------------------
 Pixel.EllipseShape.prototype.draw = function() {
 	if(this.fillEnabled) {

@@ -18,6 +18,7 @@ Pixel.RectShape.prototype.pointInside = function(position) {
 	return false;
 }
 
+
 //-------------------------------------------------------
 Pixel.RectShape.prototype.draw = function() {
 		if(this.fillEnabled) {

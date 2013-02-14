@@ -41,6 +41,7 @@ Pixel.Object.prototype.update = function() {
 	}
 }
 
+
 //-------------------------------------------------------
 //Draws the object, then it's children.
 Pixel.Object.prototype.drawTree = function() {
@@ -64,8 +65,11 @@ Pixel.Object.prototype.drawTree = function() {
 	}
 }
 
+
 //-------------------------------------------------------
+//Only for inheritance, poObject base class only draws children
 Pixel.Object.prototype.draw = function() {}
+
 
 //-------------------------------------------------------
 Pixel.Object.prototype.setCanvas = function(canvas) {
@@ -77,56 +81,14 @@ Pixel.Object.prototype.setCanvas = function(canvas) {
 	}
 }
 
+
 //-------------------------------------------------------
 Pixel.Object.prototype.getCanvas = function() {
 	return this.canvas;
 }
 
-//-------------------------------------------------------
-Pixel.Object.prototype.setVisible = function(isVisible) {
-	this.visible = isVisible;
-}
 
-//-------------------------------------------------------
-Pixel.Object.prototype.isVisible = function() {
-	return this.visible;
-}
 
-//-------------------------------------------------------
-//! Transformation
-
-//-------------------------------------------------------
-//Sets the rotation, scale and position
-Pixel.Object.prototype.setTransformation = function() {
-	this.canvas.pushMatrix();
-	
-	this.canvas.translate(this.position.x + this.offset.x, this.position.y + this.offset.y, 0);
-	this.canvas.rotate(this.rotation);
-	this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
-	
-	mat4.copy(this.matrix, this.canvas.getTransformation());
-}
-
-//-------------------------------------------------------
-//Returns the transformation to its previous state
-Pixel.Object.prototype.unsetTransformation = function() {
-	this.canvas.popMatrix();
-}
-
-//-------------------------------------------------------
-//Returns the transformation to its previous state
-Pixel.Object.prototype.getWorldMatrix = function() {
-/*
-	var parentMatrix;
-
-    if ( this.parent == null)
-        return mat4.identity();
-
-    parentMatrix = this.parent.getWorldMatrix();
-    
-    return mat4.multiply( parentMatrix, this.matrix );
-*/
-}
 
 //-------------------------------------------------------
 //! Children
@@ -148,6 +110,8 @@ Pixel.Object.prototype.addChild = function(childObject) {
 		childObject.setCanvas(this.cache);
 		this.doCaching();
 	}
+	
+	return this;
 }
 
 
@@ -262,6 +226,63 @@ Pixel.Object.prototype.getParent = function() {
 }
 
 
+
+//-------------------------------------------------------
+//! Visibility
+
+//-------------------------------------------------------
+Pixel.Object.prototype.setVisible = function(isVisible) {
+	this.visible = isVisible;
+}
+
+
+//-------------------------------------------------------
+//TODO Implement draw tree, shoud go up to check parents
+Pixel.Object.prototype.isVisible = function() {
+	return this.visible;
+}
+
+
+
+//-------------------------------------------------------
+//! Transformation
+
+//-------------------------------------------------------
+//Sets the rotation, scale and position
+Pixel.Object.prototype.setTransformation = function() {
+	this.canvas.pushMatrix();
+	
+	this.canvas.translate(this.position.x + this.offset.x, this.position.y + this.offset.y, 0);
+	this.canvas.rotate(this.rotation);
+	this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
+	
+	mat4.copy(this.matrix, this.canvas.getTransformation());
+}
+
+
+//-------------------------------------------------------
+//Returns the transformation to its previous state
+Pixel.Object.prototype.unsetTransformation = function() {
+	this.canvas.popMatrix();
+}
+
+
+
+//-------------------------------------------------------
+//Rotation
+Pixel.Object.prototype.setRotation = function(rotation) {
+	this.rotation = rotation;
+	return this;
+}
+
+
+//-------------------------------------------------------
+Pixel.Object.prototype.getRotation = function() {
+	return this.rotation;
+}
+
+
+
 //-------------------------------------------------------
 //! Size
 //-------------------------------------------------------
@@ -284,6 +305,21 @@ Pixel.Object.prototype.getSize = function() {
 }
 
 
+
+//-------------------------------------------------------
+//! Position
+Pixel.Object.prototype.setPosition = function(x,y,z) {
+	this.position.set(x,y,z);
+	
+	return this;
+}
+
+
+Pixel.Object.prototype.getPosition = function() {
+	return this.position;
+}
+
+
 //-------------------------------------------------------
 //! Bounds
 //-------------------------------------------------------
@@ -293,6 +329,7 @@ Pixel.Object.prototype.getBounds = function() {
 	this.calculateBounds();
 	return this.bounds;
 }
+
 
 //-------------------------------------------------------
 Pixel.Object.prototype.calculateBounds = function() {
@@ -308,15 +345,20 @@ Pixel.Object.prototype.calculateBounds = function() {
 	}
 }
 
+
 //-------------------------------------------------------
 Pixel.Object.prototype.setDrawBounds = function(shouldDrawBounds) {
 	this.shouldDrawBounds = shouldDrawBounds;
+	
+	return this;
 }
+
 
 //-------------------------------------------------------
 Pixel.Object.prototype.getDrawBounds = function() {
 	return this.shouldDrawBounds;
 }
+
 
 //-------------------------------------------------------
 Pixel.Object.prototype.drawBounds = function() {
@@ -342,6 +384,8 @@ Pixel.Object.prototype.drawBounds = function() {
 //-------------------------------------------------------
 Pixel.Object.prototype.setAlignment = function(alignment) {
 	this.alignment = alignment;
+	
+	return this;
 }
 
 
@@ -387,6 +431,9 @@ Pixel.Object.prototype.calculateOffset = function() {
 	}
 }
 
+
+
+
 //-------------------------------------------------------
 //! Caching
 //-------------------------------------------------------
@@ -416,7 +463,10 @@ Pixel.Object.prototype.setCaching = function(shouldCache) {
 		//Free up the cache
 		delete this.cache;
 	}
+	
+	return this;
 }
+
 
 //-------------------------------------------------------
 Pixel.Object.prototype.createCache = function() {
@@ -426,6 +476,7 @@ Pixel.Object.prototype.createCache = function() {
 	this.cache.setSize(this.getWidth() * window.devicePixelRatio, this.getHeight() * window.devicePixelRatio);
 }
 
+
 //-------------------------------------------------------
 Pixel.Object.prototype.updateCache = function() {
 	if(!this.isCaching) {
@@ -433,8 +484,9 @@ Pixel.Object.prototype.updateCache = function() {
 	}
 	
 	this.doCaching();
+	
+	return this;
 }
-
 
 
 //-------------------------------------------------------
@@ -454,6 +506,9 @@ Pixel.Object.prototype.doCaching = function() {
 	this.cache.popMatrix();
 }
 
+
+
+
 //-------------------------------------------------------
 //! Events
 //-------------------------------------------------------
@@ -470,21 +525,28 @@ Pixel.Object.prototype.getLocalPosition = function(globalPosition) {
 	return new Pixel.Point(localPosition[0], localPosition[1], 0);
 }
 
+
 //-------------------------------------------------------
 Pixel.Object.prototype.addEvent = function(event, responder, data) {
 	Pixel.EventCenter.addListener(event, this, responder, data);
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.Object.prototype.removeEvents = function(event) {
 	Pixel.EventCenter.removeListener(this, event);
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.Object.prototype.removeAllEvents = function() {
 	Pixel.EventCenter.removeAllListeners(this);
+	
+	return this;
 }
 
 

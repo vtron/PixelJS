@@ -42,7 +42,10 @@ Pixel.TextField.prototype = Object.create(Pixel.Shape2D.prototype);
 //-------------------------------------------------------
 Pixel.TextField.prototype.setUseTextBounds = function(useTextBounds) {
 	this.useTextBounds = useTextBounds;
+	
+	return this;
 }
+
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.getUseTextBounds = function(useTextBounds) {
@@ -59,6 +62,7 @@ Pixel.TextField.prototype.getWidth = function() {
 	}
 }
 
+
 //-------------------------------------------------------
 Pixel.TextField.prototype.getHeight = function() {
 	if(this.useTextBounds) {
@@ -68,6 +72,7 @@ Pixel.TextField.prototype.getHeight = function() {
 	}
 }
 
+
 //-------------------------------------------------------
 Pixel.TextField.prototype.getBounds = function() {
 	this.calculateOffset();
@@ -76,9 +81,10 @@ Pixel.TextField.prototype.getBounds = function() {
 }
 
 
+
+
 //-------------------------------------------------------
 //!Text Properties
-
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.setFont = function(font) {
@@ -87,24 +93,32 @@ Pixel.TextField.prototype.setFont = function(font) {
 	} else {
 		Pixel.log("Not a valid Pixel font object.");
 	}
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.setTextColor = function(r,g,b,a) {
 	this.textColor.set(r,g,b,a);
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.setTextSize = function(size) {
 	this.textSize = size;
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.setTextAlignment = function(textAlignment) {
 	this.textAlignment = textAlignment;
+	
+	return this;
 }
 
 
@@ -117,6 +131,8 @@ Pixel.TextField.prototype.getTextAlignment = function() {
 //-------------------------------------------------------
 Pixel.TextField.prototype.setLeading = function(leading) {
 	this.leading = leading;
+	
+	return this;
 }
 
 
@@ -129,6 +145,8 @@ Pixel.TextField.prototype.getLeading = function() {
 //-------------------------------------------------------
 Pixel.TextField.prototype.setHideOverflow = function(hideOverflow) {
 	this.hideOverflow = hideOverflow;
+	
+	return this;
 }
 
 
@@ -141,6 +159,8 @@ Pixel.TextField.prototype.getText = function(text) {
 //-------------------------------------------------------
 Pixel.TextField.prototype.setText = function(text) {
 	this.text = text.toString();
+	
+	return this;
 }
 
 
@@ -210,6 +230,8 @@ Pixel.TextField.prototype.doLayout = function() {
 	
 	//Set the final width & height of the text (no leading)
 	this.calculateTextBounds();
+	
+	return this;
 }
 
 
@@ -249,6 +271,7 @@ Pixel.TextField.prototype.newLine = function() {
 		metrics: null
 	}
 }
+
 
 //-------------------------------------------------------
 //Calculate the width of the text box based on the widest line

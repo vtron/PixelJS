@@ -31,37 +31,55 @@ Pixel.Shape2D.prototype.addChild = function(child) {
 	Pixel.log("Error: Children cannot be added to a shape object");
 }
 
+
+
+
+
 //-------------------------------------------------------
 //! Fill
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.enableFill = function() {
 	this.fillEnabled = true;
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.disableFill = function() {
 	this.fillEnabled = false;
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.setFillColor = function(r,g,b,a) {
 	this.fillColor.set(r,g,b,a);
+	
+	return this;
 }
+
+
+
+
 
 //-------------------------------------------------------
 //! Stroke
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.enableStroke = function() {
 	this.strokeEnabled = true;
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.disableStroke = function() {
 	this.strokeEnabled = false;
+	
+	return this;
 }
 
 
@@ -69,13 +87,20 @@ Pixel.Shape2D.prototype.disableStroke = function() {
 Pixel.Shape2D.prototype.setStrokeSize = function(size) {
 	this.strokeSize = size;
 	this.strokeEnabled = true;
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.setStrokeColor = function(r,g,b,a) {
 	this.strokeColor.set(r,g,b,a);
+	
+	return this;
 }
+
+
+
 
 
 //-------------------------------------------------------
@@ -88,6 +113,8 @@ Pixel.Shape2D.prototype.getWidth = function() {
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.setWidth = function(width) {
 	this.width = width;
+	
+	return this;
 }
 
 
@@ -100,6 +127,8 @@ Pixel.Shape2D.prototype.getHeight = function() {
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.setHeight = function(height) {
 	this.height = height;
+	
+	return this;
 }
 
 
@@ -113,7 +142,13 @@ Pixel.Shape2D.prototype.getSize = function() {
 Pixel.Shape2D.prototype.setSize = function(width, height) {
 	this.setWidth(width);
 	this.setHeight(height);
+	
+	return this;
 }
+
+
+
+
 
 //-------------------------------------------------------
 //! Bounds

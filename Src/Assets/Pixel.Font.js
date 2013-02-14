@@ -16,10 +16,14 @@ Pixel.Font = function(family) {
 	}
 }
 
+
 //-------------------------------------------------------
 Pixel.Font.prototype.setFamily = function(family) {
 	this.fontFamily = fontName;
+	
+	return this;
 }
+
 
 //-------------------------------------------------------
 Pixel.Font.prototype.getFamily = function(family) {
@@ -30,6 +34,8 @@ Pixel.Font.prototype.getFamily = function(family) {
 //-------------------------------------------------------
 Pixel.Font.prototype.setBaseline = function(baseline) {
 	this.baseline = baseline;
+	
+	return this;
 }
 
 
@@ -38,6 +44,7 @@ Pixel.Font.prototype.getTextWidth = function(text, size) {
 	Pixel.FontSizeCvs.setFont(this.fontFamily, size);
 	return Pixel.FontSizeCvs.getTextWidth(text);
 }
+
 
 //-------------------------------------------------------
 Pixel.Font.prototype.getTextHeight = function(text, size) {
@@ -73,6 +80,7 @@ Pixel.Font.prototype.getTextHeight = function(text, size) {
 	
 	return result;
 }
+
 
 //-------------------------------------------------------
 Pixel.Font.prototype.getTextMetrics = function(text, size) {
