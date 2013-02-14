@@ -1938,32 +1938,35 @@ Pixel.isMouseEvent = function(eventType) {
 	return false;
 }//-------------------------------------------------------
 //!Event Listener
-Pixel.EventListener = function() {
+
+
+//-------------------------------------------------------
+//!EVENT CENTER
+Pixel.EventCenter = {};
+Pixel.EventCenter.queue = {};
+Pixel.EventCenter.listeners = {};
+
+Pixel.EventCenter.Listener = function() {
 	this.object		= null;
 	this.responder	= null;
 	this.data		= {};
 }
 
 
-//-------------------------------------------------------
-//-------------------------------------------------------
-//!EVENT CENTER
-Pixel.EventCenter = {};
-Pixel.EventCenter.eventQueue = {};
-Pixel.EventCenter.eventListeners = {};
+
 
 //-------------------------------------------------------
 //!EVENT SUBSCRIPTIONS
 
 //-------------------------------------------------------
 Pixel.EventCenter.addListener = function(eventType, object, responder, data) {
-	var listeners = Pixel.EventCenter.eventListeners;
+	var listeners = Pixel.EventCenter.listeners;
 	
 	if(!(eventType in listeners)) {
 		listeners[eventType] = [];
 	}
 	
-	var thisListener		= new Pixel.EventListener();
+	var thisListener		= new Pixel.EventCenter.Listener();
 	thisListener.object		= object;
 	thisListener.responder 	= responder;
 	
@@ -1973,9 +1976,10 @@ Pixel.EventCenter.addListener = function(eventType, object, responder, data) {
 	listeners[eventType].push(thisListener);
 }
 
+
 //-------------------------------------------------------
 Pixel.EventCenter.removeListener = function(object, event) {
-	var listeners = Pixel.EventCenter.eventListeners;
+	var listeners = Pixel.EventCenter.listeners;
 	
 	if(event in listeners) {
 		for(var i=0; i<listeners[event].length; i++) {
@@ -1987,12 +1991,17 @@ Pixel.EventCenter.removeListener = function(object, event) {
 	}
 }
 
+
 //-------------------------------------------------------
 Pixel.EventCenter.removeAllListeners = function(object) {
-	for(var key in eventListeners) {
+	var listeners = Pixel.EventCenter.listeners;
+	
+	for(var key in listeners) {
 		removeListener(key, object);
 	}
 }
+
+
 
 //-------------------------------------------------------
 //!OBJECT SORTING
@@ -2001,27 +2010,30 @@ Pixel.EventCenter.sortListenersByDrawOrder = function(listeners) {
 	listeners.sort(function(a, b) {return a.object.drawOrder < b.object.drawOrder});
 }
 
+
+
+
 //-------------------------------------------------------
 //!EVENT DISPATCHING
 
 //-------------------------------------------------------
 Pixel.EventCenter.queueEvent = function(event, canvas) {
-	if(!(canvas in Pixel.EventCenter.eventQueue)) {
-		Pixel.EventCenter.eventQueue[canvas] = [];
+	if(!(canvas in Pixel.EventCenter.queue)) {
+		Pixel.EventCenter.queue[canvas] = [];
 	}
 	
-	Pixel.EventCenter.eventQueue[canvas].push(event);
+	Pixel.EventCenter.queue[canvas].push(event);
 }
 
 
 //-------------------------------------------------------
 Pixel.EventCenter.dispatchEvents = function(canvas) {
-	if(!(canvas in Pixel.EventCenter.eventQueue)) {
+	if(!(canvas in Pixel.EventCenter.queue)) {
 		return; //No events for this canvas ever sent,don't bother
 	}
 	
-	var queue		= Pixel.EventCenter.eventQueue[canvas];
-	var listeners	= Pixel.EventCenter.eventListeners;
+	var queue		= Pixel.EventCenter.queue[canvas];
+	var listeners	= Pixel.EventCenter.listeners;
 	
 	for(var i=0; i<queue.length; i++) {
 		var thisEvent = queue[i];
@@ -2050,8 +2062,10 @@ Pixel.EventCenter.dispatchEvents = function(canvas) {
 	}
 	
 	//Empty the queue
-	Pixel.EventCenter.eventQueue[canvas] = [];
+	Pixel.EventCenter.queue[canvas] = [];
 }
+
+
 
 
 //-------------------------------------------------------
@@ -2073,6 +2087,18 @@ Pixel.EventCenter.handleMouseEvent = function(event, object, responder) {
 	
 	responder.eventHandler(event);
 }
+
+
+
+
+//-------------------------------------------------------
+//!KEYBOARD EVENTS
+
+
+
+
+//-------------------------------------------------------
+//!TOUCH EVENTS
 
 
 //-------------------------------------------------------
@@ -2127,6 +2153,9 @@ Pixel.Canvas = function(renderer) {
 
 Pixel.Canvas.prototype = Object.create(Pixel.Object.prototype);
 
+
+
+
 //-------------------------------------------------------
 // !Size Info
 
@@ -2162,6 +2191,8 @@ Pixel.Canvas.prototype.enableNativeResolution = function() {
 }
 
 
+
+
 //-------------------------------------------------------
 // !Cursor
 //-------------------------------------------------------
@@ -2171,8 +2202,11 @@ Pixel.Canvas.prototype.setCursor = function(x,y) {
 };
 
 
+
+
 //-------------------------------------------------------
 // !Drawing
+
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setRenderer = function(element, rendererType) {
 	if(rendererType == Pixel.RENDERER_WEBGL) {
@@ -2190,20 +2224,25 @@ Pixel.Canvas.prototype.setRenderer = function(element, rendererType) {
 	this.renderer = new Pixel.Renderer2D(element);
 };
 
+
 //-------------------------------------------------------
 Pixel.Canvas.prototype.getRenderer = function() {
 	return this.renderer.type;
 };
+
 
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setBackgroundColor = function(r,g,b,a) {
 	this.renderer.setBackgroundColor(r,g,b,a);
 };
 
+
 //-------------------------------------------------------
 Pixel.Canvas.prototype.clear =  function(x,y,width,height) { 
 	this.renderer.clear(x,y,width,height); 
 };
+
+
 
 
 //-------------------------------------------------------
@@ -2234,6 +2273,7 @@ Pixel.Canvas.prototype.setStrokeColor = function(r,g,b,a) {
 	}
 };
 
+
 //-------------------------------------------------------
 Pixel.Canvas.prototype.noStroke = function() {
 	this.renderer.noStroke();
@@ -2249,6 +2289,7 @@ Pixel.Canvas.prototype.setStrokeSize = function(size) {
 	}
 };
 
+
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setLineCap = function(style) {
 	this.renderer.setLineCap(style);
@@ -2256,13 +2297,14 @@ Pixel.Canvas.prototype.setLineCap = function(style) {
 
 
 
+
 //-------------------------------------------------------
 // !IMAGES
+
 //-------------------------------------------------------
 Pixel.Canvas.prototype.drawImage = function(image, x, y, width, height) {
 	this.renderer.drawImage(image, x,y, width, height);
 };
-
 
 
 //-------------------------------------------------------
@@ -2290,7 +2332,6 @@ Pixel.Canvas.prototype.endShape = function(x,y) {
 Pixel.Canvas.prototype.drawLine = function(x1,y1,x2,y2) {
 	this.renderer.drawLine(x1,y1,x2,y2);
 };
-
 
 
 //-------------------------------------------------------
@@ -2330,6 +2371,8 @@ Pixel.Canvas.prototype.drawCircle = function(x,y,size) {
 };
 
 
+
+
 //-------------------------------------------------------
 //!TRANSFORMATIONS
 //-------------------------------------------------------
@@ -2350,7 +2393,6 @@ Pixel.Canvas.prototype.translate = function(x,y) {
 };
 
 
-
 //-------------------------------------------------------
 Pixel.Canvas.prototype.scale = function(x,y) {
 	this.renderer.scale(x,y);
@@ -2368,15 +2410,20 @@ Pixel.Canvas.prototype.transform = function(m11, m12, m21, m22, dx, dy) {
 	this.renderer.transform(m11, m12, m21, m22, dx, dy);
 };
 
+
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setTransform = function(m11, m12, m21, m22, dx, dy) {
 	this.renderer.setTransform(m11, m12, m21, m22, dx, dy);
 };
 
+
 //-------------------------------------------------------
 Pixel.Canvas.prototype.getTransformation = function() {
 	return this.renderer.getTransformation();
 }
+
+
+
 
 //-------------------------------------------------------
 //!TEXT
@@ -2480,10 +2527,7 @@ Pixel.Canvas.prototype.mouseUpListener = function(e) {
 	
 	var upInsideEvent = new Pixel.MouseEvent(Pixel.MOUSE_UP_INSIDE_EVENT, position);
 	Pixel.EventCenter.queueEvent(upInsideEvent, this);
-};
-
-
- //-------------------------------------------------------
+}; //-------------------------------------------------------
 //!Pixel.Renderer2D.js
 //2D Rendering
 
@@ -2504,30 +2548,44 @@ Pixel.Renderer2D = function(canvas) {
 	this.rotationAxisVec	= vec3.create();
 };
 
+
+
+
+//-------------------------------------------------------
+Pixel.Renderer2D.prototype.setSize = function(width, height) {};
+
+
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setBackgroundColor = function(r,g,b,a) {
 	this.bgColor.set(r,g,b,a);
 };
 
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.clear = function(x,y,width,height) {
-	this.setTransformation();
-	
-	//Store cur fill
-	var curFill		= this.ctx.fillStyle;
-	
-	//Draw rect over BG for 2D Canvas
-	this.ctx.fillStyle =  this.bgColor.toRGBAString();
-	this.ctx.fillRect(x,y,width,height);
-	
-	//Reset cur fill
-	this.ctx.fillStyle = curFill;
-	
-/* 	this.ctx.clearRect(x,y,width,height); */
-};
 
 //-------------------------------------------------------
-Pixel.Renderer2D.prototype.setSize = function(width, height) {};
+Pixel.Renderer2D.prototype.clear = function(x,y,width,height) {
+	if(this.bgColor.a > 0.0) {
+		this.setTransformation();
+		
+		//Store cur fill
+		var curFill		= this.ctx.fillStyle;
+		
+		//Draw rect over BG for 2D Canvas
+		this.ctx.fillStyle =  this.bgColor.toRGBAString();
+		this.ctx.fillRect(x,y,width,height);
+		
+		//Reset cur fill
+		this.ctx.fillStyle = curFill;
+	} else {
+		//Clear the background to transparent
+		this.ctx.clearRect(x,y,width,height);
+	}
+};
+
+
+
+
+//-------------------------------------------------------
+//!STYLES
 
 
 //-------------------------------------------------------
@@ -2536,10 +2594,12 @@ Pixel.Renderer2D.prototype.setFillColor = function(r,g,b,a) {
 	this.bFill = true;
 };
 
+
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.noFill = function() {
 	this.bFill = false;
 };
+
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setStrokeColor = function(r,g,b,a) {
@@ -2559,10 +2619,12 @@ Pixel.Renderer2D.prototype.setStrokeSize = function(size) {
 	this.ctx.lineWidth = size;
 };
 
+
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setLineCap = function(style) {
 	this.ctx.lineCap = style;
 };
+
 	
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.shadow = function(size, xOffset, yOffset) {
@@ -2586,11 +2648,15 @@ Pixel.Renderer2D.prototype.noShadow = function() {
 };
 
 
+
+
 //-------------------------------------------------------
 //!IMAGE DRAWING
 Pixel.Renderer2D.prototype.drawImage = function(image, x, y, w, h) {
 	this.ctx.drawImage(image, x, y, w, h);
 };
+
+
 
 
 //-------------------------------------------------------
@@ -2661,7 +2727,7 @@ Pixel.Renderer2D.prototype.drawLine = function(x1,y1,x2,y2) {
 
 
 //-------------------------------------------------------
-//!Dashed line code from http://davidowens.wordpress.com/2010/09/07/html-5-canvas-and-dashed-lines/
+//Dashed line code from http://davidowens.wordpress.com/2010/09/07/html-5-canvas-and-dashed-lines/
 Pixel.Renderer2D.prototype.dashedLine = function (fromX, fromY, toX, toY, pattern) {
 // Our growth rate for our line can be one of the following:
   //   (+,+), (+,-), (-,+), (-,-)
@@ -2764,7 +2830,7 @@ Pixel.Renderer2D.prototype.drawRoundedRect = function(x,y,width,height, radius) 
 
 
 //-------------------------------------------------------
-//!From http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+//From http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
 Pixel.Renderer2D.prototype.drawEllipse = function(x,y,width,height) {
 	var kappa = .5522848;
       ox = (width / 2) * kappa, 	// control point offset horizontal
@@ -2795,6 +2861,8 @@ Pixel.Renderer2D.prototype.drawCircle = function(x,y,size) {
 	if(this.bStroke) this.ctx.stroke();
   	if(this.bFill) this.ctx.fill();
 };
+
+
 
 
 //-------------------------------------------------------
@@ -2850,21 +2918,25 @@ Pixel.Renderer2D.prototype.transform = function(m11, m12, m21, m22, dx, dy) {
 	this.ctx.transform(m11, m12, m21, m22, dx, dy);
 };
 
+
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setTransformation = function() {
 	this.ctx.setTransform(this.transformMatrix[0], this.transformMatrix[1], this.transformMatrix[4], this.transformMatrix[5], this.transformMatrix[12], this.transformMatrix[13]);
-}
+};
+
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.getTransformation = function() {
 	return this.transformMatrix;
-}
+};
 
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setTransform = function(m11, m12, m21, m22, dx, dy) {
 	this.ctx.setTransform(m11, m12, m21, m22, dx, dy);
 };
+
+
 
 
 //-------------------------------------------------------
@@ -2961,18 +3033,6 @@ Pixel.App = function(renderer) {
 	//Mobile
 	var self = this;
 	this.bIsMobileApp = false;
-/*
-	if(Pixel.isTouchDevice()) {
-		this.canvas.addEventListener('touchstart',		function(e) { self.touchStartListener.call(self, e) },	false);
-		this.canvas.addEventListener("touchmove",		function(e) { self.touchMovedListener.call(self, e) },	false);
-		this.canvas.addEventListener("touchend",		function(e) { self.touchEndListener.call(self, e) },	false);
-	} else {	
-		this.canvas.addEventListener("mousedown",		function(e) { self.mouseDownListener.call(self, e) },	false);
-		this.canvas.addEventListener("mousemove",		function(e) { self.mouseMovedListener.call(self, e) },	false);
-		this.canvas.addEventListener("mouseup",			function(e) { self.mouseUpListener.call(self, e) },		false);
-	}
-*/
-
 };
 
 Pixel.App.prototype = Object.create(Pixel.Canvas.prototype);
@@ -2984,10 +3044,12 @@ Pixel.App.prototype.start = function() {
 	this.run();
 };
 
+
 //-------------------------------------------------------
 Pixel.App.prototype.stop = function() {
 	this.bRunning = false;
 };
+
 
 //-------------------------------------------------------
 Pixel.App.prototype.isRunning = function() {
@@ -3021,8 +3083,10 @@ Pixel.App.prototype.run = function() {
 };
 
 
+
+
 //-------------------------------------------------------
-//FPS
+//!FPS
 //-------------------------------------------------------
 Pixel.App.prototype.setFPS = function(fps) {
 	this.fps = fps;
@@ -3065,12 +3129,21 @@ Pixel.App.prototype.updateFPS = function() {
 };
 
 
+
+
 //-------------------------------------------------------
-//Time
+//!Time
 Pixel.App.prototype.getElapsedTime = function() {
 	var curTime = new Date().getTime();
 	return curTime - this.startTime;
 };
+
+
+
+
+
+
+
 
 /*
 //-------------------------------------------------------
@@ -3162,63 +3235,5 @@ Pixel.App.prototype.touchEndListener = function(e) {
 			}
 		}
 	}
-};
-
-
-//-------------------------------------------------------
-//Mouse Events
-//Mouse Events (touch start, touchemoved, touchend)
-//Mouse Events have an x and y position
-
-//-------------------------------------------------------
-Pixel.App.prototype.mouseDownListener = function(e) {
-	this.bMouseDown = true;
-	
-	//Get Position of Event
-	var position = Pixel.getRelativeMouseCoords(e, this.canvas);
-		
-	if(this.bIsMobileApp) {
-		this.dispatch("touchstart", {id:0, x:position.x, y: position.y});
-	} else {
-		this.dispatch("mousedown", position);
-	}
-};
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.mouseMovedListener = function(e) {
-	if(this.bMouseDown) {
-		this.mouseDraggedListener(e);
-	}
-	
-	//Get Position of Event
-	var position = Pixel.getRelativeMouseCoords(e, this.canvas);
-			
-	if(this.bIsMobileApp) {
-		this.dispatch("touchmoved", {id:0, x:position.x, y: position.y});
-	} else {
-		this.dispatch("mousemoved", position);
-	}
-};
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.mouseUpListener = function(e) {
-	this.bMouseDown = false;
-	
-	//Get Position of Event
-	var position = Pixel.getRelativeMouseCoords(e, this.canvas);
-		
-	if(this.bIsMobileApp) {
-		this.dispatch("touchend", {id:0, x:position.x, y: position.y});
-	} else {
-		this.dispatch("mouseup", position);
-	}
-};
-
-
-//-------------------------------------------------------
-Pixel.App.prototype.mouseDraggedListener = function(e) {
-	
 };
 */

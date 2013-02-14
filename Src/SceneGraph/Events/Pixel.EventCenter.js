@@ -1,31 +1,34 @@
 //-------------------------------------------------------
 //!Event Listener
-Pixel.EventListener = function() {
+
+
+//-------------------------------------------------------
+//!EVENT CENTER
+Pixel.EventCenter = {};
+Pixel.EventCenter.queue = {};
+Pixel.EventCenter.listeners = {};
+
+Pixel.EventCenter.Listener = function() {
 	this.object		= null;
 	this.responder	= null;
 	this.data		= {};
 }
 
 
-//-------------------------------------------------------
-//-------------------------------------------------------
-//!EVENT CENTER
-Pixel.EventCenter = {};
-Pixel.EventCenter.eventQueue = {};
-Pixel.EventCenter.eventListeners = {};
+
 
 //-------------------------------------------------------
 //!EVENT SUBSCRIPTIONS
 
 //-------------------------------------------------------
 Pixel.EventCenter.addListener = function(eventType, object, responder, data) {
-	var listeners = Pixel.EventCenter.eventListeners;
+	var listeners = Pixel.EventCenter.listeners;
 	
 	if(!(eventType in listeners)) {
 		listeners[eventType] = [];
 	}
 	
-	var thisListener		= new Pixel.EventListener();
+	var thisListener		= new Pixel.EventCenter.Listener();
 	thisListener.object		= object;
 	thisListener.responder 	= responder;
 	
@@ -35,9 +38,10 @@ Pixel.EventCenter.addListener = function(eventType, object, responder, data) {
 	listeners[eventType].push(thisListener);
 }
 
+
 //-------------------------------------------------------
 Pixel.EventCenter.removeListener = function(object, event) {
-	var listeners = Pixel.EventCenter.eventListeners;
+	var listeners = Pixel.EventCenter.listeners;
 	
 	if(event in listeners) {
 		for(var i=0; i<listeners[event].length; i++) {
@@ -49,12 +53,17 @@ Pixel.EventCenter.removeListener = function(object, event) {
 	}
 }
 
+
 //-------------------------------------------------------
 Pixel.EventCenter.removeAllListeners = function(object) {
-	for(var key in eventListeners) {
+	var listeners = Pixel.EventCenter.listeners;
+	
+	for(var key in listeners) {
 		removeListener(key, object);
 	}
 }
+
+
 
 //-------------------------------------------------------
 //!OBJECT SORTING
@@ -63,27 +72,30 @@ Pixel.EventCenter.sortListenersByDrawOrder = function(listeners) {
 	listeners.sort(function(a, b) {return a.object.drawOrder < b.object.drawOrder});
 }
 
+
+
+
 //-------------------------------------------------------
 //!EVENT DISPATCHING
 
 //-------------------------------------------------------
 Pixel.EventCenter.queueEvent = function(event, canvas) {
-	if(!(canvas in Pixel.EventCenter.eventQueue)) {
-		Pixel.EventCenter.eventQueue[canvas] = [];
+	if(!(canvas in Pixel.EventCenter.queue)) {
+		Pixel.EventCenter.queue[canvas] = [];
 	}
 	
-	Pixel.EventCenter.eventQueue[canvas].push(event);
+	Pixel.EventCenter.queue[canvas].push(event);
 }
 
 
 //-------------------------------------------------------
 Pixel.EventCenter.dispatchEvents = function(canvas) {
-	if(!(canvas in Pixel.EventCenter.eventQueue)) {
+	if(!(canvas in Pixel.EventCenter.queue)) {
 		return; //No events for this canvas ever sent,don't bother
 	}
 	
-	var queue		= Pixel.EventCenter.eventQueue[canvas];
-	var listeners	= Pixel.EventCenter.eventListeners;
+	var queue		= Pixel.EventCenter.queue[canvas];
+	var listeners	= Pixel.EventCenter.listeners;
 	
 	for(var i=0; i<queue.length; i++) {
 		var thisEvent = queue[i];
@@ -112,8 +124,10 @@ Pixel.EventCenter.dispatchEvents = function(canvas) {
 	}
 	
 	//Empty the queue
-	Pixel.EventCenter.eventQueue[canvas] = [];
+	Pixel.EventCenter.queue[canvas] = [];
 }
+
+
 
 
 //-------------------------------------------------------
@@ -135,5 +149,17 @@ Pixel.EventCenter.handleMouseEvent = function(event, object, responder) {
 	
 	responder.eventHandler(event);
 }
+
+
+
+
+//-------------------------------------------------------
+//!KEYBOARD EVENTS
+
+
+
+
+//-------------------------------------------------------
+//!TOUCH EVENTS
 
 

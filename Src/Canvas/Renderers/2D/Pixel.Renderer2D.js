@@ -19,30 +19,44 @@ Pixel.Renderer2D = function(canvas) {
 	this.rotationAxisVec	= vec3.create();
 };
 
+
+
+
+//-------------------------------------------------------
+Pixel.Renderer2D.prototype.setSize = function(width, height) {};
+
+
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setBackgroundColor = function(r,g,b,a) {
 	this.bgColor.set(r,g,b,a);
 };
 
-//-------------------------------------------------------
-Pixel.Renderer2D.prototype.clear = function(x,y,width,height) {
-	this.setTransformation();
-	
-	//Store cur fill
-	var curFill		= this.ctx.fillStyle;
-	
-	//Draw rect over BG for 2D Canvas
-	this.ctx.fillStyle =  this.bgColor.toRGBAString();
-	this.ctx.fillRect(x,y,width,height);
-	
-	//Reset cur fill
-	this.ctx.fillStyle = curFill;
-	
-/* 	this.ctx.clearRect(x,y,width,height); */
-};
 
 //-------------------------------------------------------
-Pixel.Renderer2D.prototype.setSize = function(width, height) {};
+Pixel.Renderer2D.prototype.clear = function(x,y,width,height) {
+	if(this.bgColor.a > 0.0) {
+		this.setTransformation();
+		
+		//Store cur fill
+		var curFill		= this.ctx.fillStyle;
+		
+		//Draw rect over BG for 2D Canvas
+		this.ctx.fillStyle =  this.bgColor.toRGBAString();
+		this.ctx.fillRect(x,y,width,height);
+		
+		//Reset cur fill
+		this.ctx.fillStyle = curFill;
+	} else {
+		//Clear the background to transparent
+		this.ctx.clearRect(x,y,width,height);
+	}
+};
+
+
+
+
+//-------------------------------------------------------
+//!STYLES
 
 
 //-------------------------------------------------------
@@ -51,10 +65,12 @@ Pixel.Renderer2D.prototype.setFillColor = function(r,g,b,a) {
 	this.bFill = true;
 };
 
+
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.noFill = function() {
 	this.bFill = false;
 };
+
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setStrokeColor = function(r,g,b,a) {
@@ -74,10 +90,12 @@ Pixel.Renderer2D.prototype.setStrokeSize = function(size) {
 	this.ctx.lineWidth = size;
 };
 
+
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setLineCap = function(style) {
 	this.ctx.lineCap = style;
 };
+
 	
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.shadow = function(size, xOffset, yOffset) {
@@ -101,11 +119,15 @@ Pixel.Renderer2D.prototype.noShadow = function() {
 };
 
 
+
+
 //-------------------------------------------------------
 //!IMAGE DRAWING
 Pixel.Renderer2D.prototype.drawImage = function(image, x, y, w, h) {
 	this.ctx.drawImage(image, x, y, w, h);
 };
+
+
 
 
 //-------------------------------------------------------
@@ -176,7 +198,7 @@ Pixel.Renderer2D.prototype.drawLine = function(x1,y1,x2,y2) {
 
 
 //-------------------------------------------------------
-//!Dashed line code from http://davidowens.wordpress.com/2010/09/07/html-5-canvas-and-dashed-lines/
+//Dashed line code from http://davidowens.wordpress.com/2010/09/07/html-5-canvas-and-dashed-lines/
 Pixel.Renderer2D.prototype.dashedLine = function (fromX, fromY, toX, toY, pattern) {
 // Our growth rate for our line can be one of the following:
   //   (+,+), (+,-), (-,+), (-,-)
@@ -279,7 +301,7 @@ Pixel.Renderer2D.prototype.drawRoundedRect = function(x,y,width,height, radius) 
 
 
 //-------------------------------------------------------
-//!From http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
+//From http://stackoverflow.com/questions/2172798/how-to-draw-an-oval-in-html5-canvas
 Pixel.Renderer2D.prototype.drawEllipse = function(x,y,width,height) {
 	var kappa = .5522848;
       ox = (width / 2) * kappa, 	// control point offset horizontal
@@ -310,6 +332,8 @@ Pixel.Renderer2D.prototype.drawCircle = function(x,y,size) {
 	if(this.bStroke) this.ctx.stroke();
   	if(this.bFill) this.ctx.fill();
 };
+
+
 
 
 //-------------------------------------------------------
@@ -365,21 +389,25 @@ Pixel.Renderer2D.prototype.transform = function(m11, m12, m21, m22, dx, dy) {
 	this.ctx.transform(m11, m12, m21, m22, dx, dy);
 };
 
+
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setTransformation = function() {
 	this.ctx.setTransform(this.transformMatrix[0], this.transformMatrix[1], this.transformMatrix[4], this.transformMatrix[5], this.transformMatrix[12], this.transformMatrix[13]);
-}
+};
+
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.getTransformation = function() {
 	return this.transformMatrix;
-}
+};
 
 
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setTransform = function(m11, m12, m21, m22, dx, dy) {
 	this.ctx.setTransform(m11, m12, m21, m22, dx, dy);
 };
+
+
 
 
 //-------------------------------------------------------

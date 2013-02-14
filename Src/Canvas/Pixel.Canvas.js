@@ -50,6 +50,9 @@ Pixel.Canvas = function(renderer) {
 
 Pixel.Canvas.prototype = Object.create(Pixel.Object.prototype);
 
+
+
+
 //-------------------------------------------------------
 // !Size Info
 
@@ -85,6 +88,8 @@ Pixel.Canvas.prototype.enableNativeResolution = function() {
 }
 
 
+
+
 //-------------------------------------------------------
 // !Cursor
 //-------------------------------------------------------
@@ -94,8 +99,11 @@ Pixel.Canvas.prototype.setCursor = function(x,y) {
 };
 
 
+
+
 //-------------------------------------------------------
 // !Drawing
+
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setRenderer = function(element, rendererType) {
 	if(rendererType == Pixel.RENDERER_WEBGL) {
@@ -113,20 +121,25 @@ Pixel.Canvas.prototype.setRenderer = function(element, rendererType) {
 	this.renderer = new Pixel.Renderer2D(element);
 };
 
+
 //-------------------------------------------------------
 Pixel.Canvas.prototype.getRenderer = function() {
 	return this.renderer.type;
 };
+
 
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setBackgroundColor = function(r,g,b,a) {
 	this.renderer.setBackgroundColor(r,g,b,a);
 };
 
+
 //-------------------------------------------------------
 Pixel.Canvas.prototype.clear =  function(x,y,width,height) { 
 	this.renderer.clear(x,y,width,height); 
 };
+
+
 
 
 //-------------------------------------------------------
@@ -157,6 +170,7 @@ Pixel.Canvas.prototype.setStrokeColor = function(r,g,b,a) {
 	}
 };
 
+
 //-------------------------------------------------------
 Pixel.Canvas.prototype.noStroke = function() {
 	this.renderer.noStroke();
@@ -172,6 +186,7 @@ Pixel.Canvas.prototype.setStrokeSize = function(size) {
 	}
 };
 
+
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setLineCap = function(style) {
 	this.renderer.setLineCap(style);
@@ -179,13 +194,14 @@ Pixel.Canvas.prototype.setLineCap = function(style) {
 
 
 
+
 //-------------------------------------------------------
 // !IMAGES
+
 //-------------------------------------------------------
 Pixel.Canvas.prototype.drawImage = function(image, x, y, width, height) {
 	this.renderer.drawImage(image, x,y, width, height);
 };
-
 
 
 //-------------------------------------------------------
@@ -213,7 +229,6 @@ Pixel.Canvas.prototype.endShape = function(x,y) {
 Pixel.Canvas.prototype.drawLine = function(x1,y1,x2,y2) {
 	this.renderer.drawLine(x1,y1,x2,y2);
 };
-
 
 
 //-------------------------------------------------------
@@ -253,6 +268,8 @@ Pixel.Canvas.prototype.drawCircle = function(x,y,size) {
 };
 
 
+
+
 //-------------------------------------------------------
 //!TRANSFORMATIONS
 //-------------------------------------------------------
@@ -273,7 +290,6 @@ Pixel.Canvas.prototype.translate = function(x,y) {
 };
 
 
-
 //-------------------------------------------------------
 Pixel.Canvas.prototype.scale = function(x,y) {
 	this.renderer.scale(x,y);
@@ -291,15 +307,20 @@ Pixel.Canvas.prototype.transform = function(m11, m12, m21, m22, dx, dy) {
 	this.renderer.transform(m11, m12, m21, m22, dx, dy);
 };
 
+
 //-------------------------------------------------------
 Pixel.Canvas.prototype.setTransform = function(m11, m12, m21, m22, dx, dy) {
 	this.renderer.setTransform(m11, m12, m21, m22, dx, dy);
 };
 
+
 //-------------------------------------------------------
 Pixel.Canvas.prototype.getTransformation = function() {
 	return this.renderer.getTransformation();
 }
+
+
+
 
 //-------------------------------------------------------
 //!TEXT
@@ -404,5 +425,3 @@ Pixel.Canvas.prototype.mouseUpListener = function(e) {
 	var upInsideEvent = new Pixel.MouseEvent(Pixel.MOUSE_UP_INSIDE_EVENT, position);
 	Pixel.EventCenter.queueEvent(upInsideEvent, this);
 };
-
-
