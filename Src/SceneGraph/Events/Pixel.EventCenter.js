@@ -115,6 +115,10 @@ Pixel.EventCenter.dispatchEvents = function(canvas) {
 						if(Pixel.isMouseEvent(thisEvent.type)) {
 							this.handleMouseEvent(thisEvent, listeningObject, responder);
 						}
+						
+						else if(Pixel.isKeyEvent(thisEvent.type)) {
+							responder.eventHandler(thisEvent);
+						}
 					}
 				} else {
 					break;

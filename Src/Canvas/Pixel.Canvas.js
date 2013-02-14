@@ -44,6 +44,10 @@ Pixel.Canvas = function(renderer) {
 	this.element.addEventListener("mousemove",		function(e) { self.mouseMovedListener.call(self, e) },	false);
 	this.element.addEventListener("mouseup",		function(e) { self.mouseUpListener.call(self, e) },		false);
 	
+	document.addEventListener("keydown",			function(e) { self.keyDownListener.call(self, e) },		false);
+	document.addEventListener("keypress",			function(e) { self.keyPressListener.call(self, e) },	false);
+	document.addEventListener("keyup",				function(e) { self.keyUpListener.call(self, e) },		false);
+	
 	this.drawOrderStack = 0;
 };
 
@@ -385,7 +389,7 @@ Pixel.Canvas.prototype.resetDrawOrder = function() {
 
 
 //-------------------------------------------------------
-//!EVENTS
+//!MOUSE EVENTS
 
 //-------------------------------------------------------
 Pixel.Canvas.prototype.mouseDownListener = function(e) {
@@ -425,3 +429,29 @@ Pixel.Canvas.prototype.mouseUpListener = function(e) {
 	var upInsideEvent = new Pixel.MouseEvent(Pixel.MOUSE_UP_INSIDE_EVENT, position);
 	Pixel.EventCenter.queueEvent(upInsideEvent, this);
 };
+
+
+
+
+//-------------------------------------------------------
+//!KEY EVENTS
+
+//-------------------------------------------------------
+Pixel.Canvas.prototype.keyDownListener = function(e) {
+	var event = new Pixel.KeyEvent(Pixel.KEY_DOWN_EVENT, (e.which != undefined) ? e.which : e.charCode, e.keyCode);
+	Pixel.EventCenter.queueEvent(event, this);
+}
+
+
+//-------------------------------------------------------
+Pixel.Canvas.prototype.keyPressListener = function(e) {
+	var event = new Pixel.KeyEvent(Pixel.KEY_PRESS_EVENT, (e.which != undefined) ? e.which : e.charCode, e.keyCode);
+	Pixel.EventCenter.queueEvent(event, this);
+}
+
+
+//-------------------------------------------------------
+Pixel.Canvas.prototype.keyUpListener = function(e) {
+	var event = new Pixel.KeyEvent(Pixel.KEY_UP_EVENT, (e.which != undefined) ? e.which : e.charCode, e.keyCode);
+	Pixel.EventCenter.queueEvent(event, this);
+}

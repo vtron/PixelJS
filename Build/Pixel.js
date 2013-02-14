@@ -76,6 +76,10 @@ Pixel.MOUSE_MOVE_EVENT					= "PIXEL_MOUSE_MOVE_EVENT";
 Pixel.MOUSE_UP_EVENT					= "PIXEL_MOUSE_UP_EVENT";
 Pixel.MOUSE_UP_INSIDE_EVENT				= "PIXEL_MOUSE_UP_INSIDE_EVENT";
 
+Pixel.KEY_DOWN_EVENT					= "PIXEL_KEY_DOWN_EVENT";
+Pixel.KEY_PRESS_EVENT					= "PIXEL_KEY_PRESS_EVENT";
+Pixel.KEY_UP_EVENT						= "PIXEL_KEY_UP_EVENT";
+
 //Tween Types
 /*
 Pixel.NO_EASE		= TWEEN.Easing.Linear.EaseNone;
@@ -1911,6 +1915,9 @@ Pixel.Event.prototype.stopPropogation = function() {
 	this.propogate = false;
 }
 
+
+
+
 //----------------------------------------
 //!MOUSE EVENT
 Pixel.MouseEvent = function(type, position) {
@@ -1924,7 +1931,6 @@ Pixel.MouseEvent = function(type, position) {
 Pixel.MouseEvent.prototype = Object.create(Pixel.Event.prototype);
 
 
-
 Pixel.isMouseEvent = function(eventType) {
 	if(	eventType == Pixel.MOUSE_DOWN_EVENT			||
 		eventType == Pixel.MOUSE_DOWN_INSIDE_EVENT	||
@@ -1936,7 +1942,33 @@ Pixel.isMouseEvent = function(eventType) {
 	};
 		
 	return false;
-}//-------------------------------------------------------
+}
+
+
+
+
+//----------------------------------------
+//!KEY EVENT
+Pixel.KeyEvent = function(type, charCode, keyCode) {
+	Pixel.Event.call(this);
+	
+	this.type			= type;
+	this.keyCode		= keyCode;
+	this.charCode		= charCode;
+}
+
+
+Pixel.isKeyEvent = function(eventType) {
+	if(	eventType == Pixel.KEY_DOWN_EVENT			||
+		eventType == Pixel.KEY_PRESS_EVENT			||
+		eventType == Pixel.KEY_UP_EVENT)
+	{
+		return true;
+	};
+	
+	return false;
+}
+//-------------------------------------------------------
 //!Event Listener
 
 
@@ -2053,6 +2085,10 @@ Pixel.EventCenter.dispatchEvents = function(canvas) {
 						if(Pixel.isMouseEvent(thisEvent.type)) {
 							this.handleMouseEvent(thisEvent, listeningObject, responder);
 						}
+						
+						else if(Pixel.isKeyEvent(thisEvent.type)) {
+							responder.eventHandler(thisEvent);
+						}
 					}
 				} else {
 					break;
@@ -2146,6 +2182,10 @@ Pixel.Canvas = function(renderer) {
 	this.element.addEventListener("mousedown",		function(e) { self.mouseDownListener.call(self, e) },	false);
 	this.element.addEventListener("mousemove",		function(e) { self.mouseMovedListener.call(self, e) },	false);
 	this.element.addEventListener("mouseup",		function(e) { self.mouseUpListener.call(self, e) },		false);
+	
+	document.addEventListener("keydown",			function(e) { self.keyDownListener.call(self, e) },		false);
+	document.addEventListener("keypress",			function(e) { self.keyPressListener.call(self, e) },	false);
+	document.addEventListener("keyup",				function(e) { self.keyUpListener.call(self, e) },		false);
 	
 	this.drawOrderStack = 0;
 };
@@ -2488,7 +2528,7 @@ Pixel.Canvas.prototype.resetDrawOrder = function() {
 
 
 //-------------------------------------------------------
-//!EVENTS
+//!MOUSE EVENTS
 
 //-------------------------------------------------------
 Pixel.Canvas.prototype.mouseDownListener = function(e) {
@@ -2527,7 +2567,33 @@ Pixel.Canvas.prototype.mouseUpListener = function(e) {
 	
 	var upInsideEvent = new Pixel.MouseEvent(Pixel.MOUSE_UP_INSIDE_EVENT, position);
 	Pixel.EventCenter.queueEvent(upInsideEvent, this);
-}; //-------------------------------------------------------
+};
+
+
+
+
+//-------------------------------------------------------
+//!KEY EVENTS
+
+//-------------------------------------------------------
+Pixel.Canvas.prototype.keyDownListener = function(e) {
+	var event = new Pixel.KeyEvent(Pixel.KEY_DOWN_EVENT, (e.which != undefined) ? e.which : e.charCode, e.keyCode);
+	Pixel.EventCenter.queueEvent(event, this);
+}
+
+
+//-------------------------------------------------------
+Pixel.Canvas.prototype.keyPressListener = function(e) {
+	var event = new Pixel.KeyEvent(Pixel.KEY_PRESS_EVENT, (e.which != undefined) ? e.which : e.charCode, e.keyCode);
+	Pixel.EventCenter.queueEvent(event, this);
+}
+
+
+//-------------------------------------------------------
+Pixel.Canvas.prototype.keyUpListener = function(e) {
+	var event = new Pixel.KeyEvent(Pixel.KEY_UP_EVENT, (e.which != undefined) ? e.which : e.charCode, e.keyCode);
+	Pixel.EventCenter.queueEvent(event, this);
+} //-------------------------------------------------------
 //!Pixel.Renderer2D.js
 //2D Rendering
 

@@ -11,9 +11,12 @@ $(document).ready(function() {
 	circle.position.set(App.getWidth()/2, App.getHeight()/2);
 	circle.rotation = Math.PI*0.65;
 	
+	
 	circle.addEvent(Pixel.MOUSE_DOWN_INSIDE_EVENT, circle);
 	circle.addEvent(Pixel.MOUSE_MOVE_EVENT, circle);
 	circle.addEvent(Pixel.MOUSE_UP_EVENT, circle);
+	
+	circle.addEvent(Pixel.KEY_DOWN_EVENT, circle);
 	
 	circle.bPressed = false;
 	circle.eventHandler = function(event) {
@@ -40,6 +43,9 @@ $(document).ready(function() {
 				this.bPressed = false;
 				this.fillColor.set(255,255,255);
 				break;
+				
+			case Pixel.KEY_DOWN_EVENT:
+				console.log(event.keyCode);
 		};
 	}
 		
