@@ -252,9 +252,11 @@ Pixel.Object.prototype.isVisible = function() {
 Pixel.Object.prototype.setTransformation = function() {
 	this.canvas.pushMatrix();
 	
-	this.canvas.translate(this.position.x + this.offset.x, this.position.y + this.offset.y, 0);
+	this.canvas.translate(this.position.x , this.position.y, 0);
 	this.canvas.rotate(this.rotation);
 	this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
+	
+	this.canvas.translate(this.offset.x , this.offset.y, 0);
 	
 	mat4.copy(this.matrix, this.canvas.getTransformation());
 }

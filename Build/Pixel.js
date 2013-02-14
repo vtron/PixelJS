@@ -74,6 +74,7 @@ Pixel.MOUSE_DOWN_EVENT					= "PIXEL_MOUSE_DOWN_EVENT";
 Pixel.MOUSE_DOWN_INSIDE_EVENT			= "PIXEL_MOUSE_DOWN_INSIDE_EVENT";
 Pixel.MOUSE_MOVE_EVENT					= "PIXEL_MOUSE_MOVE_EVENT";
 Pixel.MOUSE_UP_EVENT					= "PIXEL_MOUSE_UP_EVENT";
+Pixel.MOUSE_UP_INSIDE_EVENT				= "PIXEL_MOUSE_UP_INSIDE_EVENT";
 
 //Tween Types
 /*
@@ -348,10 +349,14 @@ Pixel.Font = function(family) {
 	}
 }
 
+
 //-------------------------------------------------------
 Pixel.Font.prototype.setFamily = function(family) {
 	this.fontFamily = fontName;
+	
+	return this;
 }
+
 
 //-------------------------------------------------------
 Pixel.Font.prototype.getFamily = function(family) {
@@ -362,6 +367,8 @@ Pixel.Font.prototype.getFamily = function(family) {
 //-------------------------------------------------------
 Pixel.Font.prototype.setBaseline = function(baseline) {
 	this.baseline = baseline;
+	
+	return this;
 }
 
 
@@ -370,6 +377,7 @@ Pixel.Font.prototype.getTextWidth = function(text, size) {
 	Pixel.FontSizeCvs.setFont(this.fontFamily, size);
 	return Pixel.FontSizeCvs.getTextWidth(text);
 }
+
 
 //-------------------------------------------------------
 Pixel.Font.prototype.getTextHeight = function(text, size) {
@@ -405,6 +413,7 @@ Pixel.Font.prototype.getTextHeight = function(text, size) {
 	
 	return result;
 }
+
 
 //-------------------------------------------------------
 Pixel.Font.prototype.getTextMetrics = function(text, size) {
@@ -690,6 +699,7 @@ Pixel.Object.prototype.update = function() {
 	}
 }
 
+
 //-------------------------------------------------------
 //Draws the object, then it's children.
 Pixel.Object.prototype.drawTree = function() {
@@ -713,8 +723,11 @@ Pixel.Object.prototype.drawTree = function() {
 	}
 }
 
+
 //-------------------------------------------------------
+//Only for inheritance, poObject base class only draws children
 Pixel.Object.prototype.draw = function() {}
+
 
 //-------------------------------------------------------
 Pixel.Object.prototype.setCanvas = function(canvas) {
@@ -726,56 +739,14 @@ Pixel.Object.prototype.setCanvas = function(canvas) {
 	}
 }
 
+
 //-------------------------------------------------------
 Pixel.Object.prototype.getCanvas = function() {
 	return this.canvas;
 }
 
-//-------------------------------------------------------
-Pixel.Object.prototype.setVisible = function(isVisible) {
-	this.visible = isVisible;
-}
 
-//-------------------------------------------------------
-Pixel.Object.prototype.isVisible = function() {
-	return this.visible;
-}
 
-//-------------------------------------------------------
-//! Transformation
-
-//-------------------------------------------------------
-//Sets the rotation, scale and position
-Pixel.Object.prototype.setTransformation = function() {
-	this.canvas.pushMatrix();
-	
-	this.canvas.translate(this.position.x + this.offset.x, this.position.y + this.offset.y, 0);
-	this.canvas.rotate(this.rotation);
-	this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
-	
-	mat4.copy(this.matrix, this.canvas.getTransformation());
-}
-
-//-------------------------------------------------------
-//Returns the transformation to its previous state
-Pixel.Object.prototype.unsetTransformation = function() {
-	this.canvas.popMatrix();
-}
-
-//-------------------------------------------------------
-//Returns the transformation to its previous state
-Pixel.Object.prototype.getWorldMatrix = function() {
-/*
-	var parentMatrix;
-
-    if ( this.parent == null)
-        return mat4.identity();
-
-    parentMatrix = this.parent.getWorldMatrix();
-    
-    return mat4.multiply( parentMatrix, this.matrix );
-*/
-}
 
 //-------------------------------------------------------
 //! Children
@@ -797,6 +768,8 @@ Pixel.Object.prototype.addChild = function(childObject) {
 		childObject.setCanvas(this.cache);
 		this.doCaching();
 	}
+	
+	return this;
 }
 
 
@@ -911,6 +884,65 @@ Pixel.Object.prototype.getParent = function() {
 }
 
 
+
+//-------------------------------------------------------
+//! Visibility
+
+//-------------------------------------------------------
+Pixel.Object.prototype.setVisible = function(isVisible) {
+	this.visible = isVisible;
+}
+
+
+//-------------------------------------------------------
+//TODO Implement draw tree, shoud go up to check parents
+Pixel.Object.prototype.isVisible = function() {
+	return this.visible;
+}
+
+
+
+//-------------------------------------------------------
+//! Transformation
+
+//-------------------------------------------------------
+//Sets the rotation, scale and position
+Pixel.Object.prototype.setTransformation = function() {
+	this.canvas.pushMatrix();
+	
+	this.canvas.translate(this.position.x , this.position.y, 0);
+	this.canvas.rotate(this.rotation);
+	this.canvas.scale(this.scaleAmount.x, this.scaleAmount.y);
+	
+	this.canvas.translate(this.offset.x , this.offset.y, 0);
+	
+	mat4.copy(this.matrix, this.canvas.getTransformation());
+}
+
+
+//-------------------------------------------------------
+//Returns the transformation to its previous state
+Pixel.Object.prototype.unsetTransformation = function() {
+	this.canvas.popMatrix();
+}
+
+
+
+//-------------------------------------------------------
+//Rotation
+Pixel.Object.prototype.setRotation = function(rotation) {
+	this.rotation = rotation;
+	return this;
+}
+
+
+//-------------------------------------------------------
+Pixel.Object.prototype.getRotation = function() {
+	return this.rotation;
+}
+
+
+
 //-------------------------------------------------------
 //! Size
 //-------------------------------------------------------
@@ -933,6 +965,21 @@ Pixel.Object.prototype.getSize = function() {
 }
 
 
+
+//-------------------------------------------------------
+//! Position
+Pixel.Object.prototype.setPosition = function(x,y,z) {
+	this.position.set(x,y,z);
+	
+	return this;
+}
+
+
+Pixel.Object.prototype.getPosition = function() {
+	return this.position;
+}
+
+
 //-------------------------------------------------------
 //! Bounds
 //-------------------------------------------------------
@@ -942,6 +989,7 @@ Pixel.Object.prototype.getBounds = function() {
 	this.calculateBounds();
 	return this.bounds;
 }
+
 
 //-------------------------------------------------------
 Pixel.Object.prototype.calculateBounds = function() {
@@ -957,15 +1005,20 @@ Pixel.Object.prototype.calculateBounds = function() {
 	}
 }
 
+
 //-------------------------------------------------------
 Pixel.Object.prototype.setDrawBounds = function(shouldDrawBounds) {
 	this.shouldDrawBounds = shouldDrawBounds;
+	
+	return this;
 }
+
 
 //-------------------------------------------------------
 Pixel.Object.prototype.getDrawBounds = function() {
 	return this.shouldDrawBounds;
 }
+
 
 //-------------------------------------------------------
 Pixel.Object.prototype.drawBounds = function() {
@@ -991,6 +1044,8 @@ Pixel.Object.prototype.drawBounds = function() {
 //-------------------------------------------------------
 Pixel.Object.prototype.setAlignment = function(alignment) {
 	this.alignment = alignment;
+	
+	return this;
 }
 
 
@@ -1036,6 +1091,9 @@ Pixel.Object.prototype.calculateOffset = function() {
 	}
 }
 
+
+
+
 //-------------------------------------------------------
 //! Caching
 //-------------------------------------------------------
@@ -1065,7 +1123,10 @@ Pixel.Object.prototype.setCaching = function(shouldCache) {
 		//Free up the cache
 		delete this.cache;
 	}
+	
+	return this;
 }
+
 
 //-------------------------------------------------------
 Pixel.Object.prototype.createCache = function() {
@@ -1075,6 +1136,7 @@ Pixel.Object.prototype.createCache = function() {
 	this.cache.setSize(this.getWidth() * window.devicePixelRatio, this.getHeight() * window.devicePixelRatio);
 }
 
+
 //-------------------------------------------------------
 Pixel.Object.prototype.updateCache = function() {
 	if(!this.isCaching) {
@@ -1082,8 +1144,9 @@ Pixel.Object.prototype.updateCache = function() {
 	}
 	
 	this.doCaching();
+	
+	return this;
 }
-
 
 
 //-------------------------------------------------------
@@ -1103,6 +1166,9 @@ Pixel.Object.prototype.doCaching = function() {
 	this.cache.popMatrix();
 }
 
+
+
+
 //-------------------------------------------------------
 //! Events
 //-------------------------------------------------------
@@ -1119,21 +1185,28 @@ Pixel.Object.prototype.getLocalPosition = function(globalPosition) {
 	return new Pixel.Point(localPosition[0], localPosition[1], 0);
 }
 
+
 //-------------------------------------------------------
 Pixel.Object.prototype.addEvent = function(event, responder, data) {
 	Pixel.EventCenter.addListener(event, this, responder, data);
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.Object.prototype.removeEvents = function(event) {
 	Pixel.EventCenter.removeListener(this, event);
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.Object.prototype.removeAllEvents = function() {
 	Pixel.EventCenter.removeAllListeners(this);
+	
+	return this;
 }
 
 
@@ -1179,37 +1252,55 @@ Pixel.Shape2D.prototype.addChild = function(child) {
 	Pixel.log("Error: Children cannot be added to a shape object");
 }
 
+
+
+
+
 //-------------------------------------------------------
 //! Fill
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.enableFill = function() {
 	this.fillEnabled = true;
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.disableFill = function() {
 	this.fillEnabled = false;
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.setFillColor = function(r,g,b,a) {
 	this.fillColor.set(r,g,b,a);
+	
+	return this;
 }
+
+
+
+
 
 //-------------------------------------------------------
 //! Stroke
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.enableStroke = function() {
 	this.strokeEnabled = true;
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.disableStroke = function() {
 	this.strokeEnabled = false;
+	
+	return this;
 }
 
 
@@ -1217,13 +1308,20 @@ Pixel.Shape2D.prototype.disableStroke = function() {
 Pixel.Shape2D.prototype.setStrokeSize = function(size) {
 	this.strokeSize = size;
 	this.strokeEnabled = true;
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.setStrokeColor = function(r,g,b,a) {
 	this.strokeColor.set(r,g,b,a);
+	
+	return this;
 }
+
+
+
 
 
 //-------------------------------------------------------
@@ -1236,6 +1334,8 @@ Pixel.Shape2D.prototype.getWidth = function() {
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.setWidth = function(width) {
 	this.width = width;
+	
+	return this;
 }
 
 
@@ -1248,6 +1348,8 @@ Pixel.Shape2D.prototype.getHeight = function() {
 //-------------------------------------------------------
 Pixel.Shape2D.prototype.setHeight = function(height) {
 	this.height = height;
+	
+	return this;
 }
 
 
@@ -1261,7 +1363,13 @@ Pixel.Shape2D.prototype.getSize = function() {
 Pixel.Shape2D.prototype.setSize = function(width, height) {
 	this.setWidth(width);
 	this.setHeight(height);
+	
+	return this;
 }
+
+
+
+
 
 //-------------------------------------------------------
 //! Bounds
@@ -1290,6 +1398,7 @@ Pixel.RectShape.prototype.pointInside = function(position) {
 	
 	return false;
 }
+
 
 //-------------------------------------------------------
 Pixel.RectShape.prototype.draw = function() {
@@ -1326,6 +1435,7 @@ console.log(position);
 	
 	return false;
 }
+
 
 //-------------------------------------------------------
 Pixel.EllipseShape.prototype.draw = function() {
@@ -1429,6 +1539,7 @@ Pixel.ImageShape.prototype.draw = function() {
 	}
 }
 
+
 //-------------------------------------------------------
 //Chage the image to a 2D Canvas containing the image
 //so we can access pixels, only done if necessary
@@ -1467,132 +1578,7 @@ Pixel.ImageShape.prototype.setPixels = function(pixels) {
 	
 	this.imageData.data = pixels;
 	this.image.getContext('2d').putImageData(this.imageData, 0, 0);
-}
-
-/*
-Pixel.Image = Pixel.Object.extend({
-	init: function(url) {
-		this._super();
-	
-		this.bAllocated = false;
-		this.canvas		= null;
-		
-		this.image		= null;
-		this.imageData	= null;
-		this.bLoaded	= false;
-		
-		//Texture is only set from webgl renderer
-		//And is loaded 
-		this.texture		= null;
-		
-		//Load image if URL is set
-		if(url != undefined) this.load(url);
-	},
-	
-	
-	//-------------------------------------------------------
-	load: function(src) {
-		this.clear();
-		
-		this.image = new Image();
-		
-		this.image.addEventListener("load", function() { 
-			this.bLoaded = true;
-			this.dispatch("loaded", this);
-			
-			//Get Size of Image
-			this.setSize(this.image.width, this.image.height);
-		}.bind(this));
-		
-		
-		this.image.addEventListener("error", function() {
-			console.log("Could not load image from '" + url + "'");
-		});
-		
-		
-		this.image.src = src;
-	},
-	
-	
-	//-------------------------------------------------------
-	isLoaded: function() {
-		return this.bLoaded;
-	},
-	
-	
-	//-------------------------------------------------------
-	clear: function() {
-		this.bLoaded	= false;
-		this.pixels		= null;
-		this.imageData	= null;
-		this.image		= null;
-	},
-	
-	
-	//-------------------------------------------------------
-	setSize: function(width, height) {
-		this._super(width, height);
-		
-		if(this.bAllocated == false) {			
-			//Get Canvas Ref
-			this.canvas = document.createElement('canvas');
-			this.ctx = this.canvas.getContext('2d');
-			this.imageData = this.ctx.getImageData(0,0,this.getWidth(), this.getHeight());
-		}
-		
-		
-		this.canvas.setAttribute("width", this.width);
-		this.canvas.setAttribute("height", this.height);
-	},
-	
-	
-	//-------------------------------------------------------
-	getImageData: function() {
-		return this.imageData;
-	},
-	
-	
-	//-------------------------------------------------------
-	getPixels: function() {
-		if(this.bLoaded) {			
-			this.ctx.drawImage(this.image, 0,0);
-			this.imageData	= this.ctx.getImageData(0,0,this.size.width, this.size.height)
-			this.pixels		= this.imageData.data;
-			return this.pixels;
-		}
-		
-		return null;
-	},
-	
-	
-	//-------------------------------------------------------
-	setFromPixels: function(pixels, width, height){
-		this.clear();
-		
-		//Resize the Canvas, get the new image data obj
-		this.setSize(width, height);
-		this.imageData	= this.ctx.getImageData(0,0,this.size.width, this.size.height);
-		this.pixels		= this.imageData.data;
-		
-		//Copy pixels into image data
-		var i=pixels.length;
-		while(i--) this.pixels[i] = pixels[i];
-		
-		//Draw Data back into the canvas object
-		this.ctx.putImageData(this.imageData, 0,0);
-		
-		//Store info as an IMG, drawing using drawImage() is WAY faster than putImageData()
-		this.image = new Element("img");  
-		this.image.addEvent("load", function() {
-			this.image.removeEvent("load");
-			this.dispatch("loaded", this);
-			this.bLoaded = true;
-		}.bind(this));
-		
-		this.image.src = this.canvas.toDataURL("image/png");
-	}
-});*/
-//-------------------------------------------------------
+}//-------------------------------------------------------
 //Pixel.TextField.js
 //Font class with added capabilities like position, size, etc
 Pixel.TextField = function(font) {
@@ -1636,7 +1622,10 @@ Pixel.TextField.prototype = Object.create(Pixel.Shape2D.prototype);
 //-------------------------------------------------------
 Pixel.TextField.prototype.setUseTextBounds = function(useTextBounds) {
 	this.useTextBounds = useTextBounds;
+	
+	return this;
 }
+
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.getUseTextBounds = function(useTextBounds) {
@@ -1653,6 +1642,7 @@ Pixel.TextField.prototype.getWidth = function() {
 	}
 }
 
+
 //-------------------------------------------------------
 Pixel.TextField.prototype.getHeight = function() {
 	if(this.useTextBounds) {
@@ -1662,6 +1652,7 @@ Pixel.TextField.prototype.getHeight = function() {
 	}
 }
 
+
 //-------------------------------------------------------
 Pixel.TextField.prototype.getBounds = function() {
 	this.calculateOffset();
@@ -1670,9 +1661,10 @@ Pixel.TextField.prototype.getBounds = function() {
 }
 
 
+
+
 //-------------------------------------------------------
 //!Text Properties
-
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.setFont = function(font) {
@@ -1681,24 +1673,32 @@ Pixel.TextField.prototype.setFont = function(font) {
 	} else {
 		Pixel.log("Not a valid Pixel font object.");
 	}
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.setTextColor = function(r,g,b,a) {
 	this.textColor.set(r,g,b,a);
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.setTextSize = function(size) {
 	this.textSize = size;
+	
+	return this;
 }
 
 
 //-------------------------------------------------------
 Pixel.TextField.prototype.setTextAlignment = function(textAlignment) {
 	this.textAlignment = textAlignment;
+	
+	return this;
 }
 
 
@@ -1711,6 +1711,8 @@ Pixel.TextField.prototype.getTextAlignment = function() {
 //-------------------------------------------------------
 Pixel.TextField.prototype.setLeading = function(leading) {
 	this.leading = leading;
+	
+	return this;
 }
 
 
@@ -1723,6 +1725,8 @@ Pixel.TextField.prototype.getLeading = function() {
 //-------------------------------------------------------
 Pixel.TextField.prototype.setHideOverflow = function(hideOverflow) {
 	this.hideOverflow = hideOverflow;
+	
+	return this;
 }
 
 
@@ -1735,6 +1739,8 @@ Pixel.TextField.prototype.getText = function(text) {
 //-------------------------------------------------------
 Pixel.TextField.prototype.setText = function(text) {
 	this.text = text.toString();
+	
+	return this;
 }
 
 
@@ -1804,6 +1810,8 @@ Pixel.TextField.prototype.doLayout = function() {
 	
 	//Set the final width & height of the text (no leading)
 	this.calculateTextBounds();
+	
+	return this;
 }
 
 
@@ -1843,6 +1851,7 @@ Pixel.TextField.prototype.newLine = function() {
 		metrics: null
 	}
 }
+
 
 //-------------------------------------------------------
 //Calculate the width of the text box based on the widest line
@@ -1904,11 +1913,12 @@ Pixel.Event.prototype.stopPropogation = function() {
 
 //----------------------------------------
 //!MOUSE EVENT
-Pixel.MouseEvent = function() {
+Pixel.MouseEvent = function(type, position) {
 	Pixel.Event.call(this);
 	
-	this.position		= null;
-	this.localPosition	= null;
+	this.type			= type;
+	this.position		= position;
+	this.localPosition	= null; //Set in Event Handler
 }
 
 Pixel.MouseEvent.prototype = Object.create(Pixel.Event.prototype);
@@ -1919,7 +1929,8 @@ Pixel.isMouseEvent = function(eventType) {
 	if(	eventType == Pixel.MOUSE_DOWN_EVENT			||
 		eventType == Pixel.MOUSE_DOWN_INSIDE_EVENT	||
 		eventType == Pixel.MOUSE_MOVE_EVENT 		||
-		eventType == Pixel.MOUSE_UP_EVENT) 
+		eventType == Pixel.MOUSE_UP_EVENT 			||
+		eventType == Pixel.MOUSE_UP_INSIDE_EVENT)
 	{
 		return true;
 	};
@@ -2029,7 +2040,7 @@ Pixel.EventCenter.dispatchEvents = function(canvas) {
 						
 						if(Pixel.isMouseEvent(thisEvent.type)) {
 							this.handleMouseEvent(thisEvent, listeningObject, responder);
-						} 
+						}
 					}
 				} else {
 					break;
@@ -2050,9 +2061,10 @@ Pixel.EventCenter.dispatchEvents = function(canvas) {
 Pixel.EventCenter.handleMouseEvent = function(event, object, responder) {
 	//Send basic event
 	event.localPosition = object.getLocalPosition(event.position);
-	console.log(object);
+	
 	switch(event.type) {
 		case Pixel.MOUSE_DOWN_INSIDE_EVENT:
+		case Pixel.MOUSE_UP_INSIDE_EVENT:
 			if(!object.pointInside(event.localPosition)) {
 				return;
 			}
@@ -2438,27 +2450,21 @@ Pixel.Canvas.prototype.mouseDownListener = function(e) {
 	//Get Position of Event
 	var position = Pixel.getRelativeMouseCoords(e, this.element);
 	
-	var downEvent		= new Pixel.MouseEvent;
-	downEvent.type		= Pixel.MOUSE_DOWN_EVENT;
-	downEvent.position	= position;
-	
-	var downInsideEvent			= new Pixel.MouseEvent;
-	downInsideEvent.type		= Pixel.MOUSE_DOWN_INSIDE_EVENT;
-	downInsideEvent.position	= position;
-	
+	var downEvent		= new Pixel.MouseEvent(Pixel.MOUSE_DOWN_EVENT, position);
 	Pixel.EventCenter.queueEvent(downEvent, this);
+	
+	var downInsideEvent = new Pixel.MouseEvent(Pixel.MOUSE_DOWN_INSIDE_EVENT, position);
 	Pixel.EventCenter.queueEvent(downInsideEvent, this);
 };
 
 
 //-------------------------------------------------------
 Pixel.Canvas.prototype.mouseMovedListener = function(e) {
-	if(this.bMouseDown) {
-		//this.mouseDraggedListener(e);
-	}
-	
 	//Get Position of Event
 	var position = Pixel.getRelativeMouseCoords(e, this.element);
+	
+	var moveEvent = new Pixel.MouseEvent(Pixel.MOUSE_MOVE_EVENT, position);
+	Pixel.EventCenter.queueEvent(moveEvent, this);
 };
 
 
@@ -2468,6 +2474,12 @@ Pixel.Canvas.prototype.mouseUpListener = function(e) {
 	
 	//Get Position of Event
 	var position = Pixel.getRelativeMouseCoords(e, this.element);
+	
+	var upEvent = new Pixel.MouseEvent(Pixel.MOUSE_UP_EVENT, position);
+	Pixel.EventCenter.queueEvent(upEvent, this);
+	
+	var upInsideEvent = new Pixel.MouseEvent(Pixel.MOUSE_UP_INSIDE_EVENT, position);
+	Pixel.EventCenter.queueEvent(upInsideEvent, this);
 };
 
 
