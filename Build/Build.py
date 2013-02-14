@@ -4,10 +4,6 @@ import http.client ,urllib.request, urllib.parse, urllib.error
 from urllib.parse import urlencode
 import sys
 
-bCompress = False
-if len(sys.argv) > 1:
-	bCompress = True
-
 # Always use the following value for the Content-type header.
 headers = { "Content-type": "application/x-www-form-urlencoded" }
 conn = http.client.HTTPConnection('closure-compiler.appspot.com')
@@ -104,17 +100,34 @@ def addFile(inputFile, combinedFile):
 
 
 
-#Combine Files
-with open("Pixel.js", 'w') as combinedFile:
-	for file in files:
-		addFile(file, combinedFile)
+#------------------------------------------------------------
+#APPLICATION
+
+if len(sys.argv) > 1 and (sys.argv[1] == "DEBUG" or sys.argv[1] == "RELEASE"):
+	#Combine Files
+	with open("Pixel.js", 'w') as combinedFile:
+		for file in files:
+			addFile(file, combinedFile)
+		
+	#Compress
+	if sys.argv[1]=="RELEASE":
+		compressFile("Pixel.js")
 	
-#Compress
-if bCompress:
-	compressFile("Pixel.js")
-	print("Compress lib built!")
+	#Done
+	print(sys.argv[1] + " lib built!")
 else:
-	print("Uncompressed lib built!")
+	print("Please specify DEBUG or RELEASE")
+	
+
+
+
+
+
+
+
+
+
+
 
 #Copy libs
 #shutil.copyfile(libs + "gl-matrix/gl-matrix-min.js", "libs/gl-matrix-min.js");
@@ -123,16 +136,16 @@ else:
 
 
 
-#------------------------------------------------------------
-#Loop through directory, add all js
-def addFiles(dir, combinedFile):
-	#with open(file, 'w') as combinedFile:
-		for root, subFolders, files in os.walk(dir):
-			for filename in files:
-				if(filename.endswith('.js')):
-					inputFile		= os.path.join(root, filename)
-					inputContent	= open(inputFile,'r').read()
-					combinedFile.write(inputContent)
+# #------------------------------------------------------------
+# #Loop through directory, add all js
+# def addFiles(dir, combinedFile):
+# 	#with open(file, 'w') as combinedFile:
+# 		for root, subFolders, files in os.walk(dir):
+# 			for filename in files:
+# 				if(filename.endswith('.js')):
+# 					inputFile		= os.path.join(root, filename)
+# 					inputContent	= open(inputFile,'r').read()
+# 					combinedFile.write(inputContent)
 
 # #Combine all JS
 # with open("Pixel.js",'w') as combinedFile:
