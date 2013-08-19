@@ -26,12 +26,19 @@ Pixel.Color.prototype.init = function(r,g,b,a) {
 
 //-------------------------------------------------------
 Pixel.Color.prototype.set = function(r,g,b,a) {
-	if(r != undefined) this.r = r;
-	if(g != undefined) this.g = g;
-	if(b != undefined) this.b = b;
-	
-	this.a = a != undefined ? a : 1;
-};
+	if(r instanceof Pixel.Color) {
+		this.r = r.r;
+		this.g = r.g;
+		this.b = r.b;
+		this.a = r.a;
+	} else {
+		if(r != undefined) this.r = r;
+		if(g != undefined) this.g = g;
+		if(b != undefined) this.b = b;
+		
+		this.a = a != undefined ? a : 1;
+	}
+}
 	
 	
 //-------------------------------------------------------

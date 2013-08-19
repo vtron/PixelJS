@@ -417,7 +417,10 @@ Pixel.Object.prototype.drawBounds = function() {
 
 //-------------------------------------------------------
 Pixel.Object.prototype.pointInside = function(position) {
-	if(position.x > 0 && position.x < this.getWidth() && position.y > 0 && position.y < this.getHeight()) {
+	if(position.x >= this.getBounds().x 
+		&& position.x < this.getBounds().x + this.getWidth() 
+		&& position.y > this.getBounds().y 
+		&& position.y < this.getBounds().y + this.getHeight()) {
 		return true;
 	}
 	

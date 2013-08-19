@@ -8,15 +8,6 @@ Pixel.EllipseShape = function() {
 
 Pixel.EllipseShape.prototype = Object.create(Pixel.Shape2D.prototype);
 
-//-------------------------------------------------------
-Pixel.EllipseShape.prototype.pointInside = function(position) {
-	if(position.x > 0 && position.x < this.getWidth() && position.y > 0 && position.y < this.getHeight()) {
-		return true;
-	}
-	
-	return false;
-}
-
 
 //-------------------------------------------------------
 Pixel.EllipseShape.prototype.draw = function() {
