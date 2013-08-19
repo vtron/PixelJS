@@ -10,7 +10,7 @@ Pixel.EllipseShape.prototype = Object.create(Pixel.Shape2D.prototype);
 
 //-------------------------------------------------------
 Pixel.EllipseShape.prototype.pointInside = function(position) {
-	if(position.x < this.getWidth() && position.y < this.getHeight()) {
+	if(position.x > 0 && position.x < this.getWidth() && position.y > 0 && position.y < this.getHeight()) {
 		return true;
 	}
 	
