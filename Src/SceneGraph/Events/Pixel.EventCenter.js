@@ -141,6 +141,7 @@ Pixel.EventCenter.dispatchEvents = function(canvas) {
 Pixel.EventCenter.handleMouseEvent = function(event, object, responder) {
 	//Send basic event
 	event.localPosition = object.getLocalPosition(event.position);
+	event.source 		= object;
 	
 	switch(event.type) {
 		case Pixel.MOUSE_DOWN_INSIDE_EVENT:

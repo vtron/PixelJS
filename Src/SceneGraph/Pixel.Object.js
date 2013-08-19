@@ -20,6 +20,8 @@ Pixel.Object = function() {
 	this.alignment			= Pixel.ALIGNMENT_TOP_LEFT;
 	this.scaleAmount		= new Pixel.Point(1,1,0);
 	this.rotation			= 0;
+
+	this.alpha				= 1.0;
 	
 	this.cache				= null;
 	this.isCaching			= false;
@@ -45,9 +47,10 @@ Pixel.Object.prototype.update = function() {
 //-------------------------------------------------------
 //Draws the object, then it's children.
 Pixel.Object.prototype.drawTree = function() {
-	if(this.canvas && this.visible) {
+	if(this.canvas && this.visible && this.alpha > 0.0) {
 		this.calculateOffset();
 		this.setTransformation();
+		this.pushAlpha();
 		
 		this.drawOrder = this.canvas.getNextDrawOrder();
 		
@@ -62,6 +65,7 @@ Pixel.Object.prototype.drawTree = function() {
 		}
 		
 		this.unsetTransformation();
+		this.popAlpha();
 	}
 }
 
@@ -245,6 +249,26 @@ Pixel.Object.prototype.isVisible = function() {
 
 
 //-------------------------------------------------------
+//! Alpha
+
+//-------------------------------------------------------
+Pixel.Object.prototype.setAlpha = function(alpha) {
+	this.alpha = alpha;
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.pushAlpha = function() {
+	this.getCanvas().setAlpha(this.getCanvas().getAlpha() * this.alpha);
+}
+
+//-------------------------------------------------------
+Pixel.Object.prototype.popAlpha = function() {
+	this.getCanvas().setAlpha(this.getCanvas().getAlpha() / this.alpha);
+}
+
+
+
+//-------------------------------------------------------
 //! Transformation
 
 //-------------------------------------------------------
@@ -296,8 +320,20 @@ Pixel.Object.prototype.getWidth = function() {
 
 
 //-------------------------------------------------------
+Pixel.Object.prototype.getScaledWidth = function() {
+	return this.bounds.width * this.scaleAmount.x;
+}
+
+
+//-------------------------------------------------------
 Pixel.Object.prototype.getHeight = function() {
 	return this.bounds.height;
+}
+
+
+//-------------------------------------------------------
+Pixel.Object.prototype.getScaledHeight = function() {
+	return this.bounds.height * this.scaleAmount.y;
 }
 
 
@@ -376,6 +412,16 @@ Pixel.Object.prototype.drawBounds = function() {
 	this.canvas.noStroke();
 	
 	this.canvas.drawRect(-2, -2, 4,4);
+}
+
+
+//-------------------------------------------------------
+Pixel.Object.prototype.pointInside = function(position) {
+	if(position.x > 0 && position.x < this.getWidth() && position.y > 0 && position.y < this.getHeight()) {
+		return true;
+	}
+	
+	return false;
 }
 
 

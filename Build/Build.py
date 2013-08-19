@@ -18,6 +18,9 @@ files = []
 #Pixel
 files.append(src + "Pixel.js")
 
+#Libs
+files.append(libs + "gl-matrix-min.js");
+
 #Src
 #Utils
 files.append(src + "Utils/Pixel.Constants.js")

@@ -59,6 +59,17 @@ Pixel.Renderer2D.prototype.clear = function(x,y,width,height) {
 //!STYLES
 
 
+
+//-------------------------------------------------------
+Pixel.Renderer2D.prototype.setAlpha = function(a) {
+	this.ctx.globalAlpha = a;
+}
+
+//-------------------------------------------------------
+Pixel.Renderer2D.prototype.getAlpha = function() {
+	return this.ctx.globalAlpha;
+}
+
 //-------------------------------------------------------
 Pixel.Renderer2D.prototype.setFillColor = function(r,g,b,a) {
 	this.ctx.fillStyle = Pixel.getColorAsRGBAString(r,g,b,a);

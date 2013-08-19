@@ -139,6 +139,18 @@ Pixel.Canvas.prototype.setBackgroundColor = function(r,g,b,a) {
 
 
 //-------------------------------------------------------
+Pixel.Canvas.prototype.setAlpha = function(a) {
+	this.renderer.setAlpha(a);
+}
+
+
+//-------------------------------------------------------
+Pixel.Canvas.prototype.getAlpha = function(a) {
+	return this.renderer.getAlpha();
+}
+
+
+//-------------------------------------------------------
 Pixel.Canvas.prototype.clear =  function(x,y,width,height) { 
 	this.renderer.clear(x,y,width,height); 
 };

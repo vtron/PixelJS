@@ -32,9 +32,6 @@ Pixel.Shape2D.prototype.addChild = function(child) {
 }
 
 
-
-
-
 //-------------------------------------------------------
 //! Fill
 

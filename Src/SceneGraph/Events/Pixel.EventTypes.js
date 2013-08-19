@@ -5,8 +5,8 @@
 //----------------------------------------
 //!GENERIC EVENT
 Pixel.Event = function() {
-	this.type = null;
-	this.data = null;
+	this.type 	= null;
+	this.data 	= null;
 	
 	this.propogate = true;
 }

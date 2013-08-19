@@ -8,16 +8,6 @@ Pixel.RectShape = function() {
 
 Pixel.RectShape.prototype = Object.create(Pixel.Shape2D.prototype);
 
-//-------------------------------------------------------
-Pixel.RectShape.prototype.pointInside = function(position) {
-	console.log(position);
-	if(position.x > 0 && position.x < this.getWidth() && position.y > 0 && position.y < this.getHeight()) {
-		return true;
-	}
-	
-	return false;
-}
-
 
 //-------------------------------------------------------
 Pixel.RectShape.prototype.draw = function() {
