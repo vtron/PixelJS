@@ -26,8 +26,8 @@ Pixel.ImageShape.prototype.load = function(image) {
 		
 		//Just keep a reference if it is already loaded
 		else if(image.tagName == "CANVAS" || image instanceof Image) {
-			this.image = image;
-			this.width = this.image.width;
+			this.image 	= image;
+			this.width 	= this.image.width;
 			this.height	= this.image.height;
 		}
 		
@@ -44,10 +44,15 @@ Pixel.ImageShape.prototype.load = function(image) {
 					self.width		= this.width;
 					self.height		= this.height;
 				}
+
+				this.calculateBounds();
 			}
 			
 			this.image.src = image;
 		}
+
+		this.calculateBounds();
+		if(this.parent != undefined) this.parent.calculateBounds();
 	}
 }
 
@@ -78,6 +83,12 @@ Pixel.ImageShape.prototype.draw = function() {
 		
 		this.canvas.popMatrix();
 	}
+}
+
+
+//-------------------------------------------------------
+Pixel.ImageShape.prototype.calculateBounds = function() {
+	this.bounds.set(0,0,this.width, this.height);
 }
 
 
