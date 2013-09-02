@@ -23,7 +23,10 @@ Pixel.Renderer2D = function(canvas) {
 
 
 //-------------------------------------------------------
-Pixel.Renderer2D.prototype.setSize = function(width, height) {};
+Pixel.Renderer2D.prototype.setSize = function(width, height) {
+	this.ctx.canvas.width  = width;
+	this.ctx.canvas.height = height;
+};
 
 
 //-------------------------------------------------------
