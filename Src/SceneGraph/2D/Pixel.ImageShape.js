@@ -25,7 +25,7 @@ Pixel.ImageShape.prototype.load = function(image) {
 		} 
 		
 		//Just keep a reference if it is already loaded
-		else if(image.tagName == "CANVAS" || image instanceof Image) {
+		else if(image.tagName == "CANVAS" || image instanceof Image || image instanceof HTMLImageElement) {
 			this.image 	= image;
 			this.width 	= this.image.width;
 			this.height	= this.image.height;
@@ -45,7 +45,7 @@ Pixel.ImageShape.prototype.load = function(image) {
 					self.height		= this.height;
 				}
 
-				this.calculateBounds();
+				self.calculateBounds();
 			}
 			
 			this.image.src = image;
