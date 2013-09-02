@@ -372,6 +372,7 @@ Pixel.Object.prototype.getBounds = function() {
 //-------------------------------------------------------
 Pixel.Object.prototype.calculateBounds = function() {
 	this.bounds.set(0,0,0,0);
+	
 	var childBounds = new Pixel.Rect(0,0,0,0);
 	for(var i=0; i<this.children.length; i++) {
 		var r = this.children[i].getBounds();
@@ -565,7 +566,20 @@ Pixel.Object.prototype.doCaching = function() {
 //-------------------------------------------------------
 
 //-------------------------------------------------------
-Pixel.Object.prototype.getLocalPosition = function(globalPosition) {
+Pixel.Object.prototype.localToGlobal = function(localPosition) {
+	var localPosition	= vec3.fromValues(localPosition.x, localPosition.y, localPosition.z);
+	var globalPosition	= vec3.create();
+	
+	var localMatrix = mat4.clone(this.matrix);
+	mat4.invert(localMatrix, localMatrix);
+	vec3.transformMat4(globalPosition, localPosition, localMatrix);
+	
+	return new Pixel.Point(localPosition[0], localPosition[1], 0);
+}
+
+
+//-------------------------------------------------------
+Pixel.Object.prototype.globalToLocal = function(globalPosition) {
 	var globalPosition	= vec3.fromValues(globalPosition.x, globalPosition.y, globalPosition.z);
 	var localPosition	= vec3.create();
 	
